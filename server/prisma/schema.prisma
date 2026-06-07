@@ -6,3 +6,190 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum UserRoleName {
+  ORGANIZER
+  PLAYER
+}
+
+enum GameGenre {
+  MMORPG
+  MOBA
+  FPS
+  RPG
+  SURVIVAL
+  STRATEGY
+  SPORTS
+  OTHER
+}
+
+enum EventStatus {
+  DRAFT
+  OPEN
+  FULL
+  CLOSED
+  COMPLETED
+  CANCELLED
+}
+
+enum RegistrationStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  NOT_MARKED
+  PRESENT
+  ABSENT
+}
+
+enum ReportKind {
+  EVENT_ATTENDANCE
+  PLAYER_PARTICIPATION
+}
+
+enum ReportFormat {
+  PDF
+  DOCX
+}
+
+enum DeliveryChannel {
+  DOWNLOAD
+  EMAIL
+}
+
+enum ReportStatus {
+  QUEUED
+  GENERATED
+  EMAILED
+  FAILED
+}
+
+model Role {
+  id          Int          @id @default(autoincrement())
+  name        UserRoleName @unique
+  description String
+  users       User[]
+}
+
+model User {
+  id                  Int                  @id @default(autoincrement())
+  username            String               @unique
+  email               String               @unique
+  passwordHash        String
+  displayName         String
+  roleId              Int
+  role                Role                 @relation(fields: [roleId], references: [id])
+  isActive            Boolean              @default(true)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  organizedEvents     Event[]              @relation("OrganizerEvents")
+  registrations       Registration[]
+  availabilityWindows AvailabilityWindow[]
+  requestedReports    ReportRequest[]      @relation("RequestedReports")
+  subjectReports      ReportRequest[]      @relation("SubjectReports")
+}
+
+model Game {
+  id        Int       @id @default(autoincrement())
+  slug      String    @unique
+  title     String    @unique
+  genre     GameGenre
+  platform  String
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  events    Event[]
+}
+
+model Event {
+  id                   Int              @id @default(autoincrement())
+  gameId               Int
+  organizerId          Int
+  title                String
+  description          String           @db.Text
+  serverRegion         String
+  scheduledStart       DateTime
+  scheduledEnd         DateTime
+  registrationDeadline DateTime
+  maxPlayers           Int
+  status               EventStatus
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  game                 Game             @relation(fields: [gameId], references: [id])
+  organizer            User             @relation("OrganizerEvents", fields: [organizerId], references: [id])
+  slots                EventSlot[]
+  registrations        Registration[]
+  reportRequests       ReportRequest[]
+}
+
+model EventSlot {
+  id            Int            @id @default(autoincrement())
+  eventId       Int
+  roleName      String
+  displayOrder  Int
+  requiredCount Int
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  event         Event          @relation(fields: [eventId], references: [id])
+  registrations Registration[]
+
+  @@unique([eventId, roleName])
+  @@unique([eventId, displayOrder])
+}
+
+model Registration {
+  id                Int                @id @default(autoincrement())
+  eventId           Int
+  userId            Int
+  eventSlotId       Int?
+  requestedRoleName String?
+  status            RegistrationStatus
+  attendanceStatus  AttendanceStatus   @default(NOT_MARKED)
+  joinedAt          DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  event             Event              @relation(fields: [eventId], references: [id])
+  user              User               @relation(fields: [userId], references: [id])
+  eventSlot         EventSlot?         @relation(fields: [eventSlotId], references: [id])
+
+  @@unique([eventId, userId])
+}
+
+model AvailabilityWindow {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  dayOfWeek   Int
+  startMinute Int
+  endMinute   Int
+  timezone    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, dayOfWeek])
+}
+
+model ReportRequest {
+  id                Int             @id @default(autoincrement())
+  requestedByUserId Int
+  subjectUserId     Int?
+  eventId           Int?
+  periodStart       DateTime?
+  periodEnd         DateTime?
+  reportKind        ReportKind
+  outputFormat      ReportFormat
+  deliveryChannel   DeliveryChannel
+  recipientEmail    String?
+  status            ReportStatus
+  fileName          String?
+  storagePath       String?
+  requestedAt       DateTime        @default(now())
+  generatedAt       DateTime?
+  emailedAt         DateTime?
+  failedReason      String?
+  requestedBy       User            @relation("RequestedReports", fields: [requestedByUserId], references: [id])
+  subjectUser       User?           @relation("SubjectReports", fields: [subjectUserId], references: [id])
+  event             Event?          @relation(fields: [eventId], references: [id])
+}
