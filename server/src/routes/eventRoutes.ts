@@ -8,6 +8,8 @@ import {
   listEventsQuerySchema,
   updateEventSchema,
 } from '../validators/eventValidator.js';
+import { eventSlotEventParamsSchema } from '../validators/slotValidator.js';
+import { eventSlotNestedRouter } from './slotRoutes.js';
 
 const router = Router();
 
@@ -16,6 +18,11 @@ router.get(
   optionalAuth,
   validateQuery(listEventsQuerySchema),
   asyncHandler(eventController.listEvents),
+);
+router.use(
+  '/:eventId/slots',
+  validateParams(eventSlotEventParamsSchema),
+  eventSlotNestedRouter,
 );
 router.get('/:id', validateParams(eventIdParamsSchema), asyncHandler(eventController.getEventById));
 router.post(
