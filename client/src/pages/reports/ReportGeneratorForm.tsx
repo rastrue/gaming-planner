@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import RadioGroup from '../../components/ui/RadioGroup';
 import SelectDropdown from '../../components/ui/SelectDropdown';
 import TextInput from '../../components/ui/TextInput';
 import { useAuth } from '../../hooks/useAuth';
@@ -53,6 +54,7 @@ function triggerBlobDownload(blob: Blob, fileName: string) {
 
 export interface ReportGeneratorFormProps {
   onReportCreated: (report: ReportRequest) => void;
+  onSuccess?: (message: string) => void;
 }
 
 const reportKindOptions: { value: ReportKind; label: string }[] = [
@@ -70,7 +72,7 @@ const deliveryOptions: { value: DeliveryChannel; label: string }[] = [
   { value: 'EMAIL', label: 'Email delivery' },
 ];
 
-export default function ReportGeneratorForm({ onReportCreated }: ReportGeneratorFormProps) {
+export default function ReportGeneratorForm({ onReportCreated, onSuccess }: ReportGeneratorFormProps) {
   const { user, isOrganizer, isPlayer } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [playerOptions, setPlayerOptions] = useState<{ value: string; label: string }[]>([]);
@@ -212,6 +214,7 @@ export default function ReportGeneratorForm({ onReportCreated }: ReportGenerator
       if (deliveryChannel === 'DOWNLOAD') {
         const download = await reportService.downloadReport(created.id);
         triggerBlobDownload(download.blob, download.fileName);
+        onSuccess?.(`${outputFormat} report downloaded successfully.`);
       } else {
         const emailed = await reportService.emailReport(created.id, {
           recipientEmail: recipientEmail.trim(),
@@ -222,6 +225,8 @@ export default function ReportGeneratorForm({ onReportCreated }: ReportGenerator
           setFormError(emailed.failedReason ?? 'Report was generated but email delivery failed.');
           return;
         }
+
+        onSuccess?.(`Report emailed to ${recipientEmail.trim()}.`);
       }
     } catch (error) {
       if (error instanceof ApiError) {
@@ -325,30 +330,29 @@ export default function ReportGeneratorForm({ onReportCreated }: ReportGenerator
           </>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <SelectDropdown
-            label="Output format"
-            name="outputFormat"
-            value={outputFormat}
-            onChange={(event) => setOutputFormat(event.target.value as ReportFormat)}
-            options={formatOptions.map((option) => ({
-              value: option.value,
-              label: option.label,
-            }))}
-            error={fieldErrors.outputFormat}
-          />
-          <SelectDropdown
-            label="Delivery"
-            name="deliveryChannel"
-            value={deliveryChannel}
-            onChange={(event) => setDeliveryChannel(event.target.value as DeliveryChannel)}
-            options={deliveryOptions.map((option) => ({
-              value: option.value,
-              label: option.label,
-            }))}
-            error={fieldErrors.deliveryChannel}
-          />
-        </div>
+        <RadioGroup
+          legend="Output format"
+          name="outputFormat"
+          value={outputFormat}
+          onChange={(value) => setOutputFormat(value as ReportFormat)}
+          options={formatOptions.map((option) => ({
+            value: option.value,
+            label: option.label,
+          }))}
+          error={fieldErrors.outputFormat}
+        />
+
+        <RadioGroup
+          legend="Delivery"
+          name="deliveryChannel"
+          value={deliveryChannel}
+          onChange={(value) => setDeliveryChannel(value as DeliveryChannel)}
+          options={deliveryOptions.map((option) => ({
+            value: option.value,
+            label: option.label,
+          }))}
+          error={fieldErrors.deliveryChannel}
+        />
 
         {deliveryChannel === 'EMAIL' ? (
           <TextInput

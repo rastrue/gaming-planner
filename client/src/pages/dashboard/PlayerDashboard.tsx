@@ -5,6 +5,7 @@ import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import EmptyState from '../../components/ui/EmptyState';
+import ProgressBar from '../../components/ui/ProgressBar';
 import Spinner from '../../components/ui/Spinner';
 import { useAuth } from '../../hooks/useAuth';
 import * as eventService from '../../services/eventService';
@@ -110,6 +111,14 @@ export default function PlayerDashboard() {
     [events.length, registrations],
   );
 
+  const approvalRate = useMemo(() => {
+    if (registrations.length === 0) {
+      return 0;
+    }
+
+    return Math.round((stats.approvedSessions / registrations.length) * 100);
+  }, [registrations.length, stats.approvedSessions]);
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
@@ -146,6 +155,15 @@ export default function PlayerDashboard() {
             <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.approvedSessions}</p>
           </Card>
         </div>
+      </section>
+
+      <section aria-labelledby="player-progress-heading">
+        <Card title="Participation progress" description="Share of registrations approved by organizers.">
+          <h2 id="player-progress-heading" className="sr-only">
+            Participation progress
+          </h2>
+          <ProgressBar label="Approved registration rate" value={approvalRate} max={100} />
+        </Card>
       </section>
 
       <section aria-labelledby="player-actions-heading">

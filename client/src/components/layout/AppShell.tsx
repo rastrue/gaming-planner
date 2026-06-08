@@ -6,6 +6,7 @@ import type { AppDispatch, RootState } from '../../store/store';
 import { toggleThemeMode } from '../../store/themeSlice';
 import type { UserRoleName } from '../../types/index';
 import IconButton from '../ui/IconButton';
+import Tooltip from '../ui/Tooltip';
 import type { BreadcrumbItem } from '../ui/Breadcrumbs';
 import MobileNavToggle from './MobileNavToggle';
 import OrganizerNav from './OrganizerNav';
@@ -74,13 +75,15 @@ export default function AppShell({
                 {userDisplayName}
               </span>
             ) : null}
-            <IconButton
-              label={themeMode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-              size="sm"
-              onClick={() => dispatch(toggleThemeMode())}
-            >
-              {themeMode === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </IconButton>
+            <Tooltip content="Toggle light and dark theme">
+              <IconButton
+                label={themeMode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+                size="sm"
+                onClick={() => dispatch(toggleThemeMode())}
+              >
+                {themeMode === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </IconButton>
+            </Tooltip>
           </div>
         </div>
       </header>

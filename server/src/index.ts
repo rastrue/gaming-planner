@@ -17,9 +17,29 @@ const app = express();
 const port = Number(process.env.PORT) || 3001;
 const clientOrigin = process.env.CLIENT_ORIGIN ?? 'http://localhost:5173';
 
+function isAllowedOrigin(origin: string | undefined): boolean {
+  if (!origin) {
+    return true;
+  }
+
+  if (origin === clientOrigin) {
+    return true;
+  }
+
+  // Allow alternate Vite dev ports on localhost during development.
+  return /^http:\/\/localhost:517\d$/.test(origin);
+}
+
 app.use(
   cors({
-    origin: clientOrigin,
+    origin(origin, callback) {
+      if (isAllowedOrigin(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
   }),
 );

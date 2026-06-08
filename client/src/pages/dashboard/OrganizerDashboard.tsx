@@ -4,7 +4,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import ChartContainer from '../../components/ui/ChartContainer';
 import EmptyState from '../../components/ui/EmptyState';
+import ProgressBar from '../../components/ui/ProgressBar';
 import Spinner from '../../components/ui/Spinner';
 import { useAuth } from '../../hooks/useAuth';
 import * as eventService from '../../services/eventService';
@@ -120,6 +122,25 @@ export default function OrganizerDashboard() {
     [myEvents, registrations.length],
   );
 
+  const statusBreakdown = useMemo(() => {
+    const counts = new Map<EventStatus, number>();
+    myEvents.forEach((event) => {
+      counts.set(event.status, (counts.get(event.status) ?? 0) + 1);
+    });
+
+    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+  }, [myEvents]);
+
+  const rosterFillRate = useMemo(() => {
+    if (myEvents.length === 0) {
+      return 0;
+    }
+
+    const filled = myEvents.reduce((sum, event) => sum + event._count.registrations, 0);
+    const capacity = myEvents.reduce((sum, event) => sum + event.maxPlayers, 0);
+    return capacity === 0 ? 0 : Math.round((filled / capacity) * 100);
+  }, [myEvents]);
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
@@ -156,6 +177,52 @@ export default function OrganizerDashboard() {
           <Card title="Completed events" description="Finished sessions.">
             <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">{stats.completedEvents}</p>
           </Card>
+        </div>
+      </section>
+
+      <section aria-labelledby="organizer-insights-heading" className="space-y-4">
+        <h2 id="organizer-insights-heading" className="sr-only">
+          Organizer insights
+        </h2>
+        <div className="grid gap-6 xl:grid-cols-2">
+        <ChartContainer
+          title="Event status mix"
+          description="Distribution of your events by lifecycle status."
+          legend={
+            statusBreakdown.length > 0 ? (
+              <span className="text-slate-600 dark:text-slate-400">{myEvents.length} total events</span>
+            ) : null
+          }
+        >
+          {statusBreakdown.length === 0 ? (
+            <p className="text-sm text-slate-600 dark:text-slate-400">Create an event to see status trends.</p>
+          ) : (
+            <ul className="space-y-3">
+              {statusBreakdown.map(([status, count]) => {
+                const width = myEvents.length === 0 ? 0 : Math.round((count / myEvents.length) * 100);
+
+                return (
+                  <li key={status}>
+                    <div className="mb-1 flex items-center justify-between gap-2 text-sm">
+                      <span className="font-medium text-slate-700 dark:text-slate-200">{status}</span>
+                      <span className="text-slate-600 dark:text-slate-400">{count}</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                      <div
+                        className="h-full rounded-full bg-primary-600 dark:bg-primary-500"
+                        style={{ width: `${width}%` }}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </ChartContainer>
+
+        <Card title="Roster fill rate" description="Combined registrations against total capacity.">
+          <ProgressBar label="Average fill across managed events" value={rosterFillRate} max={100} />
+        </Card>
         </div>
       </section>
 

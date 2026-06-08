@@ -1,3 +1,4 @@
+import Accordion from '../../components/ui/Accordion';
 import Button from '../../components/ui/Button';
 import Checkbox from '../../components/ui/Checkbox';
 import SearchBar from '../../components/ui/SearchBar';
@@ -71,90 +72,103 @@ export default function EventFiltersPanel({
         onReset={() => onFiltersChange({ search: '', page: 1 })}
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <SelectDropdown
-          label="Game"
-          value={filters.gameId?.toString() ?? ''}
-          onChange={(event) =>
-            onFiltersChange({
-              gameId: event.target.value ? Number(event.target.value) : null,
-              page: 1,
-            })
-          }
-          placeholder="All games"
-          options={games.map((game) => ({ value: String(game.id), label: game.title }))}
-        />
-        <SelectDropdown
-          label="Status"
-          value={filters.status ?? ''}
-          onChange={(event) =>
-            onFiltersChange({
-              status: (event.target.value as EventStatus) || null,
-              page: 1,
-            })
-          }
-          placeholder="All statuses"
-          options={statusOptions.map((option) => ({ value: option.value, label: option.label }))}
-        />
-        <SelectDropdown
-          label="Sort by"
-          value={filters.sort}
-          onChange={(event) =>
-            onFiltersChange({
-              sort: event.target.value as EventsFilterState['sort'],
-              page: 1,
-            })
-          }
-          options={sortOptions}
-        />
-        <SelectDropdown
-          label="Sort order"
-          value={filters.order}
-          onChange={(event) =>
-            onFiltersChange({
-              order: event.target.value as EventsFilterState['order'],
-              page: 1,
-            })
-          }
-          options={orderOptions}
-        />
-        <TextInput
-          label="Start date"
-          type="date"
-          value={filters.startDate}
-          onChange={(event) => onFiltersChange({ startDate: event.target.value, page: 1 })}
-        />
-        <TextInput
-          label="End date"
-          type="date"
-          value={filters.endDate}
-          onChange={(event) => onFiltersChange({ endDate: event.target.value, page: 1 })}
-        />
-        <SelectDropdown
-          label="Page size"
-          value={String(filters.pageSize)}
-          onChange={(event) =>
-            onFiltersChange({
-              pageSize: Number(event.target.value),
-              page: 1,
-            })
-          }
-          options={pageSizeOptions}
-        />
-      </div>
+      <Accordion
+        defaultOpenIds={['filters']}
+        items={[
+          {
+            id: 'filters',
+            title: 'Filter and sort options',
+            content: (
+              <div className="space-y-4 pt-2">
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  <SelectDropdown
+                    label="Game"
+                    value={filters.gameId?.toString() ?? ''}
+                    onChange={(event) =>
+                      onFiltersChange({
+                        gameId: event.target.value ? Number(event.target.value) : null,
+                        page: 1,
+                      })
+                    }
+                    placeholder="All games"
+                    options={games.map((game) => ({ value: String(game.id), label: game.title }))}
+                  />
+                  <SelectDropdown
+                    label="Status"
+                    value={filters.status ?? ''}
+                    onChange={(event) =>
+                      onFiltersChange({
+                        status: (event.target.value as EventStatus) || null,
+                        page: 1,
+                      })
+                    }
+                    placeholder="All statuses"
+                    options={statusOptions.map((option) => ({ value: option.value, label: option.label }))}
+                  />
+                  <SelectDropdown
+                    label="Sort by"
+                    value={filters.sort}
+                    onChange={(event) =>
+                      onFiltersChange({
+                        sort: event.target.value as EventsFilterState['sort'],
+                        page: 1,
+                      })
+                    }
+                    options={sortOptions}
+                  />
+                  <SelectDropdown
+                    label="Sort order"
+                    value={filters.order}
+                    onChange={(event) =>
+                      onFiltersChange({
+                        order: event.target.value as EventsFilterState['order'],
+                        page: 1,
+                      })
+                    }
+                    options={orderOptions}
+                  />
+                  <TextInput
+                    label="Start date"
+                    type="date"
+                    value={filters.startDate}
+                    onChange={(event) => onFiltersChange({ startDate: event.target.value, page: 1 })}
+                  />
+                  <TextInput
+                    label="End date"
+                    type="date"
+                    value={filters.endDate}
+                    onChange={(event) => onFiltersChange({ endDate: event.target.value, page: 1 })}
+                  />
+                  <SelectDropdown
+                    label="Page size"
+                    value={String(filters.pageSize)}
+                    onChange={(event) =>
+                      onFiltersChange({
+                        pageSize: Number(event.target.value),
+                        page: 1,
+                      })
+                    }
+                    options={pageSizeOptions}
+                  />
+                </div>
 
-      {showAvailabilityFit ? (
-        <Checkbox
-          label="Only show events that fit my availability"
-          checked={filters.availabilityFit}
-          onChange={(event) =>
-            onFiltersChange({
-              availabilityFit: event.target.checked,
-              page: 1,
-            })
-          }
-        />
-      ) : null}
+                {showAvailabilityFit ? (
+                  <Checkbox
+                    label="Only show events that fit my availability"
+                    checked={filters.availabilityFit}
+                    onChange={(event) =>
+                      onFiltersChange({
+                        availabilityFit: event.target.checked,
+                        page: 1,
+                      })
+                    }
+                  />
+                ) : null}
+              </div>
+            ),
+          },
+        ]}
+      />
     </section>
   );
 }

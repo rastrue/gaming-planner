@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Spinner from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
+import ToastStack from '../../components/layout/ToastStack';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../hooks/useToast';
 import * as reportService from '../../services/reportService';
 import {
   addReportRequest,
@@ -18,6 +20,7 @@ import ReportHistoryTable from './ReportHistoryTable';
 export default function ReportsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useAuth();
+  const { toasts, showToast, dismissToast } = useToast();
   const reports = useSelector((state: RootState) => state.reports.items);
   const pagination = useSelector((state: RootState) => state.reports.pagination);
   const [page, setPage] = useState(1);
@@ -76,7 +79,8 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-6">
       <p className="text-sm text-slate-600 dark:text-slate-400">
         Generate Event Attendance or Player Participation exports, download them as PDF or DOCX, and
         send completed reports by email.
@@ -88,7 +92,10 @@ export default function ReportsPage() {
         </p>
       ) : null}
 
-      <ReportGeneratorForm onReportCreated={handleReportCreated} />
+      <ReportGeneratorForm
+        onReportCreated={handleReportCreated}
+        onSuccess={(message) => showToast({ title: 'Report ready', message, variant: 'success' })}
+      />
 
       <ReportHistoryTable
         reports={reports}
@@ -100,6 +107,9 @@ export default function ReportsPage() {
         onReportDeleted={handleReportDeleted}
         onActionError={setActionError}
       />
-    </div>
+      </div>
+
+      <ToastStack toasts={toasts} onDismiss={dismissToast} />
+    </>
   );
 }
