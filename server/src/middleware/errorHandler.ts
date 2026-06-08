@@ -49,3 +49,26 @@ export function validateBody<T extends ZodTypeAny>(schema: T) {
     }
   };
 }
+
+export function validateParams<T extends ZodTypeAny>(schema: T) {
+  return (req: Request, _res: Response, next: NextFunction): void => {
+    try {
+      req.params = schema.parse(req.params) as Request['params'];
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+}
+
+type AsyncRouteHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => Promise<void>;
+
+export function asyncHandler(handler: AsyncRouteHandler) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    void handler(req, res, next).catch(next);
+  };
+}

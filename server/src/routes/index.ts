@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import authRoutes from './authRoutes.js';
+import gameRoutes from './gameRoutes.js';
 import roleGuardRoutes from './roleGuardRoutes.js';
 
 const router = Router();
 
 router.use('/auth', authRoutes);
+router.use('/games', gameRoutes);
 router.use('/role-guards', roleGuardRoutes);
 
 export default router;
