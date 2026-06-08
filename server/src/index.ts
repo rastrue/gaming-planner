@@ -1,8 +1,12 @@
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { errorHandler } from './middleware/errorHandler.js';
+import apiRoutes from './routes/index.js';
+import prisma from './lib/prisma.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -19,6 +23,7 @@ app.use(
     credentials: true,
   }),
 );
+app.use(cookieParser());
 app.use(express.json());
 
 app.get('/api/health', (_req, res) => {
@@ -28,8 +33,21 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+app.use('/api', apiRoutes);
+app.use(errorHandler);
+
 app.listen(port, () => {
   console.log(`QuestSync API listening on http://localhost:${port}`);
+});
+
+process.on('SIGINT', async () => {
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  await prisma.$disconnect();
+  process.exit(0);
 });
 
 export default app;
