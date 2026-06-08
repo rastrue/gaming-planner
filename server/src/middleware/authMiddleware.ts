@@ -58,6 +58,26 @@ export function requireAuth(req: Request, _res: Response, next: NextFunction): v
   }
 }
 
+export function optionalAuth(req: Request, _res: Response, next: NextFunction): void {
+  try {
+    const token = extractAccessToken(req);
+
+    if (!token) {
+      next();
+      return;
+    }
+
+    const payload = verifyAccessToken(token);
+    req.user = {
+      id: payload.userId,
+      roleName: payload.roleName as UserRoleName,
+    };
+    next();
+  } catch {
+    next();
+  }
+}
+
 export function requireRoles(...allowedRoles: UserRoleName[]): RequestHandler {
   return (req: Request, _res: Response, next: NextFunction): void => {
     if (!req.user) {

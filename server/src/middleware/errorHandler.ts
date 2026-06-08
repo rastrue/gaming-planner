@@ -61,6 +61,17 @@ export function validateParams<T extends ZodTypeAny>(schema: T) {
   };
 }
 
+export function validateQuery<T extends ZodTypeAny>(schema: T) {
+  return (req: Request, _res: Response, next: NextFunction): void => {
+    try {
+      req.query = schema.parse(req.query) as Request['query'];
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+}
+
 type AsyncRouteHandler = (
   req: Request,
   res: Response,
