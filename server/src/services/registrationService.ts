@@ -1,0 +1,349 @@
+import {
+  AttendanceStatus,
+  EventStatus,
+  Prisma,
+  RegistrationStatus,
+  UserRoleName,
+} from '@prisma/client';
+import { AppError } from '../lib/errors.js';
+import prisma from '../lib/prisma.js';
+import type { AuthenticatedUser } from '../middleware/authMiddleware.js';
+import type {
+  CreateRegistrationInput,
+  ListRegistrationsQuery,
+  UpdateRegistrationInput,
+} from '../validators/registrationValidator.js';
+
+const registrationSelect = {
+  id: true,
+  eventId: true,
+  userId: true,
+  eventSlotId: true,
+  requestedRoleName: true,
+  status: true,
+  attendanceStatus: true,
+  joinedAt: true,
+  updatedAt: true,
+  event: {
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      organizerId: true,
+      registrationDeadline: true,
+      scheduledStart: true,
+      scheduledEnd: true,
+    },
+  },
+  user: {
+    select: {
+      id: true,
+      username: true,
+      displayName: true,
+      email: true,
+    },
+  },
+  eventSlot: {
+    select: {
+      id: true,
+      roleName: true,
+      displayOrder: true,
+    },
+  },
+} as const;
+
+export type RegistrationRecord = Prisma.RegistrationGetPayload<{ select: typeof registrationSelect }>;
+
+export interface PaginatedRegistrations {
+  registrations: RegistrationRecord[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+function isRegistrationOpen(event: { status: EventStatus; registrationDeadline: Date }): boolean {
+  return event.status === EventStatus.OPEN && event.registrationDeadline.getTime() >= Date.now();
+}
+
+async function getRegistrationByIdInternal(id: number): Promise<RegistrationRecord> {
+  const registration = await prisma.registration.findUnique({
+    where: { id },
+    select: registrationSelect,
+  });
+
+  if (!registration) {
+    throw new AppError(404, 'Registration not found');
+  }
+
+  return registration;
+}
+
+function assertCanViewRegistration(registration: RegistrationRecord, user: AuthenticatedUser): void {
+  const isOwner = registration.userId === user.id;
+  const isOrganizer = user.roleName === UserRoleName.ORGANIZER;
+  const managesEvent = registration.event.organizerId === user.id;
+
+  if (isOwner || (isOrganizer && managesEvent)) {
+    return;
+  }
+
+  throw new AppError(403, 'You do not have access to this registration');
+}
+
+export async function listRegistrations(
+  user: AuthenticatedUser,
+  query: ListRegistrationsQuery,
+): Promise<PaginatedRegistrations> {
+  const where: Prisma.RegistrationWhereInput = {};
+
+  if (query.status) {
+    where.status = query.status;
+  }
+
+  if (user.roleName === UserRoleName.PLAYER) {
+    where.userId = user.id;
+  } else if (query.eventId) {
+    const event = await prisma.event.findUnique({
+      where: { id: query.eventId },
+      select: { organizerId: true },
+    });
+
+    if (!event) {
+      throw new AppError(404, 'Event not found');
+    }
+
+    if (event.organizerId !== user.id) {
+      throw new AppError(403, 'You can only view registrations for events that you organize');
+    }
+
+    where.eventId = query.eventId;
+  } else {
+    where.event = { organizerId: user.id };
+  }
+
+  const [total, registrations] = await prisma.$transaction([
+    prisma.registration.count({ where }),
+    prisma.registration.findMany({
+      where,
+      select: registrationSelect,
+      orderBy: { joinedAt: 'desc' },
+      skip: (query.page - 1) * query.pageSize,
+      take: query.pageSize,
+    }),
+  ]);
+
+  return {
+    registrations,
+    pagination: {
+      page: query.page,
+      pageSize: query.pageSize,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / query.pageSize)),
+    },
+  };
+}
+
+export async function getRegistrationById(
+  id: number,
+  user: AuthenticatedUser,
+): Promise<RegistrationRecord> {
+  const registration = await getRegistrationByIdInternal(id);
+  assertCanViewRegistration(registration, user);
+  return registration;
+}
+
+export async function createRegistration(
+  user: AuthenticatedUser,
+  input: CreateRegistrationInput,
+): Promise<RegistrationRecord> {
+  if (user.roleName !== UserRoleName.PLAYER) {
+    throw new AppError(403, 'Only players can register for events');
+  }
+
+  const event = await prisma.event.findUnique({
+    where: { id: input.eventId },
+    select: {
+      id: true,
+      status: true,
+      registrationDeadline: true,
+    },
+  });
+
+  if (!event) {
+    throw new AppError(404, 'Event not found');
+  }
+
+  if (!isRegistrationOpen(event)) {
+    throw new AppError(409, 'Registration is not open for this event');
+  }
+
+  try {
+    return await prisma.registration.create({
+      data: {
+        eventId: input.eventId,
+        userId: user.id,
+        requestedRoleName: input.requestedRoleName,
+        status: RegistrationStatus.PENDING,
+      },
+      select: registrationSelect,
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      throw new AppError(409, 'You are already registered for this event');
+    }
+
+    throw error;
+  }
+}
+
+async function applyPlayerUpdate(
+  registration: RegistrationRecord,
+  input: UpdateRegistrationInput,
+  userId: number,
+): Promise<Prisma.RegistrationUpdateInput> {
+  if (registration.userId !== userId) {
+    throw new AppError(403, 'You can only update your own registration');
+  }
+
+  const allowedFields = ['status'];
+  const inputKeys = Object.keys(input);
+
+  if (inputKeys.some((key) => !allowedFields.includes(key))) {
+    throw new AppError(403, 'Players can only cancel their own registration');
+  }
+
+  if (input.status !== RegistrationStatus.CANCELLED) {
+    throw new AppError(400, 'Players can only cancel registrations');
+  }
+
+  if (
+    registration.status !== RegistrationStatus.PENDING &&
+    registration.status !== RegistrationStatus.APPROVED
+  ) {
+    throw new AppError(409, 'This registration cannot be cancelled');
+  }
+
+  if (!isRegistrationOpen(registration.event)) {
+    throw new AppError(409, 'Registration is closed for this event');
+  }
+
+  return {
+    status: RegistrationStatus.CANCELLED,
+    eventSlot: { disconnect: true },
+  };
+}
+
+async function applyOrganizerUpdate(
+  registration: RegistrationRecord,
+  input: UpdateRegistrationInput,
+  organizerId: number,
+): Promise<Prisma.RegistrationUpdateInput> {
+  if (registration.event.organizerId !== organizerId) {
+    throw new AppError(403, 'You can only manage registrations for events that you organize');
+  }
+
+  const data: Prisma.RegistrationUpdateInput = {};
+
+  if (input.status) {
+    if (
+      input.status !== RegistrationStatus.APPROVED &&
+      input.status !== RegistrationStatus.DECLINED &&
+      input.status !== RegistrationStatus.CANCELLED
+    ) {
+      throw new AppError(400, 'Organizers can only approve, decline, or cancel registrations');
+    }
+
+    if (registration.status === RegistrationStatus.CANCELLED) {
+      throw new AppError(409, 'Cancelled registrations cannot be updated');
+    }
+
+    data.status = input.status;
+
+    if (input.status !== RegistrationStatus.APPROVED) {
+      data.eventSlot = { disconnect: true };
+    }
+  }
+
+  if (input.eventSlotId !== undefined) {
+    if (registration.status !== RegistrationStatus.APPROVED) {
+      throw new AppError(409, 'Only approved registrations can be assigned to slots');
+    }
+
+    if (input.eventSlotId === null) {
+      data.eventSlot = { disconnect: true };
+    } else {
+      const slot = await prisma.eventSlot.findUnique({
+        where: { id: input.eventSlotId },
+        select: { eventId: true },
+      });
+
+      if (!slot || slot.eventId !== registration.eventId) {
+        throw new AppError(400, 'Selected slot does not belong to this event');
+      }
+
+      data.eventSlot = { connect: { id: input.eventSlotId } };
+    }
+  }
+
+  if (input.attendanceStatus) {
+    if (registration.event.status !== EventStatus.COMPLETED) {
+      throw new AppError(409, 'Attendance can only be marked after the event is completed');
+    }
+
+    if (registration.status !== RegistrationStatus.APPROVED) {
+      throw new AppError(409, 'Attendance can only be marked for approved registrations');
+    }
+
+    data.attendanceStatus = input.attendanceStatus;
+  }
+
+  if (input.requestedRoleName !== undefined) {
+    data.requestedRoleName = input.requestedRoleName;
+  }
+
+  if (Object.keys(data).length === 0) {
+    throw new AppError(400, 'No valid organizer updates were provided');
+  }
+
+  return data;
+}
+
+export async function updateRegistration(
+  id: number,
+  input: UpdateRegistrationInput,
+  user: AuthenticatedUser,
+): Promise<RegistrationRecord> {
+  const registration = await getRegistrationByIdInternal(id);
+
+  const data =
+    user.roleName === UserRoleName.PLAYER
+      ? await applyPlayerUpdate(registration, input, user.id)
+      : await applyOrganizerUpdate(registration, input, user.id);
+
+  return prisma.registration.update({
+    where: { id },
+    data,
+    select: registrationSelect,
+  });
+}
+
+export async function deleteRegistration(id: number, user: AuthenticatedUser): Promise<void> {
+  const registration = await getRegistrationByIdInternal(id);
+
+  if (user.roleName === UserRoleName.PLAYER) {
+    if (registration.userId !== user.id) {
+      throw new AppError(403, 'You can only delete your own registration');
+    }
+
+    if (registration.status !== RegistrationStatus.PENDING) {
+      throw new AppError(409, 'Only pending registrations can be deleted');
+    }
+  } else if (registration.event.organizerId !== user.id) {
+    throw new AppError(403, 'You can only delete registrations for events that you organize');
+  }
+
+  await prisma.registration.delete({ where: { id } });
+}
