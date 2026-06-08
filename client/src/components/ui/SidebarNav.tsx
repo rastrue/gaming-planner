@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { ReactNode } from 'react';
 import IconButton from './IconButton';
@@ -49,8 +50,8 @@ export default function SidebarNav({
         <ul className="space-y-1">
           {items.map((item) => (
             <li key={item.href}>
-              <a
-                href={item.href}
+              <Link
+                to={item.href}
                 aria-current={item.isActive ? 'page' : undefined}
                 className={cn(
                   'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium',
@@ -73,7 +74,7 @@ export default function SidebarNav({
                 ) : (
                   <span className="truncate">{item.label}</span>
                 )}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>
