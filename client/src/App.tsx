@@ -5,6 +5,8 @@ import AuthenticatedLayout from './components/layout/AuthenticatedLayout';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import RoleRoute from './components/layout/RoleRoute';
 import { useLocalStorageSync } from './hooks/useLocalStorageSync';
+import LoginPage from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import * as authService from './services/authService';
 import { clearCurrentUser, setCurrentUser } from './store/authSlice';
@@ -27,19 +29,6 @@ function GuestRoute({ isBootstrapped }: { isBootstrapped: boolean }) {
   }
 
   return <Outlet />;
-}
-
-function PublicAuthPage({ title }: { title: string }) {
-  return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-8">
-      <section className="w-full max-w-md">
-        <PlaceholderPage
-          title={title}
-          description="Authentication page wiring placeholder. Full forms arrive in the next task."
-        />
-      </section>
-    </main>
-  );
 }
 
 function HomeRedirect({ isBootstrapped }: { isBootstrapped: boolean }) {
@@ -91,8 +80,8 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<GuestRoute isBootstrapped={isBootstrapped} />}>
-          <Route path="/login" element={<PublicAuthPage title="Login" />} />
-          <Route path="/register" element={<PublicAuthPage title="Register" />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
         </Route>
 
         <Route element={<ProtectedRoute isBootstrapped={isBootstrapped} />}>
