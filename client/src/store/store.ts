@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './authSlice';
+import availabilityReducer from './availabilitySlice';
 import eventsReducer from './eventsSlice';
 import filtersReducer from './filtersSlice';
 import registrationsReducer from './registrationsSlice';
@@ -10,6 +11,7 @@ import uiReducer from './uiSlice';
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    availability: availabilityReducer,
     theme: themeReducer,
     ui: uiReducer,
     filters: filtersReducer,

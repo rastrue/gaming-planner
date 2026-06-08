@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { clearAvailabilityState } from '../store/availabilitySlice';
 import { resetAuthState } from '../store/authSlice';
 import { clearEventsState } from '../store/eventsSlice';
 import { resetFiltersState } from '../store/filtersSlice';
@@ -38,5 +39,6 @@ export function resetApplicationSettings(dispatch: AppDispatch): void {
   dispatch(clearEventsState());
   dispatch(clearRegistrationsState());
   dispatch(clearReportsState());
+  dispatch(clearAvailabilityState());
   applyThemeClass('light');
 }
