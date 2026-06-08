@@ -1,6 +1,6 @@
 import type { CookieOptions, Request, Response } from 'express';
 import { signAccessToken } from '../lib/jwt.js';
-import { getAuthCookieName, requireAuth } from '../middleware/authMiddleware.js';
+import { getAuthCookieName } from '../middleware/authMiddleware.js';
 import * as authService from '../services/authService.js';
 import type { LoginInput, RegisterInput } from '../validators/authValidator.js';
 
@@ -55,5 +55,3 @@ export function logout(_req: Request, res: Response): void {
   clearSessionCookie(res);
   res.status(204).send();
 }
-
-export { requireAuth };
