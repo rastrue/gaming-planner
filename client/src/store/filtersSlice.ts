@@ -6,6 +6,8 @@ export interface EventsFilterState {
   search: string;
   gameId: number | null;
   status: EventStatus | null;
+  startDate: string;
+  endDate: string;
   sort: 'scheduledStart' | 'title' | 'createdAt' | 'status';
   order: 'asc' | 'desc';
   page: number;
@@ -21,6 +23,8 @@ const defaultEventsFilters: EventsFilterState = {
   search: '',
   gameId: null,
   status: null,
+  startDate: '',
+  endDate: '',
   sort: 'scheduledStart',
   order: 'asc',
   page: 1,

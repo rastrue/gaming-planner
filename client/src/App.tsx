@@ -5,6 +5,7 @@ import AuthenticatedLayout from './components/layout/AuthenticatedLayout';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import RoleRoute from './components/layout/RoleRoute';
 import { useLocalStorageSync } from './hooks/useLocalStorageSync';
+import EventsPage from './pages/events/EventsPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
@@ -88,7 +89,7 @@ export default function App() {
         <Route element={<ProtectedRoute isBootstrapped={isBootstrapped} />}>
           <Route element={<AuthenticatedLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/events" element={<PlaceholderPage title="Discover Events" />} />
+            <Route path="/events" element={<EventsPage />} />
             <Route path="/events/:id" element={<PlaceholderPage title="Event Details" />} />
             <Route path="/availability" element={<PlaceholderPage title="Availability Planner" />} />
             <Route path="/my-registrations" element={<PlaceholderPage title="My Registrations" />} />
