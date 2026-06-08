@@ -1,0 +1,322 @@
+import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import Badge from '../../components/ui/Badge';
+import Button from '../../components/ui/Button';
+import DataTable from '../../components/ui/DataTable';
+import EmptyState from '../../components/ui/EmptyState';
+import ModalDialog from '../../components/ui/ModalDialog';
+import Pagination from '../../components/ui/Pagination';
+import Spinner from '../../components/ui/Spinner';
+import { useAuth } from '../../hooks/useAuth';
+import * as eventService from '../../services/eventService';
+import { ApiError } from '../../services/apiClient';
+import { removeEvent, setEvents, upsertEvent } from '../../store/eventsSlice';
+import type { AppDispatch, RootState } from '../../store/store';
+import type { Event, EventStatus } from '../../types/index';
+
+const PAGE_SIZE = 10;
+
+function formatEventDate(value: string): string {
+  return new Date(value).toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+function eventStatusVariant(status: EventStatus) {
+  switch (status) {
+    case 'OPEN':
+      return 'success';
+    case 'DRAFT':
+      return 'default';
+    case 'FULL':
+      return 'warning';
+    case 'COMPLETED':
+      return 'info';
+    case 'CANCELLED':
+    case 'CLOSED':
+      return 'danger';
+    default:
+      return 'default';
+  }
+}
+
+export default function OrganizerEventsPage() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { user } = useAuth();
+  const events = useSelector((state: RootState) => state.events.items);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [actionError, setActionError] = useState('');
+  const [busyEventId, setBusyEventId] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Event | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    let active = true;
+
+    const loadEvents = async () => {
+      setIsLoading(true);
+      setLoadError('');
+
+      try {
+        const data = await eventService.getEvents({
+          pageSize: 100,
+          sort: 'scheduledStart',
+          order: 'desc',
+        });
+
+        if (active) {
+          dispatch(setEvents(data));
+        }
+      } catch {
+        if (active) {
+          setLoadError('Unable to load organizer events.');
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadEvents();
+
+    return () => {
+      active = false;
+    };
+  }, [dispatch, user]);
+
+  const myEvents = useMemo(
+    () => events.filter((event) => event.organizerId === user?.id),
+    [events, user?.id],
+  );
+
+  const totalPages = Math.max(1, Math.ceil(myEvents.length / PAGE_SIZE));
+  const paginatedEvents = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return myEvents.slice(start, start + PAGE_SIZE);
+  }, [myEvents, page]);
+
+  const updateStatus = async (event: Event, status: EventStatus) => {
+    setActionError('');
+    setBusyEventId(event.id);
+
+    try {
+      const updated = await eventService.updateEvent(event.id, { status });
+      dispatch(upsertEvent(updated));
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setActionError(error.message);
+      } else {
+        setActionError('Unable to update event status.');
+      }
+    } finally {
+      setBusyEventId(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) {
+      return;
+    }
+
+    setActionError('');
+    setBusyEventId(deleteTarget.id);
+
+    try {
+      await eventService.deleteEvent(deleteTarget.id);
+      dispatch(removeEvent(deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setActionError(error.message);
+      } else {
+        setActionError('Unable to delete event.');
+      }
+    } finally {
+      setBusyEventId(null);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Spinner label="Loading organizer events" size="lg" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return <EmptyState title="Events unavailable" description={loadError} />;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          Manage events you organize, update statuses, and open edit flows.
+        </p>
+        <Link to="/organizer/events/new">
+          <Button>Create event</Button>
+        </Link>
+      </div>
+
+      {actionError ? (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+          {actionError}
+        </p>
+      ) : null}
+
+      {myEvents.length === 0 ? (
+        <EmptyState
+          title="No events yet"
+          description="Create your first event to start accepting player registrations."
+          action={
+            <Link to="/organizer/events/new">
+              <Button>Create event</Button>
+            </Link>
+          }
+        />
+      ) : (
+        <>
+          <DataTable<Event>
+            caption="Organizer events"
+            data={paginatedEvents}
+            getRowKey={(event) => event.id}
+            columns={[
+              {
+                key: 'title',
+                header: 'Event',
+                mobileLabel: 'Event',
+                render: (event) => (
+                  <div>
+                    <p className="font-medium text-slate-900 dark:text-slate-100">{event.title}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{event.game.title}</p>
+                  </div>
+                ),
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (event) => <Badge variant={eventStatusVariant(event.status)}>{event.status}</Badge>,
+              },
+              {
+                key: 'schedule',
+                header: 'Starts',
+                render: (event) => formatEventDate(event.scheduledStart),
+              },
+              {
+                key: 'registrations',
+                header: 'Players',
+                hideOnMobile: true,
+                render: (event) => `${event._count.registrations} / ${event.maxPlayers}`,
+              },
+              {
+                key: 'actions',
+                header: 'Actions',
+                mobileLabel: 'Actions',
+                render: (event) => {
+                  const isBusy = busyEventId === event.id;
+
+                  return (
+                    <div className="flex flex-wrap gap-2">
+                      <Link to={`/organizer/events/${event.id}/edit`}>
+                        <Button type="button" variant="secondary" size="sm">
+                          Edit
+                        </Button>
+                      </Link>
+                      <Link to={`/organizer/roster/${event.id}`}>
+                        <Button type="button" variant="ghost" size="sm">
+                          Roster
+                        </Button>
+                      </Link>
+                      {event.status === 'DRAFT' ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={isBusy}
+                          onClick={() => void updateStatus(event, 'OPEN')}
+                        >
+                          Publish
+                        </Button>
+                      ) : null}
+                      {event.status === 'OPEN' || event.status === 'FULL' ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          disabled={isBusy}
+                          onClick={() => void updateStatus(event, 'CLOSED')}
+                        >
+                          Close
+                        </Button>
+                      ) : null}
+                      {event.status === 'CLOSED' || event.status === 'OPEN' ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          disabled={isBusy}
+                          onClick={() => void updateStatus(event, 'COMPLETED')}
+                        >
+                          Complete
+                        </Button>
+                      ) : null}
+                      <Button
+                        type="button"
+                        variant="danger"
+                        size="sm"
+                        disabled={isBusy}
+                        onClick={() => setDeleteTarget(event)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  );
+                },
+              },
+            ]}
+          />
+
+          <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+        </>
+      )}
+
+      <ModalDialog
+        open={Boolean(deleteTarget)}
+        title="Delete event"
+        onClose={() => setDeleteTarget(null)}
+        footer={
+          <>
+            <Button type="button" variant="secondary" onClick={() => setDeleteTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              disabled={busyEventId === deleteTarget?.id}
+              onClick={() => void handleDelete()}
+            >
+              Delete event
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          Are you sure you want to delete{' '}
+          <span className="font-medium text-slate-900 dark:text-slate-100">{deleteTarget?.title}</span>?
+          This action cannot be undone.
+        </p>
+      </ModalDialog>
+    </div>
+  );
+}
