@@ -5,6 +5,7 @@ import AuthenticatedLayout from './components/layout/AuthenticatedLayout';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import RoleRoute from './components/layout/RoleRoute';
 import { useLocalStorageSync } from './hooks/useLocalStorageSync';
+import EventFormPage from './pages/organizer/EventFormPage';
 import OrganizerEventsPage from './pages/organizer/OrganizerEventsPage';
 import MyRegistrationsPage from './pages/registrations/MyRegistrationsPage';
 import AvailabilityPage from './pages/availability/AvailabilityPage';
@@ -102,11 +103,8 @@ export default function App() {
 
             <Route element={<RoleRoute allowedRoles={['ORGANIZER']} />}>
               <Route path="/organizer/events" element={<OrganizerEventsPage />} />
-              <Route path="/organizer/events/new" element={<PlaceholderPage title="Create Event" />} />
-              <Route
-                path="/organizer/events/:id/edit"
-                element={<PlaceholderPage title="Edit Event" />}
-              />
+              <Route path="/organizer/events/new" element={<EventFormPage />} />
+              <Route path="/organizer/events/:id/edit" element={<EventFormPage />} />
               <Route path="/organizer/roster" element={<PlaceholderPage title="Roster Management" />} />
               <Route
                 path="/organizer/roster/:eventId"
