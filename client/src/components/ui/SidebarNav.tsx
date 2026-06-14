@@ -58,8 +58,8 @@ export default function SidebarNav({
                   uiStyles.interactiveTransition,
                   uiStyles.focusRing,
                   item.isActive
-                    ? 'bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-300'
-                    : 'text-slate-700 hover:bg-slate-100 active:bg-slate-200 dark:text-slate-200 dark:hover:bg-slate-900 dark:active:bg-slate-800',
+                    ? 'bg-primary-50 text-primary-700 dark:bg-slate-800 dark:text-white'
+                    : 'text-slate-700 hover:bg-slate-100 active:bg-slate-200 dark:text-slate-100 dark:hover:bg-slate-900 dark:active:bg-slate-800',
                   collapsed && 'justify-center px-2',
                 )}
                 title={collapsed ? item.label : undefined}

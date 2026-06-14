@@ -115,7 +115,7 @@ export default function CalendarWidget({
                 uiStyles.interactiveTransition,
                 uiStyles.focusRing,
                 isSelected
-                  ? 'bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-500'
+                  ? 'bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-600 dark:hover:bg-primary-700'
                   : 'text-slate-700 hover:bg-slate-100 active:bg-slate-200 dark:text-slate-200 dark:hover:bg-slate-800',
                 isToday && !isSelected && 'ring-1 ring-primary-400 dark:ring-primary-500',
               )}

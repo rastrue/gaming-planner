@@ -49,7 +49,7 @@ export default function Pagination({ page, totalPages, onPageChange, className }
         disabled={page <= 1}
         onClick={() => onPageChange(page - 1)}
         className={cn(
-          'inline-flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 active:bg-slate-200 dark:text-slate-200 dark:hover:bg-slate-800 dark:active:bg-slate-700',
+          'inline-flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 active:bg-slate-200 dark:text-slate-100 dark:hover:bg-slate-800 dark:active:bg-slate-700',
           uiStyles.interactiveTransition,
           uiStyles.focusRing,
           uiStyles.disabled,
@@ -77,8 +77,8 @@ export default function Pagination({ page, totalPages, onPageChange, className }
                   uiStyles.interactiveTransition,
                   uiStyles.focusRing,
                   item === page
-                    ? 'bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-500'
-                    : 'text-slate-700 hover:bg-slate-100 active:bg-slate-200 dark:text-slate-200 dark:hover:bg-slate-800',
+                    ? 'bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-600 dark:hover:bg-primary-700'
+                    : 'text-slate-700 hover:bg-slate-100 active:bg-slate-200 dark:text-slate-100 dark:hover:bg-slate-800',
                 )}
               >
                 {item}
@@ -94,7 +94,7 @@ export default function Pagination({ page, totalPages, onPageChange, className }
         disabled={page >= totalPages}
         onClick={() => onPageChange(page + 1)}
         className={cn(
-          'inline-flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 active:bg-slate-200 dark:text-slate-200 dark:hover:bg-slate-800 dark:active:bg-slate-700',
+          'inline-flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 active:bg-slate-200 dark:text-slate-100 dark:hover:bg-slate-800 dark:active:bg-slate-700',
           uiStyles.interactiveTransition,
           uiStyles.focusRing,
           uiStyles.disabled,

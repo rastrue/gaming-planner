@@ -10,11 +10,11 @@ export interface BadgeProps {
 }
 
 const variantClasses: Record<BadgeVariant, string> = {
-  default: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
-  success: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
-  warning: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
-  danger: 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300',
-  info: 'bg-primary-100 text-primary-800 dark:bg-primary-950 dark:text-primary-300',
+  default: 'bg-slate-200 text-slate-900 dark:bg-slate-700 dark:text-slate-100',
+  success: 'bg-emerald-100 text-emerald-950 dark:bg-emerald-900 dark:text-emerald-100',
+  warning: 'bg-amber-100 text-amber-950 dark:bg-amber-900 dark:text-amber-100',
+  danger: 'bg-red-100 text-red-950 dark:bg-red-900 dark:text-red-100',
+  info: 'bg-primary-100 text-primary-900 dark:bg-primary-900 dark:text-primary-100',
 };
 
 export default function Badge({ children, variant = 'default', className }: BadgeProps) {

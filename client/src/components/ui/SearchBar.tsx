@@ -63,7 +63,7 @@ export default function SearchBar({
           disabled={disabled}
           onChange={(event) => updateValue(event.target.value)}
           className={cn(
-            'min-w-0 flex-1 border-0 bg-transparent px-1 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none dark:text-slate-100',
+            'min-w-0 flex-1 border-0 bg-transparent px-1 py-2 text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none dark:text-slate-100 dark:placeholder:text-slate-400',
             uiStyles.disabled,
           )}
         />

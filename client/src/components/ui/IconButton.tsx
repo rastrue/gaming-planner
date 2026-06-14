@@ -29,7 +29,7 @@ export default function IconButton({
       aria-label={label}
       title={label}
       className={cn(
-        'inline-flex cursor-pointer items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 active:bg-slate-200 dark:text-slate-200 dark:hover:bg-slate-800 dark:active:bg-slate-700',
+        'inline-flex cursor-pointer items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 active:bg-slate-200 dark:text-slate-100 dark:hover:bg-slate-800 dark:active:bg-slate-700',
         uiStyles.interactiveTransition,
         uiStyles.focusRing,
         uiStyles.disabled,

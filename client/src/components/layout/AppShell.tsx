@@ -85,7 +85,7 @@ export default function AppShell({
             />
             <div className="min-w-0">
               <p className="truncate text-lg font-bold text-primary-600 dark:text-primary-400">QuestSync</p>
-              <p className="truncate text-xs text-slate-500 dark:text-slate-400">{roleLabel}</p>
+              <p className="truncate text-xs text-slate-500 dark:text-slate-300">{roleLabel}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">

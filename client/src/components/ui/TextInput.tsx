@@ -36,7 +36,7 @@ export default function TextInput({
         aria-invalid={Boolean(error)}
         aria-describedby={[hintId, errorId].filter(Boolean).join(' ') || undefined}
         className={cn(
-          'block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 hover:border-slate-400 focus:border-primary-500 active:border-primary-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100',
+          'block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-500 hover:border-slate-400 focus:border-primary-500 active:border-primary-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400',
           uiStyles.interactiveTransition,
           uiStyles.focusRing,
           uiStyles.disabled,
