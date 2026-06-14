@@ -2,62 +2,79 @@ import nodemailer from 'nodemailer';
 import type SMTPTransport from 'nodemailer/lib/smtp-transport/index.js';
 import { AppError } from '../lib/errors.js';
 
-const smtpHost = process.env.SMTP_HOST?.trim();
-const smtpPort = Number(process.env.SMTP_PORT ?? 587);
-const smtpUser = process.env.SMTP_USER?.trim();
-const smtpPass = process.env.SMTP_PASS;
-const smtpFrom = process.env.SMTP_FROM?.trim();
-
-export function isEmailDeliveryConfigured(): boolean {
-  return Boolean(smtpHost && smtpUser && smtpPass);
+interface SmtpConfig {
+  host: string;
+  port: number;
+  user: string;
+  pass: string;
+  from?: string;
 }
 
-function assertSmtpConfigured(): void {
-  if (!smtpHost) {
+function readSmtpConfig(): Partial<SmtpConfig> {
+  return {
+    host: process.env.SMTP_HOST?.trim(),
+    port: Number(process.env.SMTP_PORT ?? 587),
+    user: process.env.SMTP_USER?.trim(),
+    pass: process.env.SMTP_PASS?.trim(),
+    from: process.env.SMTP_FROM?.trim(),
+  };
+}
+
+export function isEmailDeliveryConfigured(): boolean {
+  const config = readSmtpConfig();
+  return Boolean(config.host && config.user && config.pass);
+}
+
+function assertSmtpConfigured(): SmtpConfig {
+  const config = readSmtpConfig();
+
+  if (!config.host) {
     throw new AppError(
       503,
       'Email delivery is not configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS in the root .env file.',
     );
   }
 
-  if (!smtpUser || !smtpPass) {
+  if (!config.user || !config.pass) {
     throw new AppError(
       503,
       'SMTP authentication is not configured. Set SMTP_USER and SMTP_PASS in the root .env file.',
     );
   }
+
+  return {
+    host: config.host,
+    port: config.port ?? 587,
+    user: config.user,
+    pass: config.pass,
+    from: config.from,
+  };
 }
 
-function createTransport() {
-  assertSmtpConfigured();
-
+function createTransport(config: SmtpConfig) {
   const options: SMTPTransport.Options = {
-    host: smtpHost,
-    port: smtpPort,
-    secure: smtpPort === 465,
+    host: config.host,
+    port: config.port,
+    secure: config.port === 465,
     auth: {
-      user: smtpUser!,
-      pass: smtpPass!,
+      user: config.user,
+      pass: config.pass,
     },
   };
 
-  if (smtpPort === 587) {
+  if (config.port === 587) {
     options.requireTLS = true;
   }
 
   return nodemailer.createTransport(options);
 }
 
-function resolveFromAddress(): string {
-  if (smtpFrom) {
-    return smtpFrom;
+function resolveFromAddress(config: SmtpConfig): string {
+  if (config.from) {
+    return config.from;
   }
 
-  if (smtpUser) {
-    return `QuestSync <${smtpUser}>`;
-  }
-
-  return 'QuestSync <noreply@questsync.test>';
+  return `QuestSync <${config.user}>`;
 }
 
 export async function sendReportEmail(options: {
@@ -68,11 +85,12 @@ export async function sendReportEmail(options: {
   fileBuffer: Buffer;
   mimeType: string;
 }): Promise<void> {
-  const transport = createTransport();
+  const smtpConfig = assertSmtpConfigured();
+  const transport = createTransport(smtpConfig);
 
   try {
     await transport.sendMail({
-      from: resolveFromAddress(),
+      from: resolveFromAddress(smtpConfig),
       to: options.to,
       subject: options.subject,
       text: options.text,

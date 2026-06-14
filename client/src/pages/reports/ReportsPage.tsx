@@ -7,7 +7,6 @@ import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../hooks/useToast';
 import * as reportService from '../../services/reportService';
 import {
-  addReportRequest,
   removeReportRequest,
   setReports,
   upsertReportRequest,
@@ -47,7 +46,7 @@ export default function ReportsPage() {
   }, [loadReports]);
 
   const handleReportCreated = (report: ReportRequest) => {
-    dispatch(addReportRequest(report));
+    dispatch(upsertReportRequest(report));
     setActionError('');
   };
 

@@ -1,17 +1,10 @@
+import './loadEnv.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import express from 'express';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { errorHandler } from './middleware/errorHandler.js';
 import apiRoutes from './routes/index.js';
 import prisma from './lib/prisma.js';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-dotenv.config();
 
 const app = express();
 const port = Number(process.env.PORT) || 3001;
