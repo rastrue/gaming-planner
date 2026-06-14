@@ -1,10 +1,13 @@
-import { Moon, Sun } from 'lucide-react';
+import { LogOut, Moon, Sun } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 import { toggleSidebarCollapsed } from '../../store/uiSlice';
 import type { AppDispatch, RootState } from '../../store/store';
 import { toggleThemeMode } from '../../store/themeSlice';
 import type { UserRoleName } from '../../types/index';
+import Button from '../ui/Button';
 import IconButton from '../ui/IconButton';
 import Tooltip from '../ui/Tooltip';
 import type { BreadcrumbItem } from '../ui/Breadcrumbs';
@@ -35,9 +38,26 @@ export default function AppShell({
   userDisplayName,
 }: AppShellProps) {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const sidebarCollapsed = useSelector((state: RootState) => state.ui.sidebarCollapsed);
   const themeMode = useSelector((state: RootState) => state.theme.mode);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) {
+      return;
+    }
+
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      navigate('/login', { replace: true });
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   const roleLabel = role === 'ORGANIZER' ? 'Organizer Workspace' : 'Player Workspace';
 
@@ -84,6 +104,17 @@ export default function AppShell({
                 {themeMode === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </IconButton>
             </Tooltip>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2"
+              onClick={() => void handleLogout()}
+              disabled={isLoggingOut}
+              aria-label="Log out"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">{isLoggingOut ? 'Logging out…' : 'Log out'}</span>
+            </Button>
           </div>
         </div>
       </header>
