@@ -62,6 +62,7 @@ export interface ReportHistoryTableProps {
   onReportUpdated: (report: ReportRequest) => void;
   onReportDeleted: (reportId: number) => void;
   onActionError: (message: string) => void;
+  onActionSuccess?: (message: string) => void;
 }
 
 export default function ReportHistoryTable({
@@ -73,6 +74,7 @@ export default function ReportHistoryTable({
   onReportUpdated,
   onReportDeleted,
   onActionError,
+  onActionSuccess,
 }: ReportHistoryTableProps) {
   const [emailTarget, setEmailTarget] = useState<ReportRequest | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ReportRequest | null>(null);
@@ -118,6 +120,7 @@ export default function ReportHistoryTable({
         onActionError(updated.failedReason ?? 'Email delivery failed.');
       } else {
         setEmailTarget(null);
+        onActionSuccess?.(`Report emailed to ${recipientEmail.trim()}.`);
       }
     } catch (error) {
       if (error instanceof ApiError) {

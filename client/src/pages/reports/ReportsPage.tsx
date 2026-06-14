@@ -105,6 +105,9 @@ export default function ReportsPage() {
         onReportUpdated={handleReportUpdated}
         onReportDeleted={handleReportDeleted}
         onActionError={setActionError}
+        onActionSuccess={(message) =>
+          showToast({ title: 'Report emailed', message, variant: 'success' })
+        }
       />
       </div>
 
