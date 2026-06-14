@@ -63,12 +63,12 @@ const userWithRoleSelect = {
 } as const;
 
 export async function registerUser(input: RegisterInput): Promise<PublicUser> {
-  const playerRole = await prisma.role.findUnique({
-    where: { name: UserRoleName.PLAYER },
+  const role = await prisma.role.findUnique({
+    where: { name: input.roleName },
   });
 
-  if (!playerRole) {
-    throw new AppError(500, 'Default player role is not configured');
+  if (!role) {
+    throw new AppError(500, 'Selected role is not configured');
   }
 
   const existingUser = await prisma.user.findFirst({
@@ -94,7 +94,7 @@ export async function registerUser(input: RegisterInput): Promise<PublicUser> {
       email: input.email.toLowerCase(),
       passwordHash,
       displayName: input.displayName,
-      roleId: playerRole.id,
+      roleId: role.id,
     },
     select: userWithRoleSelect,
   });

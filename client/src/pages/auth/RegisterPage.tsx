@@ -1,11 +1,12 @@
 import { type FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../components/ui/Button';
+import RadioGroup from '../../components/ui/RadioGroup';
 import TextInput from '../../components/ui/TextInput';
 import { useAuth } from '../../hooks/useAuth';
 import * as authService from '../../services/authService';
 import { ApiError } from '../../services/apiClient';
-import type { ApiFieldError } from '../../types/index';
+import type { ApiFieldError, UserRoleName } from '../../types/index';
 
 function mapFieldErrors(errors?: ApiFieldError[]): Record<string, string> {
   const mapped: Record<string, string> = {};
@@ -24,6 +25,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [password, setPassword] = useState('');
+  const [roleName, setRoleName] = useState<UserRoleName>('PLAYER');
   const [formError, setFormError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,6 +42,7 @@ export default function RegisterPage() {
         email,
         displayName,
         password,
+        roleName,
       });
       setUser(user);
       navigate('/dashboard', { replace: true });
@@ -66,7 +69,7 @@ export default function RegisterPage() {
             Create your QuestSync account
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Register as a player to discover events and join sessions.
+            Choose your role and set up your account to get started.
           </p>
         </header>
 
@@ -99,6 +102,25 @@ export default function RegisterPage() {
             onChange={(event) => setDisplayName(event.target.value)}
             error={fieldErrors.displayName}
             required
+          />
+          <RadioGroup
+            legend="Account role"
+            name="roleName"
+            value={roleName}
+            onChange={(value) => setRoleName(value as UserRoleName)}
+            error={fieldErrors.roleName}
+            options={[
+              {
+                value: 'PLAYER',
+                label: 'Player',
+                description: 'Discover events, set availability, and join sessions.',
+              },
+              {
+                value: 'ORGANIZER',
+                label: 'Organizer',
+                description: 'Create events, manage rosters, and track attendance.',
+              },
+            ]}
           />
           <TextInput
             label="Password"

@@ -1,3 +1,4 @@
+import { UserRoleName } from '@prisma/client';
 import { z } from 'zod';
 
 export const registerSchema = z.object({
@@ -17,6 +18,9 @@ export const registerSchema = z.object({
     .trim()
     .min(1, 'Display name is required')
     .max(64, 'Display name must be at most 64 characters'),
+  roleName: z.nativeEnum(UserRoleName, {
+    errorMap: () => ({ message: 'Please select a role' }),
+  }),
 });
 
 export const loginSchema = z.object({
