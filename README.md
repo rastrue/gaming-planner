@@ -94,6 +94,8 @@ CLIENT_ORIGIN=http://localhost:5173
 JWT_SECRET=change-me-in-production
 ```
 
+Optional: add SMTP settings if you want to test **Email delivery** on the Reports page. See `.env.example` for Gmail, Outlook, SendGrid, and other provider templates.
+
 ### 3. Prepare the database
 
 ```bash
@@ -226,6 +228,43 @@ Stop existing Node processes on those ports, then run `npm run dev` again.
 **401 on `/api/auth/me` when logged out**
 
 Expected — the app uses this to detect whether a session cookie exists.
+
+**Report email shows success but nothing arrives**
+
+Email delivery requires SMTP settings in the root `.env` file. Without `SMTP_HOST`, `SMTP_USER`, and `SMTP_PASS`, the API cannot send mail.
+
+Restart the API server after changing `.env`. If delivery fails, check the report history **Failed reason** field for the SMTP error.
+
+### Gmail
+
+1. Enable 2-Step Verification on your Google account.
+2. Create an [App Password](https://myaccount.google.com/apppasswords) for QuestSync.
+3. Add to `.env`:
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your.address@gmail.com
+SMTP_PASS=your-16-char-app-password
+SMTP_FROM=QuestSync <your.address@gmail.com>
+```
+
+### Other SMTP providers
+
+QuestSync uses standard SMTP — testers can plug in any provider they already have. Copy `.env.example` to `.env` and uncomment one block, or use this reference:
+
+| Provider | `SMTP_HOST` | `SMTP_PORT` | Notes |
+| --- | --- | --- | --- |
+| Gmail | `smtp.gmail.com` | `587` | App Password required; see above |
+| Outlook / Microsoft 365 | `smtp.office365.com` | `587` | Use account or app password |
+| Yahoo Mail | `smtp.mail.yahoo.com` | `587` | App Password recommended |
+| SendGrid | `smtp.sendgrid.net` | `587` | `SMTP_USER=apikey`, `SMTP_PASS` = API key |
+| Mailgun | `smtp.mailgun.org` | `587` | Use SMTP credentials from Mailgun dashboard |
+| Custom / hosting | your host’s SMTP host | `587` or `465` | Ask your host for host, port, and credentials |
+
+**For testers:** use your own credentials in a local `.env` file only. Do not commit `.env` or share SMTP passwords in issues or pull requests. Reports can be sent to **any recipient email** — only the outbound SMTP account is configured server-side.
+
+**Port 465:** if `587` is blocked on your network, try `465` instead. The API enables TLS automatically when port `465` is used.
 
 ---
 
