@@ -95,8 +95,7 @@ export default function AppShell({
               </span>
             ) : null}
             <IconButton
-              label={themeMode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-              title={undefined}
+              label={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               size="sm"
               onClick={() => dispatch(toggleThemeMode())}
             >
