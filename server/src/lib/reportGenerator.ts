@@ -16,10 +16,24 @@ import {
   TextRun,
 } from 'docx';
 import { jsPDF } from 'jspdf';
-import autoTableImport from 'jspdf-autotable';
+import autoTableModule from 'jspdf-autotable';
 
 type AutoTableFn = (doc: jsPDF, options: Record<string, unknown>) => void;
-const autoTable = autoTableImport as unknown as AutoTableFn;
+
+function resolveAutoTable(module: unknown): AutoTableFn {
+  if (typeof module === 'function') {
+    return module as AutoTableFn;
+  }
+
+  const nestedDefault = (module as { default?: unknown }).default;
+  if (typeof nestedDefault === 'function') {
+    return nestedDefault as AutoTableFn;
+  }
+
+  throw new Error('jspdf-autotable export is not callable');
+}
+
+const autoTable = resolveAutoTable(autoTableModule);
 
 interface jsPDFWithAutoTable extends jsPDF {
   lastAutoTable: { finalY: number };
