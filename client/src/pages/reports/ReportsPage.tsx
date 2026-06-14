@@ -7,7 +7,6 @@ import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../hooks/useToast';
 import * as reportService from '../../services/reportService';
 import {
-  removeReportRequest,
   setReports,
   upsertReportRequest,
 } from '../../store/reportsSlice';
@@ -33,6 +32,16 @@ export default function ReportsPage() {
 
     try {
       const data = await reportService.getReports({ page, pageSize: 10 });
+
+      if (
+        data.reports.length === 0 &&
+        data.pagination.total > 0 &&
+        page > data.pagination.totalPages
+      ) {
+        setPage(data.pagination.totalPages);
+        return;
+      }
+
       dispatch(setReports(data));
     } catch {
       setLoadError('Unable to load report history.');
@@ -56,8 +65,14 @@ export default function ReportsPage() {
   };
 
   const handleReportDeleted = (reportId: number) => {
-    dispatch(removeReportRequest(reportId));
     setActionError('');
+
+    const remainingOnPage = reports.filter((report) => report.id !== reportId).length;
+    if (remainingOnPage === 0 && page > 1) {
+      setPage(page - 1);
+      return;
+    }
+
     void loadReports();
   };
 
@@ -100,6 +115,7 @@ export default function ReportsPage() {
 
       <ReportHistoryTable
         reports={reports}
+        totalReports={pagination.total}
         page={pagination.page}
         totalPages={pagination.totalPages}
         defaultRecipientEmail={user.email}

@@ -55,6 +55,7 @@ function triggerBlobDownload(blob: Blob, fileName: string) {
 
 export interface ReportHistoryTableProps {
   reports: ReportRequest[];
+  totalReports: number;
   page: number;
   totalPages: number;
   defaultRecipientEmail?: string;
@@ -67,6 +68,7 @@ export interface ReportHistoryTableProps {
 
 export default function ReportHistoryTable({
   reports,
+  totalReports,
   page,
   totalPages,
   defaultRecipientEmail = '',
@@ -158,7 +160,7 @@ export default function ReportHistoryTable({
   return (
     <>
       <Card title="Report history" description="Previously generated exports and delivery status.">
-        {reports.length === 0 ? (
+        {totalReports === 0 ? (
           <EmptyState
             title="No reports yet"
             description="Generate an event attendance or player participation report to see it here."
