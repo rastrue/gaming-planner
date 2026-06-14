@@ -6,6 +6,7 @@ import { cn, uiStyles } from '../../utils/cn';
 export interface CalendarWidgetProps {
   month?: Date;
   selectedDates?: string[];
+  activeDate?: string | null;
   onMonthChange?: (month: Date) => void;
   onDateSelect?: (date: string) => void;
   className?: string;
@@ -42,6 +43,7 @@ function buildMonthGrid(month: Date): Array<Date | null> {
 export default function CalendarWidget({
   month: controlledMonth,
   selectedDates = [],
+  activeDate = null,
   onMonthChange,
   onDateSelect,
   className,
@@ -94,6 +96,7 @@ export default function CalendarWidget({
           }
 
           const dateKey = toDateKey(date);
+          const isActive = activeDate === dateKey;
           const isSelected = selectedSet.has(dateKey);
           const isToday = toDateKey(new Date()) === dateKey;
 
@@ -108,16 +111,20 @@ export default function CalendarWidget({
                 day: 'numeric',
                 year: 'numeric',
               })}
-              aria-selected={isSelected}
+              aria-selected={isActive}
+              aria-current={isToday ? 'date' : undefined}
               onClick={() => onDateSelect?.(dateKey)}
               className={cn(
                 'aspect-square cursor-pointer rounded-lg text-sm font-medium',
                 uiStyles.interactiveTransition,
                 uiStyles.focusRing,
-                isSelected
+                isSelected && !isActive
                   ? 'bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-600 dark:hover:bg-primary-700'
                   : 'text-slate-700 hover:bg-slate-100 active:bg-slate-200 dark:text-slate-200 dark:hover:bg-slate-800',
-                isToday && !isSelected && 'ring-1 ring-primary-400 dark:ring-primary-500',
+                isActive && 'ring-2 ring-inset ring-primary-600 dark:ring-primary-400',
+                isToday &&
+                  !isActive &&
+                  'ring-1 ring-inset ring-primary-400 dark:ring-primary-500',
               )}
             >
               {date.getDate()}

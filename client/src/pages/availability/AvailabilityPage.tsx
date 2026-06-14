@@ -37,6 +37,7 @@ export default function AvailabilityPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [selectedDayOfWeek, setSelectedDayOfWeek] = useState<number | null>(null);
+  const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [editingWindow, setEditingWindow] = useState<AvailabilityWindow | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -181,14 +182,26 @@ export default function AvailabilityPage() {
         >
           <CalendarWidget
             selectedDates={calendarSelectedDates}
-            onDateSelect={(dateKey) => setSelectedDayOfWeek(dateKeyToDayOfWeek(dateKey))}
+            activeDate={selectedDateKey}
+            onDateSelect={(dateKey) => {
+              setSelectedDateKey(dateKey);
+              setSelectedDayOfWeek(dateKeyToDayOfWeek(dateKey));
+            }}
           />
           {selectedDayOfWeek !== null ? (
             <div className="mt-4 flex items-center justify-between gap-3">
               <p className="text-sm text-slate-600 dark:text-slate-400">
                 Filtering: {weekdayLabels[selectedDayOfWeek]}
               </p>
-              <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedDayOfWeek(null)}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSelectedDayOfWeek(null);
+                  setSelectedDateKey(null);
+                }}
+              >
                 Clear filter
               </Button>
             </div>
