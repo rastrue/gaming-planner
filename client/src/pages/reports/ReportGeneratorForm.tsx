@@ -54,7 +54,7 @@ function triggerBlobDownload(blob: Blob, fileName: string) {
 
 export interface ReportGeneratorFormProps {
   onReportCreated: (report: ReportRequest) => void;
-  onSuccess?: (message: string) => void;
+  onSuccess?: (message: string, title?: string) => void;
 }
 
 const reportKindOptions: { value: ReportKind; label: string }[] = [
@@ -214,7 +214,6 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
       if (deliveryChannel === 'DOWNLOAD') {
         const download = await reportService.downloadReport(created.id);
         triggerBlobDownload(download.blob, download.fileName);
-        onSuccess?.(`${outputFormat} report downloaded successfully.`);
       } else {
         const emailed = await reportService.emailReport(created.id, {
           recipientEmail: recipientEmail.trim(),
@@ -226,7 +225,7 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
           return;
         }
 
-        onSuccess?.(`Report emailed to ${recipientEmail.trim()}.`);
+        onSuccess?.(`Report emailed to ${recipientEmail.trim()}.`, 'Report emailed');
       }
     } catch (error) {
       if (error instanceof ApiError) {

@@ -93,7 +93,9 @@ export default function ReportsPage() {
 
       <ReportGeneratorForm
         onReportCreated={handleReportCreated}
-        onSuccess={(message) => showToast({ title: 'Report ready', message, variant: 'success' })}
+        onSuccess={(message, title = 'Report ready') =>
+          showToast({ title, message, variant: 'success' })
+        }
       />
 
       <ReportHistoryTable
