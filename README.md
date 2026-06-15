@@ -12,22 +12,24 @@ Built as a TypeScript monorepo with a React client, Express API, and PostgreSQL 
 
 | For organizers | For players |
 | --- | --- |
-| Create and publish events | Browse, search, and filter events |
-| Define roster slots per event | Set weekly availability windows |
-| Approve registrations & assign roles | Register for open sessions |
-| Drag-and-drop roster board | Track registration history |
-| Generate PDF/DOCX reports | Export personal participation reports |
-| Mark attendance after events | Theme & preference controls |
+| Organizer dashboard with stats and pending registrations | Browse, search, filter, and paginate events |
+| Create, edit, publish, and delete events | Set weekly availability windows |
+| Define roster slots per event | Register for open sessions |
+| Approve registrations and assign roles via drag-and-drop | Re-register after a declined or cancelled registration |
+| Two-step roster flow: event picker and board | View and cancel eligible registrations |
+| Generate PDF/DOCX reports and email delivery | Theme and preference controls in the app header |
 
 ---
 
 ## Tech stack
 
-**Frontend** — React 18 · Vite · TypeScript · Tailwind CSS · Redux Toolkit · React Router
+**Frontend** — React 18 · Vite · TypeScript · Tailwind CSS · Redux Toolkit (synchronous only) · React Router
 
 **Backend** — Express · TypeScript · Prisma · PostgreSQL · Zod · JWT (httpOnly cookies)
 
 **Reports** — jsPDF · docx · Nodemailer
+
+**State & networking** — API calls live in `client/src/services/`; Redux holds client-side state and `localStorage` sync only (no `createAsyncThunk` or RTK Query).
 
 ---
 
@@ -56,6 +58,8 @@ flowchart LR
   Auth --> Prisma
   Prisma --> DB
 ```
+
+The database uses exactly **8 tables** in strict 3NF (`Role`, `User`, `Game`, `Event`, `EventSlot`, `Registration`, `AvailabilityWindow`, `ReportRequest`).
 
 ---
 
@@ -94,7 +98,7 @@ CLIENT_ORIGIN=http://localhost:5173
 JWT_SECRET=change-me-in-production
 ```
 
-Optional: add SMTP settings if you want to test **Email delivery** on the Reports page. See `.env.example` for Gmail, Outlook, SendGrid, and other provider templates.
+Optional: add SMTP settings if you want to test **email delivery** on the Reports page. See `.env.example` for Gmail, Outlook, SendGrid, and other provider templates.
 
 ### 3. Prepare the database
 
@@ -131,6 +135,51 @@ All seeded users share the password **`Password123!`**
 
 Log in with **username or email** on the `/login` page.
 
+After login, organizers land on `/dashboard`; players land on `/events`.
+
+---
+
+## Routes
+
+### Auth (public)
+
+| Path | Page |
+| --- | --- |
+| `/login` | Sign in |
+| `/register` | Create account |
+
+### Shared (authenticated)
+
+| Path | Page |
+| --- | --- |
+| `/events` | Event catalog with search, filters, sort, pagination |
+| `/events/:id` | Event details and registration |
+| `/availability` | Weekly availability planner |
+| `/my-registrations` | Registration history and statuses |
+
+### Organizer only
+
+Protected by role checks on both client and server.
+
+| Path | Page |
+| --- | --- |
+| `/dashboard` | Organizer dashboard |
+| `/organizer/events` | Event management list |
+| `/organizer/events/new` | Create event |
+| `/organizer/events/:id/edit` | Edit event |
+| `/organizer/roster` | Roster event picker |
+| `/organizer/roster/:eventId` | Drag-and-drop roster board |
+| `/reports` | Report generation, export, and history |
+
+### Other
+
+| Path | Behavior |
+| --- | --- |
+| `/` | Redirect to role default (`/dashboard` or `/events`) or `/login` |
+| `*` | 404 placeholder |
+
+There is **no `/settings` page**. Theme toggle and application reset live in the authenticated app header (`AppShell`).
+
 ---
 
 ## Project structure
@@ -143,7 +192,10 @@ gaming-planner/
 │   │   ├── pages/          # Route-level pages
 │   │   ├── services/       # REST API client modules
 │   │   ├── store/          # Synchronous Redux slices
-│   │   └── hooks/
+│   │   ├── hooks/
+│   │   ├── i18n/           # Russian UI labels
+│   │   ├── types/
+│   │   └── utils/          # routes, storageKeys
 │   └── .env.development    # Dev API URL override
 ├── server/                 # Express API
 │   ├── prisma/             # Schema, migrations, seed
@@ -151,6 +203,7 @@ gaming-planner/
 │       ├── controllers/
 │       ├── services/
 │       ├── routes/
+│       ├── validators/
 │       └── middleware/
 ├── .env.example            # Environment template (copy to .env)
 └── package.json            # npm workspaces root
@@ -185,8 +238,8 @@ All endpoints are prefixed with `/api`.
 | Auth | `POST /auth/register` · `POST /auth/login` · `GET /auth/me` · `POST /auth/logout` |
 | Games | Full CRUD on `/games` |
 | Events | Full CRUD on `/events` with search, filter, sort, pagination |
-| Slots | Nested under `/events/:eventId/slots` |
-| Registrations | CRUD + approve / decline / assign / attendance |
+| Slots | Nested under `/events/:eventId/slots`; mutations on `/event-slots/:id` |
+| Registrations | CRUD — cancel, approve/decline, slot assignment, attendance |
 | Availability | Weekly window CRUD on `/availability` |
 | Reports | Generate, download (PDF/DOCX), and email delivery |
 
@@ -198,16 +251,21 @@ Organizer-only routes are protected server-side with role-based access control.
 
 QuestSync has two distinct roles — no separate admin account:
 
-- **Organizer** — event management, roster boards, event attendance reports
-- **Player** — event discovery, availability, registrations, participation reports
+- **Organizer** — dashboard, event management, roster boards, reports. Default route: `/dashboard`.
+- **Player** — event discovery, availability, registrations. Default route: `/events`. No dashboard or reports in navigation.
 
-Navigation, dashboards, and permissions differ materially between roles.
+Navigation, landing routes, and permissions differ materially between roles. Roster slot assignment respects each slot's `requiredCount` on both client and server.
 
 ---
 
 ## Client preferences
 
-Theme, sidebar state, and catalog filters persist in `localStorage` under the `questsync:` prefix. Reset everything from **Settings → Reset application settings**.
+Theme, sidebar state, and catalog filters persist in `localStorage` under the `questsync:` prefix.
+
+From the authenticated header:
+
+1. **Theme toggle** — Sun/Moon icon; preference is saved automatically.
+2. **Reset application settings** — removes all `questsync:` keys, resets Redux slices, and restores the active session user.
 
 ---
 
@@ -260,7 +318,7 @@ QuestSync uses standard SMTP — testers can plug in any provider they already h
 | Yahoo Mail | `smtp.mail.yahoo.com` | `587` | App Password recommended |
 | SendGrid | `smtp.sendgrid.net` | `587` | `SMTP_USER=apikey`, `SMTP_PASS` = API key |
 | Mailgun | `smtp.mailgun.org` | `587` | Use SMTP credentials from Mailgun dashboard |
-| Custom / hosting | your host’s SMTP host | `587` or `465` | Ask your host for host, port, and credentials |
+| Custom / hosting | your host's SMTP host | `587` or `465` | Ask your host for host, port, and credentials |
 
 **For testers:** use your own credentials in a local `.env` file only. Do not commit `.env` or share SMTP passwords in issues or pull requests. Reports can be sent to **any recipient email** — only the outbound SMTP account is configured server-side.
 
