@@ -102,10 +102,10 @@ export default function App() {
             <Route path="/events/:id" element={<EventDetailPage />} />
             <Route path="/availability" element={<AvailabilityPage />} />
             <Route path="/my-registrations" element={<MyRegistrationsPage />} />
-            <Route path="/reports" element={<ReportsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
 
             <Route element={<RoleRoute allowedRoles={['ORGANIZER']} />}>
+              <Route path="/reports" element={<ReportsPage />} />
               <Route path="/organizer/events" element={<OrganizerEventsPage />} />
               <Route path="/organizer/events/new" element={<EventFormPage />} />
               <Route path="/organizer/events/:id/edit" element={<EventFormPage />} />

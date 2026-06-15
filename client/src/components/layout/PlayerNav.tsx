@@ -1,7 +1,6 @@
 import {
   CalendarRange,
   Compass,
-  FileText,
   LayoutDashboard,
   ScrollText,
   Settings,
@@ -53,12 +52,6 @@ export default function PlayerNav({
       href: '/my-registrations',
       icon: <ScrollText className="h-4 w-4" />,
       isActive: isNavItemActive(currentPath, '/my-registrations'),
-    },
-    {
-      label: 'Отчёты и экспорт',
-      href: '/reports',
-      icon: <FileText className="h-4 w-4" />,
-      isActive: isNavItemActive(currentPath, '/reports'),
     },
     {
       label: 'Настройки',
