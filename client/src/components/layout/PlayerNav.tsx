@@ -3,7 +3,6 @@ import {
   Compass,
   LayoutDashboard,
   ScrollText,
-  Settings,
 } from 'lucide-react';
 import SidebarNav, { type SidebarNavItem } from '../ui/SidebarNav';
 
@@ -52,12 +51,6 @@ export default function PlayerNav({
       href: '/my-registrations',
       icon: <ScrollText className="h-4 w-4" />,
       isActive: isNavItemActive(currentPath, '/my-registrations'),
-    },
-    {
-      label: 'Настройки',
-      href: '/settings',
-      icon: <Settings className="h-4 w-4" />,
-      isActive: isNavItemActive(currentPath, '/settings'),
     },
   ];
 

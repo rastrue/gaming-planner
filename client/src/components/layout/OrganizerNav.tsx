@@ -2,7 +2,6 @@ import {
   CalendarClock,
   ClipboardList,
   LayoutDashboard,
-  Settings,
   Users,
 } from 'lucide-react';
 import SidebarNav, { type SidebarNavItem } from '../ui/SidebarNav';
@@ -52,12 +51,6 @@ export default function OrganizerNav({
       href: '/reports',
       icon: <CalendarClock className="h-4 w-4" />,
       isActive: isNavItemActive(currentPath, '/reports'),
-    },
-    {
-      label: 'Настройки',
-      href: '/settings',
-      icon: <Settings className="h-4 w-4" />,
-      isActive: isNavItemActive(currentPath, '/settings'),
     },
   ];
 

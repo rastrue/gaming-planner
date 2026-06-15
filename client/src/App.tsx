@@ -17,7 +17,6 @@ import DashboardPage from './pages/dashboard/DashboardPage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import ReportsPage from './pages/reports/ReportsPage';
-import SettingsPage from './pages/settings/SettingsPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import * as authService from './services/authService';
 import { clearCurrentUser, setCurrentUser } from './store/authSlice';
@@ -102,7 +101,6 @@ export default function App() {
             <Route path="/events/:id" element={<EventDetailPage />} />
             <Route path="/availability" element={<AvailabilityPage />} />
             <Route path="/my-registrations" element={<MyRegistrationsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
 
             <Route element={<RoleRoute allowedRoles={['ORGANIZER']} />}>
               <Route path="/reports" element={<ReportsPage />} />

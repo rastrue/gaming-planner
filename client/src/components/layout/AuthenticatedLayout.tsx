@@ -27,10 +27,6 @@ function getPageMeta(pathname: string): { title: string; description?: string } 
     return { title: 'Отчёты', description: 'Формирование, экспорт и отправка отчётов по участию.' };
   }
 
-  if (pathname === '/settings') {
-    return { title: 'Настройки', description: 'Тема, предпочтения и сброс приложения.' };
-  }
-
   if (pathname === '/organizer/events/new') {
     return { title: 'Создание события', description: 'Публикация нового многопользовательского события.' };
   }
