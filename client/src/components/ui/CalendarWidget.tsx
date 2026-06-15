@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import IconButton from './IconButton';
+import SelectDropdown from './SelectDropdown';
 import { cn, uiStyles } from '../../utils/cn';
 
 export interface CalendarWidgetProps {
@@ -13,6 +14,20 @@ export interface CalendarWidgetProps {
 }
 
 const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const monthOptions = Array.from({ length: 12 }, (_, index) => ({
+  value: String(index),
+  label: new Date(2000, index, 1).toLocaleDateString(undefined, { month: 'long' }),
+}));
+
+function buildYearOptions(centerYear: number): Array<{ value: string; label: string }> {
+  const start = centerYear - 10;
+  const end = centerYear + 10;
+
+  return Array.from({ length: end - start + 1 }, (_, index) => {
+    const year = start + index;
+    return { value: String(year), label: String(year) };
+  });
+}
 
 function toDateKey(date: Date): string {
   const year = date.getFullYear();
@@ -50,16 +65,23 @@ export default function CalendarWidget({
 }: CalendarWidgetProps) {
   const [internalMonth, setInternalMonth] = useState(() => controlledMonth ?? new Date());
   const visibleMonth = controlledMonth ?? internalMonth;
-  const monthLabel = visibleMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
   const days = useMemo(() => buildMonthGrid(visibleMonth), [visibleMonth]);
   const selectedSet = useMemo(() => new Set(selectedDates), [selectedDates]);
+  const yearOptions = useMemo(
+    () => buildYearOptions(visibleMonth.getFullYear()),
+    [visibleMonth],
+  );
 
-  const changeMonth = (offset: number) => {
-    const nextMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + offset, 1);
+  const applyMonth = (monthIndex: number, year: number) => {
+    const nextMonth = new Date(year, monthIndex, 1);
     if (controlledMonth === undefined) {
       setInternalMonth(nextMonth);
     }
     onMonthChange?.(nextMonth);
+  };
+
+  const changeMonth = (offset: number) => {
+    applyMonth(visibleMonth.getMonth() + offset, visibleMonth.getFullYear());
   };
 
   return (
@@ -69,8 +91,21 @@ export default function CalendarWidget({
         className,
       )}
     >
-      <div className="mb-4 flex items-center justify-between gap-2">
-        <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">{monthLabel}</h3>
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+        <div className="grid flex-1 grid-cols-2 gap-3 sm:max-w-xs">
+          <SelectDropdown
+            label="Month"
+            value={String(visibleMonth.getMonth())}
+            options={monthOptions}
+            onChange={(event) => applyMonth(Number(event.target.value), visibleMonth.getFullYear())}
+          />
+          <SelectDropdown
+            label="Year"
+            value={String(visibleMonth.getFullYear())}
+            options={yearOptions}
+            onChange={(event) => applyMonth(visibleMonth.getMonth(), Number(event.target.value))}
+          />
+        </div>
         <div className="flex items-center gap-1">
           <IconButton label="Previous month" size="sm" onClick={() => changeMonth(-1)}>
             <ChevronLeft className="h-4 w-4" />
@@ -89,7 +124,7 @@ export default function CalendarWidget({
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-1" role="grid" aria-label={`Calendar for ${monthLabel}`}>
+      <div className="grid grid-cols-7 gap-1" role="grid" aria-label={`Calendar for ${visibleMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}`}>
         {days.map((date, index) => {
           if (!date) {
             return <div key={`empty-${index}`} role="gridcell" aria-hidden="true" />;

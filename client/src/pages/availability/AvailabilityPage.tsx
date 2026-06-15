@@ -30,6 +30,27 @@ function dateKeyToDayOfWeek(dateKey: string): number {
   return new Date(year, month - 1, day).getDay();
 }
 
+function toDateKey(year: number, monthIndex: number, day: number): string {
+  return `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function availabilityDatesInMonth(windows: AvailabilityWindow[], month: Date): string[] {
+  const weekdaysWithAvailability = new Set(windows.map((window) => window.dayOfWeek));
+  const year = month.getFullYear();
+  const monthIndex = month.getMonth();
+  const lastDay = new Date(year, monthIndex + 1, 0).getDate();
+  const dates: string[] = [];
+
+  for (let day = 1; day <= lastDay; day += 1) {
+    const date = new Date(year, monthIndex, day);
+    if (weekdaysWithAvailability.has(date.getDay())) {
+      dates.push(toDateKey(year, monthIndex, day));
+    }
+  }
+
+  return dates;
+}
+
 export default function AvailabilityPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { isPlayer } = useAuth();
@@ -38,6 +59,7 @@ export default function AvailabilityPage() {
   const [loadError, setLoadError] = useState('');
   const [selectedDayOfWeek, setSelectedDayOfWeek] = useState<number | null>(null);
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
   const [editingWindow, setEditingWindow] = useState<AvailabilityWindow | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -87,18 +109,8 @@ export default function AvailabilityPage() {
   }, [selectedDayOfWeek, windows]);
 
   const calendarSelectedDates = useMemo(
-    () =>
-      windows.map((window) => {
-        const now = new Date();
-        const dayOffset = (window.dayOfWeek - now.getDay() + 7) % 7;
-        const date = new Date(now);
-        date.setDate(now.getDate() + dayOffset);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      }),
-    [windows],
+    () => availabilityDatesInMonth(windows, calendarMonth),
+    [windows, calendarMonth],
   );
 
   const handleCreateOrUpdate = async (values: Parameters<typeof availabilityService.createAvailabilityWindow>[0]) => {
@@ -181,6 +193,8 @@ export default function AvailabilityPage() {
           description="Select a day to focus your availability list."
         >
           <CalendarWidget
+            month={calendarMonth}
+            onMonthChange={setCalendarMonth}
             selectedDates={calendarSelectedDates}
             activeDate={selectedDateKey}
             onDateSelect={(dateKey) => {
