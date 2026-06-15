@@ -4,7 +4,7 @@ import AppShell from './AppShell';
 
 function getPageMeta(pathname: string): { title: string; description?: string } {
   if (pathname === '/dashboard') {
-    return { title: 'Панель управления', description: 'Обзор и быстрые действия в зависимости от роли.' };
+    return { title: 'Панель управления', description: 'Обзор и быстрые действия' };
   }
 
   if (/^\/events\/\d+/.test(pathname)) {
