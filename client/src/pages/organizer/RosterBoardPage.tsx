@@ -132,6 +132,28 @@ export default function RosterBoardPage() {
     return map;
   }, [approvedRegistrations, slots]);
 
+  const canSlotAcceptRegistration = useCallback(
+    (slotId: number, registrationId: number | null) => {
+      if (registrationId === null) {
+        return false;
+      }
+
+      const registration = registrations.find((item) => item.id === registrationId);
+      if (!registration || registration.eventSlotId === slotId) {
+        return false;
+      }
+
+      const slot = slots.find((item) => item.id === slotId);
+      if (!slot) {
+        return false;
+      }
+
+      const assignments = assignmentsBySlot.get(slotId) ?? [];
+      return assignments.length < slot.requiredCount;
+    },
+    [assignmentsBySlot, registrations, slots],
+  );
+
   const updateRegistrationState = (updated: Registration) => {
     setRegistrations((current) =>
       current.map((registration) => (registration.id === updated.id ? updated : registration)),
@@ -181,6 +203,11 @@ export default function RosterBoardPage() {
       return;
     }
 
+    if (!canSlotAcceptRegistration(slotId, registrationId)) {
+      setActionError('Слот заполнен.');
+      return;
+    }
+
     await runRegistrationAction(registrationId, () =>
       rosterService.assignRegistrationToSlot(registrationId, slotId),
     );
@@ -225,6 +252,12 @@ export default function RosterBoardPage() {
 
     const registrationId = readDraggedRegistrationId(dragEvent);
     if (!registrationId) {
+      return;
+    }
+
+    if (!canSlotAcceptRegistration(slotId, registrationId)) {
+      setActionError('Слот заполнен.');
+      setDraggingRegistrationId(null);
       return;
     }
 
@@ -365,18 +398,27 @@ export default function RosterBoardPage() {
         />
       ) : (
         <section aria-label="Доска слотов состава" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {slots.map((slot) => (
+          {slots.map((slot) => {
+            const canAcceptDrop = canSlotAcceptRegistration(slot.id, draggingRegistrationId);
+
+            return (
             <RosterSlotColumn
               key={slot.id}
               slot={slot}
               assignments={assignmentsBySlot.get(slot.id) ?? []}
-              isDragOver={dragOverSlotId === slot.id}
+              canAcceptDrop={canAcceptDrop}
+              isDragOver={dragOverSlotId === slot.id && canAcceptDrop}
               canMarkAttendance={canMarkAttendance}
               busyRegistrationId={busyRegistrationId}
               draggingRegistrationId={draggingRegistrationId}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
               onDragOver={(dragEvent) => {
+                if (!canSlotAcceptRegistration(slot.id, draggingRegistrationId)) {
+                  dragEvent.dataTransfer.dropEffect = 'none';
+                  return;
+                }
+
                 allowDrop(dragEvent);
                 setDragOverSlotId(slot.id);
               }}
@@ -384,7 +426,8 @@ export default function RosterBoardPage() {
               onDrop={handleDropOnSlot(slot.id)}
               onMarkAttendance={handleMarkAttendance}
             />
-          ))}
+            );
+          })}
         </section>
       )}
     </div>

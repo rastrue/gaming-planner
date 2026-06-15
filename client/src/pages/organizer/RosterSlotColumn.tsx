@@ -62,6 +62,7 @@ function attendanceVariant(status: AttendanceStatus) {
 export interface RosterSlotColumnProps {
   slot: EventSlot;
   assignments: Registration[];
+  canAcceptDrop?: boolean;
   isDragOver: boolean;
   canMarkAttendance: boolean;
   busyRegistrationId: number | null;
@@ -77,6 +78,7 @@ export interface RosterSlotColumnProps {
 export default function RosterSlotColumn({
   slot,
   assignments,
+  canAcceptDrop = true,
   isDragOver,
   canMarkAttendance,
   busyRegistrationId,
@@ -90,6 +92,7 @@ export default function RosterSlotColumn({
 }: RosterSlotColumnProps) {
   const fillCount = assignments.length;
   const isFull = fillCount >= slot.requiredCount;
+  const isOverfull = fillCount > slot.requiredCount;
 
   return (
     <article className="flex min-h-64 flex-col rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
@@ -99,7 +102,7 @@ export default function RosterSlotColumn({
             <h3 className="font-semibold text-slate-900 dark:text-slate-100">{slot.roleName}</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">Порядок {slot.displayOrder}</p>
           </div>
-          <Badge variant={isFull ? 'success' : 'warning'}>
+          <Badge variant={isOverfull ? 'danger' : isFull ? 'success' : 'warning'}>
             {fillCount} / {slot.requiredCount}
           </Badge>
         </div>
@@ -111,12 +114,13 @@ export default function RosterSlotColumn({
         onDrop={onDrop}
         className={cn(
           'flex flex-1 flex-col gap-2 p-3 transition-colors',
-          isDragOver && 'bg-primary-50 ring-2 ring-inset ring-primary-400 dark:bg-primary-950/40',
+          isDragOver && canAcceptDrop && 'bg-primary-50 ring-2 ring-inset ring-primary-400 dark:bg-primary-950/40',
+          isFull && !canAcceptDrop && 'opacity-90',
         )}
       >
         {assignments.length === 0 ? (
           <p className="rounded-lg border border-dashed border-slate-300 px-3 py-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-            Перетащите одобренных игроков сюда
+            {isFull ? 'Слот заполнен' : 'Перетащите одобренных игроков сюда'}
           </p>
         ) : (
           assignments.map((registration) => (

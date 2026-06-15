@@ -180,6 +180,42 @@ export async function createRegistration(
     throw new AppError(409, 'Registration is not open for this event');
   }
 
+  const existing = await prisma.registration.findUnique({
+    where: {
+      eventId_userId: {
+        eventId: input.eventId,
+        userId: user.id,
+      },
+    },
+    select: { id: true, status: true },
+  });
+
+  if (existing) {
+    if (
+      existing.status === RegistrationStatus.PENDING ||
+      existing.status === RegistrationStatus.APPROVED
+    ) {
+      throw new AppError(409, 'You are already registered for this event');
+    }
+
+    if (
+      existing.status === RegistrationStatus.DECLINED ||
+      existing.status === RegistrationStatus.CANCELLED
+    ) {
+      return prisma.registration.update({
+        where: { id: existing.id },
+        data: {
+          status: RegistrationStatus.PENDING,
+          requestedRoleName: input.requestedRoleName ?? null,
+          attendanceStatus: AttendanceStatus.NOT_MARKED,
+          eventSlot: { disconnect: true },
+          joinedAt: new Date(),
+        },
+        select: registrationSelect,
+      });
+    }
+  }
+
   try {
     return await prisma.registration.create({
       data: {
@@ -277,11 +313,31 @@ async function applyOrganizerUpdate(
     } else {
       const slot = await prisma.eventSlot.findUnique({
         where: { id: input.eventSlotId },
-        select: { eventId: true },
+        select: {
+          eventId: true,
+          requiredCount: true,
+          _count: {
+            select: {
+              registrations: {
+                where: {
+                  status: RegistrationStatus.APPROVED,
+                  id: { not: registration.id },
+                },
+              },
+            },
+          },
+        },
       });
 
       if (!slot || slot.eventId !== registration.eventId) {
         throw new AppError(400, 'Selected slot does not belong to this event');
+      }
+
+      if (
+        registration.eventSlotId !== input.eventSlotId &&
+        slot._count.registrations >= slot.requiredCount
+      ) {
+        throw new AppError(409, 'This roster slot is already full');
       }
 
       data.eventSlot = { connect: { id: input.eventSlotId } };
