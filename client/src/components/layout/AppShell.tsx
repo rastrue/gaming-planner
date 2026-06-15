@@ -3,6 +3,7 @@ import { type ReactNode, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../../hooks/useToast';
 import { toggleSidebarCollapsed } from '../../store/uiSlice';
 import type { AppDispatch, RootState } from '../../store/store';
 import { toggleThemeMode } from '../../store/themeSlice';
@@ -14,6 +15,8 @@ import MobileNavToggle from './MobileNavToggle';
 import OrganizerNav from './OrganizerNav';
 import PageHeader from './PageHeader';
 import PlayerNav from './PlayerNav';
+import ResetAppSettingsControl from './ResetAppSettingsControl';
+import ToastStack from './ToastStack';
 
 export interface AppShellProps {
   role: UserRoleName;
@@ -41,6 +44,7 @@ export default function AppShell({
   const { logout } = useAuth();
   const sidebarCollapsed = useSelector((state: RootState) => state.ui.sidebarCollapsed);
   const themeMode = useSelector((state: RootState) => state.theme.mode);
+  const { toasts, showToast, dismissToast } = useToast();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -101,6 +105,15 @@ export default function AppShell({
             >
               {themeMode === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </IconButton>
+            <ResetAppSettingsControl
+              onSuccess={() =>
+                showToast({
+                  title: 'Настройки сброшены',
+                  message: 'Предпочтения QuestSync восстановлены по умолчанию.',
+                  variant: 'success',
+                })
+              }
+            />
             <Button
               variant="ghost"
               size="sm"
@@ -147,6 +160,8 @@ export default function AppShell({
           <main className="min-w-0 flex-1 overflow-y-auto px-4 py-6 md:px-6">{children}</main>
         </div>
       </div>
+
+      <ToastStack toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import * as authService from '../services/authService';
 import { clearAvailabilityState } from '../store/availabilitySlice';
-import { resetAuthState } from '../store/authSlice';
+import { resetAuthState, setCurrentUser } from '../store/authSlice';
 import { clearEventsState } from '../store/eventsSlice';
 import { resetFiltersState } from '../store/filtersSlice';
 import { clearRegistrationsState } from '../store/registrationsSlice';
@@ -41,4 +42,17 @@ export function resetApplicationSettings(dispatch: AppDispatch): void {
   dispatch(clearReportsState());
   dispatch(clearAvailabilityState());
   applyThemeClass('light');
+}
+
+export async function resetApplicationSettingsAndRestoreSession(
+  dispatch: AppDispatch,
+): Promise<void> {
+  resetApplicationSettings(dispatch);
+
+  try {
+    const user = await authService.getCurrentUser();
+    dispatch(setCurrentUser(user));
+  } catch {
+    // Session cookie may have expired; ProtectedRoute will handle redirect.
+  }
 }
