@@ -4,6 +4,7 @@ import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import DataTable from '../../components/ui/DataTable';
 import ModalDialog from '../../components/ui/ModalDialog';
+import { formatRegistrationStatus } from '../../i18n/labels';
 import type { Registration, RegistrationStatus } from '../../types/index';
 
 function registrationStatusVariant(status: RegistrationStatus) {
@@ -60,10 +61,12 @@ export default function RegistrationReviewPanel({
   if (reviewable.length === 0) {
     return (
       <Card
-        title="Registration review"
-        description="Approve or decline player requests before assigning them to slots."
+        title="Проверка регистраций"
+        description="Одобряйте или отклоняйте заявки игроков перед назначением на слоты."
       >
-        <p className="text-sm text-slate-600 dark:text-slate-400">No pending or approved registrations to review.</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          Нет ожидающих или одобренных регистраций для проверки.
+        </p>
       </Card>
     );
   }
@@ -71,18 +74,18 @@ export default function RegistrationReviewPanel({
   return (
     <>
       <Card
-        title="Registration review"
-        description="Approve or decline player requests before assigning them to slots."
+        title="Проверка регистраций"
+        description="Одобряйте или отклоняйте заявки игроков перед назначением на слоты."
       >
         <DataTable<Registration>
-          caption="Event registrations awaiting review"
+          caption="Регистрации на событие, ожидающие проверки"
           data={reviewable}
           getRowKey={(registration) => registration.id}
           columns={[
             {
               key: 'player',
-              header: 'Player',
-              mobileLabel: 'Player',
+              header: 'Игрок',
+              mobileLabel: 'Игрок',
               render: (registration) => (
                 <div>
                   <p className="font-medium text-slate-900 dark:text-slate-100">
@@ -94,21 +97,23 @@ export default function RegistrationReviewPanel({
             },
             {
               key: 'requestedRole',
-              header: 'Requested role',
+              header: 'Запрошенная роль',
               hideOnMobile: true,
-              render: (registration) => registration.requestedRoleName ?? 'Any',
+              render: (registration) => registration.requestedRoleName ?? 'Любая',
             },
             {
               key: 'status',
-              header: 'Status',
+              header: 'Статус',
               render: (registration) => (
-                <Badge variant={registrationStatusVariant(registration.status)}>{registration.status}</Badge>
+                <Badge variant={registrationStatusVariant(registration.status)}>
+                  {formatRegistrationStatus(registration.status)}
+                </Badge>
               ),
             },
             {
               key: 'actions',
-              header: 'Actions',
-              mobileLabel: 'Actions',
+              header: 'Действия',
+              mobileLabel: 'Действия',
               render: (registration) => {
                 const isBusy = busyId === registration.id;
 
@@ -122,7 +127,7 @@ export default function RegistrationReviewPanel({
                           disabled={isBusy}
                           onClick={() => void onApprove(registration)}
                         >
-                          Approve
+                          Одобрить
                         </Button>
                         <Button
                           type="button"
@@ -133,7 +138,7 @@ export default function RegistrationReviewPanel({
                             setConfirmTarget({ registration, action: 'decline' })
                           }
                         >
-                          Decline
+                          Отклонить
                         </Button>
                       </>
                     ) : null}
@@ -145,7 +150,7 @@ export default function RegistrationReviewPanel({
                         disabled={isBusy}
                         onClick={() => setConfirmTarget({ registration, action: 'cancel' })}
                       >
-                        Cancel
+                        Отменить
                       </Button>
                     ) : null}
                   </div>
@@ -158,12 +163,12 @@ export default function RegistrationReviewPanel({
 
       <ModalDialog
         open={Boolean(confirmTarget)}
-        title={confirmTarget?.action === 'decline' ? 'Decline registration' : 'Cancel registration'}
+        title={confirmTarget?.action === 'decline' ? 'Отклонить регистрацию' : 'Отменить регистрацию'}
         onClose={() => setConfirmTarget(null)}
         footer={
           <>
             <Button type="button" variant="secondary" onClick={() => setConfirmTarget(null)}>
-              Keep registration
+              Оставить регистрацию
             </Button>
             <Button
               type="button"
@@ -171,15 +176,15 @@ export default function RegistrationReviewPanel({
               disabled={busyId === confirmTarget?.registration.id}
               onClick={() => void handleConfirm()}
             >
-              {confirmTarget?.action === 'decline' ? 'Decline player' : 'Cancel registration'}
+              {confirmTarget?.action === 'decline' ? 'Отклонить игрока' : 'Отменить регистрацию'}
             </Button>
           </>
         }
       >
         <p className="text-sm text-slate-600 dark:text-slate-400">
           {confirmTarget?.action === 'decline'
-            ? `Decline the registration request from ${confirmTarget.registration.user.displayName}?`
-            : `Cancel the approved registration for ${confirmTarget?.registration.user.displayName}? They will be removed from any assigned slot.`}
+            ? `Отклонить заявку на регистрацию от ${confirmTarget.registration.user.displayName}?`
+            : `Отменить одобренную регистрацию для ${confirmTarget?.registration.user.displayName}? Игрок будет удалён из назначенного слота.`}
         </p>
       </ModalDialog>
     </>

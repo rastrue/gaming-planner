@@ -14,6 +14,7 @@ import { ApiError } from '../../services/apiClient';
 import { upsertRegistration } from '../../store/registrationsSlice';
 import type { AppDispatch } from '../../store/store';
 import type { AttendanceStatus, Event, EventSlot, EventStatus, Registration } from '../../types/index';
+import { formatEventStatus } from '../../i18n/labels';
 import RegistrationReviewPanel from './RegistrationReviewPanel';
 import RosterSlotColumn, {
   PlayerAssignmentCard,
@@ -39,7 +40,7 @@ function eventStatusVariant(status: EventStatus) {
 }
 
 function formatEventDate(value: string): string {
-  return new Date(value).toLocaleString(undefined, {
+  return new Date(value).toLocaleString('ru-RU', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -72,7 +73,7 @@ export default function RosterBoardPage() {
 
   const loadBoard = useCallback(async () => {
     if (!Number.isFinite(eventId)) {
-      setLoadError('Invalid event id.');
+      setLoadError('Некорректный идентификатор события.');
       setIsLoading(false);
       return;
     }
@@ -87,7 +88,7 @@ export default function RosterBoardPage() {
       ]);
 
       if (eventData.organizerId !== user?.id) {
-        setLoadError('You can only manage rosters for events that you organize.');
+        setLoadError('Вы можете управлять составом только для событий, которые организуете.');
         return;
       }
 
@@ -95,7 +96,7 @@ export default function RosterBoardPage() {
       setSlots(board.slots);
       setRegistrations(board.registrations);
     } catch {
-      setLoadError('Unable to load roster board.');
+      setLoadError('Не удалось загрузить доску состава.');
     } finally {
       setIsLoading(false);
     }
@@ -149,7 +150,7 @@ export default function RosterBoardPage() {
       if (error instanceof ApiError) {
         setActionError(error.message);
       } else {
-        setActionError('Unable to update registration.');
+        setActionError('Не удалось обновить регистрацию.');
       }
     } finally {
       setBusyRegistrationId(null);
@@ -247,7 +248,7 @@ export default function RosterBoardPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner label="Loading roster board" size="lg" />
+        <Spinner label="Загрузка доски состава" size="lg" />
       </div>
     );
   }
@@ -255,11 +256,11 @@ export default function RosterBoardPage() {
   if (loadError || !event) {
     return (
       <EmptyState
-        title="Roster unavailable"
-        description={loadError || 'Event not found.'}
+        title="Состав недоступен"
+        description={loadError || 'Событие не найдено.'}
         action={
           <Link to="/organizer/events">
-            <Button variant="secondary">Back to events</Button>
+            <Button variant="secondary">Назад к событиям</Button>
           </Link>
         }
       />
@@ -274,24 +275,27 @@ export default function RosterBoardPage() {
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{event.title}</h2>
-            <Badge variant={eventStatusVariant(event.status)}>{event.status}</Badge>
+            <Badge variant={eventStatusVariant(event.status)}>{formatEventStatus(event.status)}</Badge>
           </div>
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            {event.game.title} · Starts {formatEventDate(event.scheduledStart)}
+            {event.game.title} · Начало {formatEventDate(event.scheduledStart)}
           </p>
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Drag approved players into roster slots. {canMarkAttendance ? 'Mark attendance below each assignment.' : 'Attendance unlocks after the event is completed.'}
+            Перетащите одобренных игроков на слоты состава.{' '}
+            {canMarkAttendance
+              ? 'Отмечайте посещаемость под каждым назначением.'
+              : 'Отметка посещаемости станет доступна после завершения события.'}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link to={`/organizer/events/${event.id}/edit`}>
             <Button type="button" variant="secondary">
-              Edit event
+              Редактировать событие
             </Button>
           </Link>
           <Link to="/organizer/events">
             <Button type="button" variant="ghost">
-              Back to events
+              Назад к событиям
             </Button>
           </Link>
         </div>
@@ -312,8 +316,8 @@ export default function RosterBoardPage() {
       />
 
       <Card
-        title="Unassigned players"
-        description="Approved players waiting for a slot assignment. Drag them into a column below."
+        title="Неназначенные игроки"
+        description="Одобренные игроки, ожидающие назначения на слот. Перетащите их в колонку ниже."
       >
         <div
           onDragOver={(dragEvent) => {
@@ -330,7 +334,7 @@ export default function RosterBoardPage() {
         >
           {unassignedApproved.length === 0 ? (
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              All approved players are assigned to slots.
+              Все одобренные игроки назначены на слоты.
             </p>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -351,16 +355,16 @@ export default function RosterBoardPage() {
 
       {slots.length === 0 ? (
         <EmptyState
-          title="No roster slots defined"
-          description="Add roster slots on the event edit page before assigning players."
+          title="Слоты состава не определены"
+          description="Добавьте слоты состава на странице редактирования события перед назначением игроков."
           action={
             <Link to={`/organizer/events/${event.id}/edit`}>
-              <Button>Edit event slots</Button>
+              <Button>Редактировать слоты события</Button>
             </Link>
           }
         />
       ) : (
-        <section aria-label="Roster slot board" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <section aria-label="Доска слотов состава" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {slots.map((slot) => (
             <RosterSlotColumn
               key={slot.id}

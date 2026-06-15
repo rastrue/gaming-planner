@@ -17,7 +17,15 @@ import type { AppDispatch, RootState } from '../../store/store';
 import type { AvailabilityWindow } from '../../types/index';
 import AvailabilityForm from './AvailabilityForm';
 
-const weekdayLabels = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const weekdayLabels = [
+  'Воскресенье',
+  'Понедельник',
+  'Вторник',
+  'Среда',
+  'Четверг',
+  'Пятница',
+  'Суббота',
+];
 
 function formatMinutes(minute: number): string {
   const hours = Math.floor(minute / 60);
@@ -84,7 +92,7 @@ export default function AvailabilityPage() {
         }
       } catch {
         if (active) {
-          setLoadError('Unable to load availability windows.');
+          setLoadError('Не удалось загрузить окна доступности.');
         }
       } finally {
         if (active) {
@@ -136,7 +144,7 @@ export default function AvailabilityPage() {
         });
         setFieldErrors(mapped);
       } else {
-        setFormError('Unable to save availability window.');
+        setFormError('Не удалось сохранить окно доступности.');
       }
     } finally {
       setIsSubmitting(false);
@@ -157,7 +165,7 @@ export default function AvailabilityPage() {
       if (error instanceof ApiError) {
         setFormError(error.message);
       } else {
-        setFormError('Unable to delete availability window.');
+        setFormError('Не удалось удалить окно доступности.');
       }
     } finally {
       setIsSubmitting(false);
@@ -167,8 +175,8 @@ export default function AvailabilityPage() {
   if (!isPlayer) {
     return (
       <EmptyState
-        title="Player availability only"
-        description="Weekly availability planning is available to player accounts."
+        title="Только для игроков"
+        description="Планирование еженедельной доступности доступно только аккаунтам игроков."
       />
     );
   }
@@ -176,21 +184,21 @@ export default function AvailabilityPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner label="Loading availability" size="lg" />
+        <Spinner label="Загрузка доступности" size="lg" />
       </div>
     );
   }
 
   if (loadError) {
-    return <EmptyState title="Availability unavailable" description={loadError} />;
+    return <EmptyState title="Доступность недоступна" description={loadError} />;
   }
 
   return (
     <div className="space-y-6">
       <div className="grid gap-6 xl:grid-cols-2">
         <Card
-          title="Weekly calendar"
-          description="Select a day to focus your availability list."
+          title="Еженедельный календарь"
+          description="Выберите день, чтобы отфильтровать список доступности."
         >
           <CalendarWidget
             month={calendarMonth}
@@ -205,7 +213,7 @@ export default function AvailabilityPage() {
           {selectedDayOfWeek !== null ? (
             <div className="mt-4 flex items-center justify-between gap-3">
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                Filtering: {weekdayLabels[selectedDayOfWeek]}
+                Фильтр: {weekdayLabels[selectedDayOfWeek]}
               </p>
               <Button
                 type="button"
@@ -216,15 +224,15 @@ export default function AvailabilityPage() {
                   setSelectedDateKey(null);
                 }}
               >
-                Clear filter
+                Сбросить фильтр
               </Button>
             </div>
           ) : null}
         </Card>
 
         <Card
-          title={editingWindow ? 'Edit availability window' : 'Add availability window'}
-          description="Define when you are usually free to play."
+          title={editingWindow ? 'Редактировать окно доступности' : 'Добавить окно доступности'}
+          description="Укажите, когда вы обычно свободны для игры."
         >
           <AvailabilityForm
             initialValues={editingWindow}
@@ -242,10 +250,10 @@ export default function AvailabilityPage() {
         </Card>
       </div>
 
-      <Card title="Your availability windows" description="Saved weekly time ranges.">
+      <Card title="Ваши окна доступности" description="Сохранённые еженедельные временные интервалы.">
         {filteredWindows.length === 0 ? (
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            No availability windows yet. Add one using the form above.
+            Окон доступности пока нет. Добавьте одно с помощью формы выше.
           </p>
         ) : (
           <ul className="space-y-3">
@@ -270,7 +278,7 @@ export default function AvailabilityPage() {
                     disabled={isSubmitting}
                     onClick={() => setEditingWindow(window)}
                   >
-                    Edit
+                    Редактировать
                   </Button>
                   <Button
                     type="button"
@@ -279,7 +287,7 @@ export default function AvailabilityPage() {
                     disabled={isSubmitting}
                     onClick={() => void handleDelete(window)}
                   >
-                    Delete
+                    Удалить
                   </Button>
                 </div>
               </li>

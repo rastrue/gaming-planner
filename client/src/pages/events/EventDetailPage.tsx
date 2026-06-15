@@ -9,6 +9,11 @@ import SelectDropdown from '../../components/ui/SelectDropdown';
 import Spinner from '../../components/ui/Spinner';
 import TextInput from '../../components/ui/TextInput';
 import { useAuth } from '../../hooks/useAuth';
+import {
+  formatEventStatus,
+  formatRegistrationStatus,
+  weekdayLabelsLong,
+} from '../../i18n/labels';
 import * as availabilityService from '../../services/availabilityService';
 import * as eventService from '../../services/eventService';
 import * as registrationService from '../../services/registrationService';
@@ -26,10 +31,10 @@ import type {
   RegistrationStatus,
 } from '../../types/index';
 
-const weekdayLabels = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const dateLocale = 'ru-RU';
 
 function formatDateTime(value: string): string {
-  return new Date(value).toLocaleString(undefined, {
+  return new Date(value).toLocaleString(dateLocale, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -98,7 +103,7 @@ export default function EventDetailPage() {
 
   useEffect(() => {
     if (!Number.isFinite(eventId)) {
-      setLoadError('Invalid event id.');
+      setLoadError('Некорректный идентификатор события.');
       setIsLoading(false);
       return;
     }
@@ -144,7 +149,7 @@ export default function EventDetailPage() {
         }
       } catch {
         if (active) {
-          setLoadError('Unable to load event details.');
+          setLoadError('Не удалось загрузить детали события.');
         }
       } finally {
         if (active) {
@@ -210,7 +215,7 @@ export default function EventDetailPage() {
       if (error instanceof ApiError) {
         setFormError(error.message);
       } else {
-        setFormError('Unable to register for this event.');
+        setFormError('Не удалось зарегистрироваться на это событие.');
       }
     } finally {
       setIsSubmitting(false);
@@ -233,7 +238,7 @@ export default function EventDetailPage() {
       if (error instanceof ApiError) {
         setFormError(error.message);
       } else {
-        setFormError('Unable to cancel registration.');
+        setFormError('Не удалось отменить регистрацию.');
       }
     } finally {
       setIsSubmitting(false);
@@ -243,7 +248,7 @@ export default function EventDetailPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner label="Loading event details" size="lg" />
+        <Spinner label="Загрузка деталей события" size="lg" />
       </div>
     );
   }
@@ -251,11 +256,11 @@ export default function EventDetailPage() {
   if (loadError || !event) {
     return (
       <EmptyState
-        title="Event not found"
-        description={loadError ?? 'This event could not be loaded.'}
+        title="Событие не найдено"
+        description={loadError ?? 'Не удалось загрузить это событие.'}
         action={
           <Link to="/events">
-            <Button variant="secondary">Back to events</Button>
+            <Button variant="secondary">Назад к событиям</Button>
           </Link>
         }
       />
@@ -266,10 +271,10 @@ export default function EventDetailPage() {
     <div className="space-y-6">
       <Card
         title={event.title}
-        description={`Hosted by ${event.organizer.displayName} · ${event.game.title}`}
+        description={`Организатор: ${event.organizer.displayName} · ${event.game.title}`}
       >
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={eventStatusVariant(event.status)}>{event.status}</Badge>
+          <Badge variant={eventStatusVariant(event.status)}>{formatEventStatus(event.status)}</Badge>
           <Badge>{event.game.genre}</Badge>
           <Badge>{event.serverRegion}</Badge>
         </div>
@@ -277,34 +282,34 @@ export default function EventDetailPage() {
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card title="Schedule" description="Event timing and registration cutoff.">
+        <Card title="Расписание" description="Время проведения и срок регистрации.">
           <dl className="space-y-3 text-sm">
             <div>
-              <dt className="font-medium text-slate-700 dark:text-slate-200">Starts</dt>
+              <dt className="font-medium text-slate-700 dark:text-slate-200">Начало</dt>
               <dd className="text-slate-600 dark:text-slate-400">{formatDateTime(event.scheduledStart)}</dd>
             </div>
             <div>
-              <dt className="font-medium text-slate-700 dark:text-slate-200">Ends</dt>
+              <dt className="font-medium text-slate-700 dark:text-slate-200">Окончание</dt>
               <dd className="text-slate-600 dark:text-slate-400">{formatDateTime(event.scheduledEnd)}</dd>
             </div>
             <div>
-              <dt className="font-medium text-slate-700 dark:text-slate-200">Registration deadline</dt>
+              <dt className="font-medium text-slate-700 dark:text-slate-200">Срок регистрации</dt>
               <dd className="text-slate-600 dark:text-slate-400">
                 {formatDateTime(event.registrationDeadline)}
               </dd>
             </div>
             <div>
-              <dt className="font-medium text-slate-700 dark:text-slate-200">Capacity</dt>
+              <dt className="font-medium text-slate-700 dark:text-slate-200">Вместимость</dt>
               <dd className="text-slate-600 dark:text-slate-400">
-                {event._count.registrations} / {event.maxPlayers} players registered
+                Зарегистрировано {event._count.registrations} / {event.maxPlayers} игроков
               </dd>
             </div>
           </dl>
         </Card>
 
-        <Card title="Roster summary" description="Required roles and current fill levels.">
+        <Card title="Сводка по составу" description="Требуемые роли и текущая заполненность.">
           {slots.length === 0 ? (
-            <p className="text-sm text-slate-600 dark:text-slate-400">No roster slots defined yet.</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Слоты состава ещё не определены.</p>
           ) : (
             <ul className="space-y-3">
               {slots.map((slot) => (
@@ -325,20 +330,20 @@ export default function EventDetailPage() {
 
       {isPlayer ? (
         <>
-          <Card title="Your availability" description="Windows on the day this event is scheduled.">
+          <Card title="Ваша доступность" description="Окна доступности в день проведения события.">
             {matchingAvailability.length === 0 ? (
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                You have no availability windows on{' '}
-                {weekdayLabels[new Date(event.scheduledStart).getDay()]}.{' '}
+                У вас нет окон доступности в{' '}
+                {weekdayLabelsLong[new Date(event.scheduledStart).getDay()]}.{' '}
                 <Link to="/availability" className="font-medium text-primary-600 dark:text-primary-400">
-                  Update availability
+                  Обновить доступность
                 </Link>
               </p>
             ) : (
               <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
                 {matchingAvailability.map((window) => (
                   <li key={window.id}>
-                    {weekdayLabels[window.dayOfWeek]} · {formatMinutes(window.startMinute)}–
+                    {weekdayLabelsLong[window.dayOfWeek]} · {formatMinutes(window.startMinute)}–
                     {formatMinutes(window.endMinute)} ({window.timezone})
                   </li>
                 ))}
@@ -346,18 +351,18 @@ export default function EventDetailPage() {
             )}
           </Card>
 
-          <Card title="Registration" description="Join this event as a player.">
+          <Card title="Регистрация" description="Присоединиться к событию как игрок.">
             {registration && registration.status !== 'CANCELLED' && registration.status !== 'DECLINED' ? (
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm text-slate-600 dark:text-slate-400">Your status:</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">Ваш статус:</span>
                   <Badge variant={registrationStatusVariant(registration.status)}>
-                    {registration.status}
+                    {formatRegistrationStatus(registration.status)}
                   </Badge>
                 </div>
                 {registration.requestedRoleName ? (
                   <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Requested role: {registration.requestedRoleName}
+                    Запрошенная роль: {registration.requestedRoleName}
                   </p>
                 ) : null}
                 {canCancelRegistration ? (
@@ -367,7 +372,7 @@ export default function EventDetailPage() {
                     disabled={isSubmitting}
                     onClick={() => void handleCancelRegistration()}
                   >
-                    Cancel registration
+                    Отменить регистрацию
                   </Button>
                 ) : null}
               </div>
@@ -375,27 +380,27 @@ export default function EventDetailPage() {
               <div className="space-y-4">
                 {roleOptions.length > 0 ? (
                   <SelectDropdown
-                    label="Preferred role (optional)"
+                    label="Предпочитаемая роль (необязательно)"
                     value={requestedRoleName}
                     onChange={(changeEvent) => setRequestedRoleName(changeEvent.target.value)}
-                    placeholder="No preference"
+                    placeholder="Без предпочтений"
                     options={roleOptions}
                   />
                 ) : (
                   <TextInput
-                    label="Preferred role (optional)"
+                    label="Предпочитаемая роль (необязательно)"
                     value={requestedRoleName}
                     onChange={(changeEvent) => setRequestedRoleName(changeEvent.target.value)}
-                    placeholder="e.g. Tank, Healer, DPS"
+                    placeholder="например, Танк, Хил, ДД"
                   />
                 )}
                 <Button type="button" disabled={isSubmitting} onClick={() => void handleRegister()}>
-                  {isSubmitting ? 'Submitting...' : 'Register for event'}
+                  {isSubmitting ? 'Отправка...' : 'Зарегистрироваться на событие'}
                 </Button>
               </div>
             ) : (
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                Registration is not currently open for this event.
+                Регистрация на это событие сейчас закрыта.
               </p>
             )}
 

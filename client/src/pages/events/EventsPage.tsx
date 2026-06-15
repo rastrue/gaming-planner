@@ -11,12 +11,15 @@ import * as eventService from '../../services/eventService';
 import * as gameService from '../../services/gameService';
 import { resetEventsFilters, setEventsFilters, type EventsFilterState } from '../../store/filtersSlice';
 import { setEvents } from '../../store/eventsSlice';
+import { formatEventStatus } from '../../i18n/labels';
 import type { AppDispatch, RootState } from '../../store/store';
 import type { Event, EventStatus, ListEventsQuery } from '../../types/index';
 import EventFiltersPanel from './EventFiltersPanel';
 
+const dateLocale = 'ru-RU';
+
 function formatEventDate(value: string): string {
-  return new Date(value).toLocaleString(undefined, {
+  return new Date(value).toLocaleString(dateLocale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -95,7 +98,7 @@ export default function EventsPage() {
       const data = await eventService.getEvents(buildQuery(filters));
       dispatch(setEvents(data));
     } catch {
-      setLoadError('Unable to load events. Please adjust filters and try again.');
+      setLoadError('Не удалось загрузить события. Измените фильтры и попробуйте снова.');
     } finally {
       setIsLoading(false);
     }
@@ -125,26 +128,26 @@ export default function EventsPage() {
 
       {isLoading ? (
         <div className="flex justify-center py-16">
-          <Spinner label="Loading events" size="lg" />
+          <Spinner label="Загрузка событий" size="lg" />
         </div>
       ) : loadError ? (
-        <EmptyState title="Events unavailable" description={loadError} />
+        <EmptyState title="События недоступны" description={loadError} />
       ) : events.length === 0 ? (
         <EmptyState
-          title="No events found"
-          description="Try changing your search terms or filters to discover more sessions."
+          title="События не найдены"
+          description="Попробуйте изменить поисковый запрос или фильтры."
         />
       ) : (
         <>
           <DataTable<Event>
-            caption="Event catalog"
+            caption="Каталог событий"
             data={events}
             getRowKey={(event) => event.id}
             columns={[
               {
                 key: 'title',
-                header: 'Event',
-                mobileLabel: 'Event',
+                header: 'Событие',
+                mobileLabel: 'Событие',
                 render: (event) => (
                   <div>
                     <p className="font-medium text-slate-900 dark:text-slate-100">{event.title}</p>
@@ -154,36 +157,38 @@ export default function EventsPage() {
               },
               {
                 key: 'game',
-                header: 'Game',
+                header: 'Игра',
                 render: (event) => event.game.title,
               },
               {
                 key: 'status',
-                header: 'Status',
-                render: (event) => <Badge variant={statusVariant(event.status)}>{event.status}</Badge>,
+                header: 'Статус',
+                render: (event) => (
+                  <Badge variant={statusVariant(event.status)}>{formatEventStatus(event.status)}</Badge>
+                ),
               },
               {
                 key: 'scheduledStart',
-                header: 'Starts',
+                header: 'Начало',
                 render: (event) => formatEventDate(event.scheduledStart),
               },
               {
                 key: 'registrations',
-                header: 'Players',
+                header: 'Игроки',
                 hideOnMobile: true,
                 render: (event) =>
                   `${event._count.registrations} / ${event.maxPlayers}`,
               },
               {
                 key: 'actions',
-                header: 'Actions',
+                header: 'Действия',
                 hideOnMobile: true,
                 render: (event) => (
                   <Link
                     to={`/events/${event.id}`}
                     className="cursor-pointer font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400"
                   >
-                    View details
+                    Подробнее
                   </Link>
                 ),
               },

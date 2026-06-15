@@ -21,7 +21,7 @@ export interface SidebarNavProps {
 
 export default function SidebarNav({
   items,
-  ariaLabel = 'Main navigation',
+  ariaLabel = 'Основная навигация',
   collapsed = false,
   onToggleCollapse,
   className,
@@ -38,7 +38,7 @@ export default function SidebarNav({
       {onToggleCollapse ? (
         <div className="flex justify-end border-b border-slate-200 p-2 dark:border-slate-800">
           <IconButton
-            label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            label={collapsed ? 'Развернуть боковую панель' : 'Свернуть боковую панель'}
             size="sm"
             onClick={onToggleCollapse}
           >

@@ -31,37 +31,37 @@ export default function PlayerNav({
 }: PlayerNavProps) {
   const items: SidebarNavItem[] = [
     {
-      label: 'Player Dashboard',
+      label: 'Панель игрока',
       href: '/dashboard',
       icon: <LayoutDashboard className="h-4 w-4" />,
       isActive: isNavItemActive(currentPath, '/dashboard'),
     },
     {
-      label: 'Discover Events',
+      label: 'События',
       href: '/events',
       icon: <Compass className="h-4 w-4" />,
       isActive: isNavItemActive(currentPath, '/events'),
     },
     {
-      label: 'Availability Planner',
+      label: 'Планировщик доступности',
       href: '/availability',
       icon: <CalendarRange className="h-4 w-4" />,
       isActive: isNavItemActive(currentPath, '/availability'),
     },
     {
-      label: 'My Registrations',
+      label: 'Мои регистрации',
       href: '/my-registrations',
       icon: <ScrollText className="h-4 w-4" />,
       isActive: isNavItemActive(currentPath, '/my-registrations'),
     },
     {
-      label: 'Reports & Exports',
+      label: 'Отчёты и экспорт',
       href: '/reports',
       icon: <FileText className="h-4 w-4" />,
       isActive: isNavItemActive(currentPath, '/reports'),
     },
     {
-      label: 'Settings',
+      label: 'Настройки',
       href: '/settings',
       icon: <Settings className="h-4 w-4" />,
       isActive: isNavItemActive(currentPath, '/settings'),
@@ -71,7 +71,7 @@ export default function PlayerNav({
   return (
     <SidebarNav
       items={items}
-      ariaLabel="Player navigation"
+      ariaLabel="Навигация игрока"
       collapsed={collapsed}
       onToggleCollapse={onToggleCollapse}
       className={className}

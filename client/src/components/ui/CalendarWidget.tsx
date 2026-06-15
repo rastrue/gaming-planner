@@ -13,10 +13,11 @@ export interface CalendarWidgetProps {
   className?: string;
 }
 
-const weekdayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const weekdayLabels = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+const calendarLocale = 'ru-RU';
 const monthOptions = Array.from({ length: 12 }, (_, index) => ({
   value: String(index),
-  label: new Date(2000, index, 1).toLocaleDateString(undefined, { month: 'long' }),
+  label: new Date(2000, index, 1).toLocaleDateString(calendarLocale, { month: 'long' }),
 }));
 
 function buildYearOptions(centerYear: number): Array<{ value: string; label: string }> {
@@ -94,23 +95,23 @@ export default function CalendarWidget({
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div className="grid flex-1 grid-cols-2 gap-3 sm:max-w-xs">
           <SelectDropdown
-            label="Month"
+            label="Месяц"
             value={String(visibleMonth.getMonth())}
             options={monthOptions}
             onChange={(event) => applyMonth(Number(event.target.value), visibleMonth.getFullYear())}
           />
           <SelectDropdown
-            label="Year"
+            label="Год"
             value={String(visibleMonth.getFullYear())}
             options={yearOptions}
             onChange={(event) => applyMonth(visibleMonth.getMonth(), Number(event.target.value))}
           />
         </div>
         <div className="flex items-center gap-1">
-          <IconButton label="Previous month" size="sm" onClick={() => changeMonth(-1)}>
+          <IconButton label="Предыдущий месяц" size="sm" onClick={() => changeMonth(-1)}>
             <ChevronLeft className="h-4 w-4" />
           </IconButton>
-          <IconButton label="Next month" size="sm" onClick={() => changeMonth(1)}>
+          <IconButton label="Следующий месяц" size="sm" onClick={() => changeMonth(1)}>
             <ChevronRight className="h-4 w-4" />
           </IconButton>
         </div>
@@ -124,7 +125,7 @@ export default function CalendarWidget({
         ))}
       </div>
 
-      <div className="grid grid-cols-7 gap-1" role="grid" aria-label={`Calendar for ${visibleMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}`}>
+      <div className="grid grid-cols-7 gap-1" role="grid" aria-label={`Календарь на ${visibleMonth.toLocaleDateString(calendarLocale, { month: 'long', year: 'numeric' })}`}>
         {days.map((date, index) => {
           if (!date) {
             return <div key={`empty-${index}`} role="gridcell" aria-hidden="true" />;
@@ -140,7 +141,7 @@ export default function CalendarWidget({
               key={dateKey}
               type="button"
               role="gridcell"
-              aria-label={date.toLocaleDateString(undefined, {
+              aria-label={date.toLocaleDateString(calendarLocale, {
                 weekday: 'long',
                 month: 'long',
                 day: 'numeric',

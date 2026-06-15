@@ -13,12 +13,14 @@ import * as eventService from '../../services/eventService';
 import { ApiError } from '../../services/apiClient';
 import { removeEvent, setEvents, upsertEvent } from '../../store/eventsSlice';
 import type { AppDispatch, RootState } from '../../store/store';
+import { formatEventStatus } from '../../i18n/labels';
 import type { Event, EventStatus } from '../../types/index';
 
 const PAGE_SIZE = 10;
+const dateLocale = 'ru-RU';
 
 function formatEventDate(value: string): string {
-  return new Date(value).toLocaleString(undefined, {
+  return new Date(value).toLocaleString(dateLocale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -79,7 +81,7 @@ export default function OrganizerEventsPage() {
         }
       } catch {
         if (active) {
-          setLoadError('Unable to load organizer events.');
+          setLoadError('Не удалось загрузить события организатора.');
         }
       } finally {
         if (active) {
@@ -117,7 +119,7 @@ export default function OrganizerEventsPage() {
       if (error instanceof ApiError) {
         setActionError(error.message);
       } else {
-        setActionError('Unable to update event status.');
+        setActionError('Не удалось обновить статус события.');
       }
     } finally {
       setBusyEventId(null);
@@ -140,7 +142,7 @@ export default function OrganizerEventsPage() {
       if (error instanceof ApiError) {
         setActionError(error.message);
       } else {
-        setActionError('Unable to delete event.');
+        setActionError('Не удалось удалить событие.');
       }
     } finally {
       setBusyEventId(null);
@@ -150,23 +152,23 @@ export default function OrganizerEventsPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner label="Loading organizer events" size="lg" />
+        <Spinner label="Загрузка событий организатора" size="lg" />
       </div>
     );
   }
 
   if (loadError) {
-    return <EmptyState title="Events unavailable" description={loadError} />;
+    return <EmptyState title="События недоступны" description={loadError} />;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Manage events you organize, update statuses, and open edit flows.
+          Управляйте организуемыми событиями, обновляйте статусы и открывайте редактирование.
         </p>
         <Link to="/organizer/events/new">
-          <Button>Create event</Button>
+          <Button>Создать событие</Button>
         </Link>
       </div>
 
@@ -178,25 +180,25 @@ export default function OrganizerEventsPage() {
 
       {myEvents.length === 0 ? (
         <EmptyState
-          title="No events yet"
-          description="Create your first event to start accepting player registrations."
+          title="Событий пока нет"
+          description="Создайте первое событие, чтобы начать принимать регистрации игроков."
           action={
             <Link to="/organizer/events/new">
-              <Button>Create event</Button>
+              <Button>Создать событие</Button>
             </Link>
           }
         />
       ) : (
         <>
           <DataTable<Event>
-            caption="Organizer events"
+            caption="События организатора"
             data={paginatedEvents}
             getRowKey={(event) => event.id}
             columns={[
               {
                 key: 'title',
-                header: 'Event',
-                mobileLabel: 'Event',
+                header: 'Событие',
+                mobileLabel: 'Событие',
                 render: (event) => (
                   <div>
                     <p className="font-medium text-slate-900 dark:text-slate-100">{event.title}</p>
@@ -206,24 +208,26 @@ export default function OrganizerEventsPage() {
               },
               {
                 key: 'status',
-                header: 'Status',
-                render: (event) => <Badge variant={eventStatusVariant(event.status)}>{event.status}</Badge>,
+                header: 'Статус',
+                render: (event) => (
+                  <Badge variant={eventStatusVariant(event.status)}>{formatEventStatus(event.status)}</Badge>
+                ),
               },
               {
                 key: 'schedule',
-                header: 'Starts',
+                header: 'Начало',
                 render: (event) => formatEventDate(event.scheduledStart),
               },
               {
                 key: 'registrations',
-                header: 'Players',
+                header: 'Игроки',
                 hideOnMobile: true,
                 render: (event) => `${event._count.registrations} / ${event.maxPlayers}`,
               },
               {
                 key: 'actions',
-                header: 'Actions',
-                mobileLabel: 'Actions',
+                header: 'Действия',
+                mobileLabel: 'Действия',
                 render: (event) => {
                   const isBusy = busyEventId === event.id;
 
@@ -231,12 +235,12 @@ export default function OrganizerEventsPage() {
                     <div className="flex flex-wrap gap-2">
                       <Link to={`/organizer/events/${event.id}/edit`}>
                         <Button type="button" variant="secondary" size="sm">
-                          Edit
+                          Редактировать
                         </Button>
                       </Link>
                       <Link to={`/organizer/roster/${event.id}`}>
                         <Button type="button" variant="ghost" size="sm">
-                          Roster
+                          Состав
                         </Button>
                       </Link>
                       {event.status === 'DRAFT' ? (
@@ -246,7 +250,7 @@ export default function OrganizerEventsPage() {
                           disabled={isBusy}
                           onClick={() => void updateStatus(event, 'OPEN')}
                         >
-                          Publish
+                          Опубликовать
                         </Button>
                       ) : null}
                       {event.status === 'OPEN' || event.status === 'FULL' ? (
@@ -257,7 +261,7 @@ export default function OrganizerEventsPage() {
                           disabled={isBusy}
                           onClick={() => void updateStatus(event, 'CLOSED')}
                         >
-                          Close
+                          Закрыть
                         </Button>
                       ) : null}
                       {event.status === 'CLOSED' || event.status === 'OPEN' ? (
@@ -268,7 +272,7 @@ export default function OrganizerEventsPage() {
                           disabled={isBusy}
                           onClick={() => void updateStatus(event, 'COMPLETED')}
                         >
-                          Complete
+                          Завершить
                         </Button>
                       ) : null}
                       <Button
@@ -278,7 +282,7 @@ export default function OrganizerEventsPage() {
                         disabled={isBusy}
                         onClick={() => setDeleteTarget(event)}
                       >
-                        Delete
+                        Удалить
                       </Button>
                     </div>
                   );
@@ -293,12 +297,12 @@ export default function OrganizerEventsPage() {
 
       <ModalDialog
         open={Boolean(deleteTarget)}
-        title="Delete event"
+        title="Удалить событие"
         onClose={() => setDeleteTarget(null)}
         footer={
           <>
             <Button type="button" variant="secondary" onClick={() => setDeleteTarget(null)}>
-              Cancel
+              Отмена
             </Button>
             <Button
               type="button"
@@ -306,15 +310,15 @@ export default function OrganizerEventsPage() {
               disabled={busyEventId === deleteTarget?.id}
               onClick={() => void handleDelete()}
             >
-              Delete event
+              Удалить событие
             </Button>
           </>
         }
       >
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Are you sure you want to delete{' '}
+          Вы уверены, что хотите удалить{' '}
           <span className="font-medium text-slate-900 dark:text-slate-100">{deleteTarget?.title}</span>?
-          This action cannot be undone.
+          Это действие нельзя отменить.
         </p>
       </ModalDialog>
     </div>

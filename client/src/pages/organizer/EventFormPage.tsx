@@ -15,14 +15,8 @@ import { ApiError } from '../../services/apiClient';
 import { upsertEvent } from '../../store/eventsSlice';
 import type { AppDispatch } from '../../store/store';
 import type { ApiFieldError, CreateEventInput, Event, EventStatus, Game } from '../../types/index';
+import { eventStatusLabels } from '../../i18n/labels';
 import EventSlotEditor from './EventSlotEditor';
-
-const statusOptions: { value: EventStatus; label: string }[] = [
-  { value: 'DRAFT', label: 'Draft' },
-  { value: 'OPEN', label: 'Open' },
-  { value: 'CLOSED', label: 'Closed' },
-  { value: 'CANCELLED', label: 'Cancelled' },
-];
 
 function mapFieldErrors(errors?: ApiFieldError[]): Record<string, string> {
   const mapped: Record<string, string> = {};
@@ -125,7 +119,7 @@ export default function EventFormPage() {
           }
 
           if (event.organizerId !== user?.id) {
-            setLoadError('You can only edit events that you organize.');
+            setLoadError('Вы можете редактировать только события, которые организуете.');
             return;
           }
 
@@ -145,7 +139,7 @@ export default function EventFormPage() {
         }
       } catch {
         if (active) {
-          setLoadError(isEditMode ? 'Unable to load event details.' : 'Unable to load games.');
+          setLoadError(isEditMode ? 'Не удалось загрузить детали события.' : 'Не удалось загрузить список игр.');
         }
       } finally {
         if (active) {
@@ -167,12 +161,12 @@ export default function EventFormPage() {
     const deadline = new Date(registrationDeadline);
 
     if (end <= start) {
-      setFormError('Scheduled end must be after scheduled start.');
+      setFormError('Время окончания должно быть позже времени начала.');
       return false;
     }
 
     if (deadline > start) {
-      setFormError('Registration deadline must be on or before scheduled start.');
+      setFormError('Срок регистрации должен быть не позже времени начала.');
       return false;
     }
 
@@ -219,7 +213,7 @@ export default function EventFormPage() {
         setFormError(error.message);
         setFieldErrors(mapFieldErrors(error.errors));
       } else {
-        setFormError(isEditMode ? 'Unable to update event.' : 'Unable to create event.');
+        setFormError(isEditMode ? 'Не удалось обновить событие.' : 'Не удалось создать событие.');
       }
     } finally {
       setIsSubmitting(false);
@@ -229,7 +223,7 @@ export default function EventFormPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner label={isEditMode ? 'Loading event' : 'Loading form'} size="lg" />
+        <Spinner label={isEditMode ? 'Загрузка события' : 'Загрузка формы'} size="lg" />
       </div>
     );
   }
@@ -237,11 +231,11 @@ export default function EventFormPage() {
   if (loadError) {
     return (
       <EmptyState
-        title={isEditMode ? 'Event unavailable' : 'Form unavailable'}
+        title={isEditMode ? 'Событие недоступно' : 'Форма недоступна'}
         description={loadError}
         action={
           <Link to="/organizer/events">
-            <Button variant="secondary">Back to events</Button>
+            <Button variant="secondary">Назад к событиям</Button>
           </Link>
         }
       />
@@ -260,34 +254,34 @@ export default function EventFormPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-slate-600 dark:text-slate-400">
           {isEditMode
-            ? 'Update event details and manage roster slot requirements.'
-            : 'Create a new event, then define roster slots after saving.'}
+            ? 'Обновите детали события и управляйте требованиями к слотам состава.'
+            : 'Создайте новое событие, затем определите слоты состава после сохранения.'}
         </p>
         <Link to="/organizer/events">
           <Button type="button" variant="secondary">
-            Back to events
+            Назад к событиям
           </Button>
         </Link>
       </div>
 
       <Card
-        title={isEditMode ? 'Event details' : 'New event'}
-        description="Set the game, schedule, registration window, and capacity."
+        title={isEditMode ? 'Детали события' : 'Новое событие'}
+        description="Укажите игру, расписание, окно регистрации и вместимость."
       >
         <form className="space-y-4" onSubmit={handleSubmit} noValidate>
           <SelectDropdown
-            label="Game"
+            label="Игра"
             name="gameId"
             value={gameId}
             onChange={(event) => setGameId(event.target.value)}
             options={gameOptions}
-            placeholder="Select a game"
+            placeholder="Выберите игру"
             error={fieldErrors.gameId}
             required
           />
 
           <TextInput
-            label="Title"
+            label="Название"
             name="title"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
@@ -297,7 +291,7 @@ export default function EventFormPage() {
           />
 
           <TextArea
-            label="Description"
+            label="Описание"
             name="description"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
@@ -307,7 +301,7 @@ export default function EventFormPage() {
           />
 
           <TextInput
-            label="Server region"
+            label="Регион сервера"
             name="serverRegion"
             value={serverRegion}
             onChange={(event) => setServerRegion(event.target.value)}
@@ -319,7 +313,7 @@ export default function EventFormPage() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <TextInput
-              label="Scheduled start"
+              label="Начало"
               name="scheduledStart"
               type="datetime-local"
               value={scheduledStart}
@@ -328,7 +322,7 @@ export default function EventFormPage() {
               required
             />
             <TextInput
-              label="Scheduled end"
+              label="Окончание"
               name="scheduledEnd"
               type="datetime-local"
               value={scheduledEnd}
@@ -340,7 +334,7 @@ export default function EventFormPage() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <TextInput
-              label="Registration deadline"
+              label="Срок регистрации"
               name="registrationDeadline"
               type="datetime-local"
               value={registrationDeadline}
@@ -349,7 +343,7 @@ export default function EventFormPage() {
               required
             />
             <TextInput
-              label="Max players"
+              label="Макс. игроков"
               name="maxPlayers"
               type="number"
               min={1}
@@ -361,14 +355,13 @@ export default function EventFormPage() {
           </div>
 
           <SelectDropdown
-            label="Status"
+            label="Статус"
             name="status"
             value={status}
             onChange={(event) => setStatus(event.target.value as EventStatus)}
-            options={statusOptions.map((option) => ({
-              value: option.value,
-              label: option.label,
-            }))}
+            options={(Object.entries(eventStatusLabels) as Array<[EventStatus, string]>).map(
+              ([value, label]) => ({ value, label }),
+            )}
             error={fieldErrors.status}
           />
 
@@ -380,11 +373,11 @@ export default function EventFormPage() {
 
           <div className="flex flex-wrap gap-3">
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : isEditMode ? 'Save changes' : 'Create event'}
+              {isSubmitting ? 'Сохранение...' : isEditMode ? 'Сохранить изменения' : 'Создать событие'}
             </Button>
             <Link to="/organizer/events">
               <Button type="button" variant="secondary" disabled={isSubmitting}>
-                Cancel
+                Отмена
               </Button>
             </Link>
           </div>

@@ -6,13 +6,13 @@ import TextInput from '../../components/ui/TextInput';
 import type { AvailabilityWindow, CreateAvailabilityInput } from '../../types/index';
 
 const weekdayOptions = [
-  { value: '0', label: 'Sunday' },
-  { value: '1', label: 'Monday' },
-  { value: '2', label: 'Tuesday' },
-  { value: '3', label: 'Wednesday' },
-  { value: '4', label: 'Thursday' },
-  { value: '5', label: 'Friday' },
-  { value: '6', label: 'Saturday' },
+  { value: '0', label: 'Воскресенье' },
+  { value: '1', label: 'Понедельник' },
+  { value: '2', label: 'Вторник' },
+  { value: '3', label: 'Среда' },
+  { value: '4', label: 'Четверг' },
+  { value: '5', label: 'Пятница' },
+  { value: '6', label: 'Суббота' },
 ];
 
 function formatMinutes(minute: number): string {
@@ -67,7 +67,7 @@ export default function AvailabilityForm({
     setLocalError('');
 
     if (endMinute <= startMinute) {
-      setLocalError('End time must be after start time.');
+      setLocalError('Время окончания должно быть позже времени начала.');
       return;
     }
 
@@ -82,14 +82,14 @@ export default function AvailabilityForm({
   return (
     <form className="space-y-4" onSubmit={handleSubmit} noValidate>
       <SelectDropdown
-        label="Day of week"
+        label="День недели"
         value={dayOfWeek}
         onChange={(event) => setDayOfWeek(event.target.value)}
         options={weekdayOptions}
         error={fieldErrors.dayOfWeek}
       />
       <RangeSlider
-        label="Start time"
+        label="Время начала"
         min={0}
         max={1439}
         step={15}
@@ -98,7 +98,7 @@ export default function AvailabilityForm({
         formatValue={formatMinutes}
       />
       <RangeSlider
-        label="End time"
+        label="Время окончания"
         min={1}
         max={1440}
         step={15}
@@ -107,7 +107,7 @@ export default function AvailabilityForm({
         formatValue={formatMinutes}
       />
       <TextInput
-        label="Timezone"
+        label="Часовой пояс"
         value={timezone}
         onChange={(event) => setTimezone(event.target.value)}
         error={fieldErrors.timezone}
@@ -120,11 +120,11 @@ export default function AvailabilityForm({
 
       <div className="flex flex-wrap gap-3">
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving...' : initialValues ? 'Update window' : 'Add window'}
+          {isSubmitting ? 'Сохранение...' : initialValues ? 'Обновить окно' : 'Добавить окно'}
         </Button>
         {onCancel ? (
           <Button type="button" variant="secondary" disabled={isSubmitting} onClick={onCancel}>
-            Cancel
+            Отмена
           </Button>
         ) : null}
       </div>

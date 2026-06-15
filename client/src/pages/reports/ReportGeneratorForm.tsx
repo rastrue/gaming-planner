@@ -9,6 +9,11 @@ import * as eventService from '../../services/eventService';
 import * as registrationService from '../../services/registrationService';
 import * as reportService from '../../services/reportService';
 import { ApiError } from '../../services/apiClient';
+import {
+  deliveryChannelLabels,
+  reportFormatLabels,
+  reportKindLabels,
+} from '../../i18n/labels';
 import type {
   ApiFieldError,
   CreateReportInput,
@@ -57,20 +62,17 @@ export interface ReportGeneratorFormProps {
   onSuccess?: (message: string, title?: string) => void;
 }
 
-const reportKindOptions: { value: ReportKind; label: string }[] = [
-  { value: 'EVENT_ATTENDANCE', label: 'Event Attendance' },
-  { value: 'PLAYER_PARTICIPATION', label: 'Player Participation' },
-];
+const reportKindOptions: { value: ReportKind; label: string }[] = (
+  Object.entries(reportKindLabels) as Array<[ReportKind, string]>
+).map(([value, label]) => ({ value, label }));
 
-const formatOptions: { value: ReportFormat; label: string }[] = [
-  { value: 'PDF', label: 'PDF' },
-  { value: 'DOCX', label: 'DOCX' },
-];
+const formatOptions: { value: ReportFormat; label: string }[] = (
+  Object.entries(reportFormatLabels) as Array<[ReportFormat, string]>
+).map(([value, label]) => ({ value, label }));
 
-const deliveryOptions: { value: DeliveryChannel; label: string }[] = [
-  { value: 'DOWNLOAD', label: 'Download' },
-  { value: 'EMAIL', label: 'Email delivery' },
-];
+const deliveryOptions: { value: DeliveryChannel; label: string }[] = (
+  Object.entries(deliveryChannelLabels) as Array<[DeliveryChannel, string]>
+).map(([value, label]) => ({ value, label }));
 
 export default function ReportGeneratorForm({ onReportCreated, onSuccess }: ReportGeneratorFormProps) {
   const { user, isOrganizer, isPlayer } = useAuth();
@@ -149,7 +151,7 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
         }
       } catch {
         if (active) {
-          setLoadError('Unable to load report form options.');
+          setLoadError('Не удалось загрузить параметры формы отчёта.');
         }
       } finally {
         if (active) {
@@ -221,18 +223,18 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
         onReportCreated(emailed);
 
         if (emailed.status === 'FAILED') {
-          setFormError(emailed.failedReason ?? 'Report was generated but email delivery failed.');
+          setFormError(emailed.failedReason ?? 'Отчёт сформирован, но отправка по email не удалась.');
           return;
         }
 
-        onSuccess?.(`Report emailed to ${recipientEmail.trim()}.`, 'Report emailed');
+        onSuccess?.(`Отчёт отправлен на ${recipientEmail.trim()}.`, 'Отчёт отправлен');
       }
     } catch (error) {
       if (error instanceof ApiError) {
         setFormError(error.message);
         setFieldErrors(mapFieldErrors(error.errors));
       } else {
-        setFormError('Unable to generate report.');
+        setFormError('Не удалось сформировать отчёт.');
       }
     } finally {
       setIsSubmitting(false);
@@ -241,25 +243,25 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
 
   if (isLoadingOptions) {
     return (
-      <Card title="Generate report" description="Create a new attendance or participation export.">
-        <p className="text-sm text-slate-600 dark:text-slate-400">Loading report options...</p>
+      <Card title="Формирование отчёта" description="Создание нового отчёта о посещаемости или участии.">
+        <p className="text-sm text-slate-600 dark:text-slate-400">Загрузка параметров отчёта...</p>
       </Card>
     );
   }
 
   if (loadError) {
     return (
-      <Card title="Generate report" description="Create a new attendance or participation export.">
+      <Card title="Формирование отчёта" description="Создание нового отчёта о посещаемости или участии.">
         <p className="text-sm text-red-600 dark:text-red-400">{loadError}</p>
       </Card>
     );
   }
 
   return (
-    <Card title="Generate report" description="Create a new attendance or participation export.">
+    <Card title="Формирование отчёта" description="Создание нового отчёта о посещаемости или участии.">
       <form className="space-y-4" onSubmit={handleSubmit} noValidate>
         <SelectDropdown
-          label="Report type"
+          label="Тип отчёта"
           name="reportKind"
           value={reportKind}
           onChange={(event) => setReportKind(event.target.value as ReportKind)}
@@ -272,7 +274,7 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
 
         {reportKind === 'EVENT_ATTENDANCE' ? (
           <SelectDropdown
-            label="Event"
+            label="Событие"
             name="eventId"
             value={eventId}
             onChange={(event) => setEventId(event.target.value)}
@@ -280,7 +282,7 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
               value: String(event.id),
               label: event.title,
             }))}
-            placeholder={events.length === 0 ? 'No organized events available' : undefined}
+            placeholder={events.length === 0 ? 'Нет доступных организованных событий' : undefined}
             error={fieldErrors.eventId}
             required
             disabled={events.length === 0}
@@ -289,19 +291,19 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
           <>
             {isOrganizer ? (
               <SelectDropdown
-                label="Player"
+                label="Игрок"
                 name="subjectUserId"
                 value={subjectUserId}
                 onChange={(event) => setSubjectUserId(event.target.value)}
                 options={playerOptions}
-                placeholder={playerOptions.length === 0 ? 'No registered players found' : undefined}
+                placeholder={playerOptions.length === 0 ? 'Зарегистрированные игроки не найдены' : undefined}
                 error={fieldErrors.subjectUserId}
                 required
                 disabled={playerOptions.length === 0}
               />
             ) : (
               <TextInput
-                label="Player"
+                label="Игрок"
                 name="subjectUserId"
                 value={user?.displayName ?? ''}
                 readOnly
@@ -310,7 +312,7 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
             )}
             <div className="grid gap-4 sm:grid-cols-2">
               <TextInput
-                label="Period start (optional)"
+                label="Начало периода (необязательно)"
                 name="periodStart"
                 type="date"
                 value={periodStart}
@@ -318,7 +320,7 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
                 error={fieldErrors.periodStart}
               />
               <TextInput
-                label="Period end (optional)"
+                label="Конец периода (необязательно)"
                 name="periodEnd"
                 type="date"
                 value={periodEnd}
@@ -330,7 +332,7 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
         )}
 
         <RadioGroup
-          legend="Output format"
+          legend="Формат вывода"
           name="outputFormat"
           value={outputFormat}
           onChange={(value) => setOutputFormat(value as ReportFormat)}
@@ -342,7 +344,7 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
         />
 
         <RadioGroup
-          legend="Delivery"
+          legend="Доставка"
           name="deliveryChannel"
           value={deliveryChannel}
           onChange={(value) => setDeliveryChannel(value as DeliveryChannel)}
@@ -355,7 +357,7 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
 
         {deliveryChannel === 'EMAIL' ? (
           <TextInput
-            label="Recipient email"
+            label="Email получателя"
             name="recipientEmail"
             type="email"
             value={recipientEmail}
@@ -373,10 +375,10 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
 
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting
-            ? 'Generating...'
+            ? 'Формирование...'
             : deliveryChannel === 'EMAIL'
-              ? `Generate & email ${outputFormat}`
-              : `Generate & download ${outputFormat}`}
+              ? `Сформировать и отправить ${outputFormat}`
+              : `Сформировать и скачать ${outputFormat}`}
         </Button>
       </form>
     </Card>

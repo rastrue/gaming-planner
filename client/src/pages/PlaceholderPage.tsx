@@ -8,9 +8,9 @@ export interface PlaceholderPageProps {
 export default function PlaceholderPage({ title, description }: PlaceholderPageProps) {
   return (
     <main>
-      <Card title={title} description={description ?? 'The requested page could not be found.'}>
+      <Card title={title} description={description ?? 'Запрошенная страница не найдена.'}>
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Check the address or return to your dashboard using the navigation menu.
+          Проверьте адрес или вернитесь на панель через меню навигации.
         </p>
       </Card>
     </main>

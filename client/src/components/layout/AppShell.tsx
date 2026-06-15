@@ -58,7 +58,7 @@ export default function AppShell({
     }
   };
 
-  const roleLabel = role === 'ORGANIZER' ? 'Organizer Workspace' : 'Player Workspace';
+  const roleLabel = role === 'ORGANIZER' ? 'Рабочая область организатора' : 'Рабочая область игрока';
 
   const navigation = role === 'ORGANIZER' ? (
     <OrganizerNav
@@ -95,7 +95,7 @@ export default function AppShell({
               </span>
             ) : null}
             <IconButton
-              label={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              label={themeMode === 'dark' ? 'Переключить на светлую тему' : 'Переключить на тёмную тему'}
               size="sm"
               onClick={() => dispatch(toggleThemeMode())}
             >
@@ -107,10 +107,10 @@ export default function AppShell({
               className="gap-2"
               onClick={() => void handleLogout()}
               disabled={isLoggingOut}
-              aria-label="Log out"
+              aria-label="Выйти"
             >
               <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">{isLoggingOut ? 'Logging out…' : 'Log out'}</span>
+              <span className="hidden sm:inline">{isLoggingOut ? 'Выход…' : 'Выйти'}</span>
             </Button>
           </div>
         </div>
@@ -123,7 +123,7 @@ export default function AppShell({
           <div className="fixed inset-0 z-40 md:hidden">
             <button
               type="button"
-              aria-label="Close navigation menu"
+              aria-label="Закрыть меню навигации"
               className="absolute inset-0 cursor-pointer bg-slate-950/50"
               onClick={() => setMobileNavOpen(false)}
             />

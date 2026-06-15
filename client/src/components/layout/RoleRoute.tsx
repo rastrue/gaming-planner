@@ -3,6 +3,11 @@ import Card from '../ui/Card';
 import { useAuth } from '../../hooks/useAuth';
 import type { UserRoleName } from '../../types/index';
 
+const roleLabels: Record<UserRoleName, string> = {
+  ORGANIZER: 'организатор',
+  PLAYER: 'игрок',
+};
+
 export interface RoleRouteProps {
   allowedRoles: UserRoleName[];
 }
@@ -15,10 +20,12 @@ export default function RoleRoute({ allowedRoles }: RoleRouteProps) {
   }
 
   if (!allowedRoles.includes(user.role.name)) {
+    const roleList = allowedRoles.map((role) => roleLabels[role]).join(' или ');
+
     return (
-      <Card title="Access denied" description="You do not have permission to view this page.">
+      <Card title="Доступ запрещён" description="У вас нет прав для просмотра этой страницы.">
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          This area is restricted to {allowedRoles.join(' or ').toLowerCase()} accounts.
+          Этот раздел доступен только аккаунтам {roleList}.
         </p>
       </Card>
     );

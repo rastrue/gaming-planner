@@ -9,6 +9,7 @@ import EmptyState from '../../components/ui/EmptyState';
 import ProgressBar from '../../components/ui/ProgressBar';
 import Spinner from '../../components/ui/Spinner';
 import { useAuth } from '../../hooks/useAuth';
+import { formatEventStatus, formatRegistrationStatus } from '../../i18n/labels';
 import * as eventService from '../../services/eventService';
 import * as registrationService from '../../services/registrationService';
 import { setEvents } from '../../store/eventsSlice';
@@ -16,8 +17,10 @@ import { setRegistrations } from '../../store/registrationsSlice';
 import type { AppDispatch, RootState } from '../../store/store';
 import type { Event, EventStatus, Registration, RegistrationStatus } from '../../types/index';
 
+const dateLocale = 'ru-RU';
+
 function formatEventDate(value: string): string {
-  return new Date(value).toLocaleString(undefined, {
+  return new Date(value).toLocaleString(dateLocale, {
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
@@ -91,7 +94,7 @@ export default function OrganizerDashboard() {
         dispatch(setRegistrations(pendingRegistrations));
       } catch {
         if (active) {
-          setLoadError('Unable to load organizer dashboard data.');
+          setLoadError('Не удалось загрузить данные панели организатора.');
         }
       } finally {
         if (active) {
@@ -144,7 +147,7 @@ export default function OrganizerDashboard() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner label="Loading organizer dashboard" size="lg" />
+        <Spinner label="Загрузка панели организатора" size="lg" />
       </div>
     );
   }
@@ -152,7 +155,7 @@ export default function OrganizerDashboard() {
   if (loadError) {
     return (
       <EmptyState
-        title="Dashboard unavailable"
+        title="Панель недоступна"
         description={loadError}
       />
     );
@@ -162,19 +165,19 @@ export default function OrganizerDashboard() {
     <div className="space-y-6">
       <section aria-labelledby="organizer-stats-heading">
         <h2 id="organizer-stats-heading" className="sr-only">
-          Organizer statistics
+          Статистика организатора
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <Card title="Managed events" description="Events you organize.">
+          <Card title="Управляемые события" description="События, которые вы организуете.">
             <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.totalEvents}</p>
           </Card>
-          <Card title="Open for registration" description="Currently accepting players.">
+          <Card title="Открыты для регистрации" description="Сейчас принимают игроков.">
             <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{stats.openEvents}</p>
           </Card>
-          <Card title="Pending reviews" description="Registrations awaiting approval.">
+          <Card title="Ожидают проверки" description="Регистрации, ожидающие одобрения.">
             <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">{stats.pendingReviews}</p>
           </Card>
-          <Card title="Completed events" description="Finished sessions.">
+          <Card title="Завершённые события" description="Проведённые сессии.">
             <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">{stats.completedEvents}</p>
           </Card>
         </div>
@@ -182,20 +185,20 @@ export default function OrganizerDashboard() {
 
       <section aria-labelledby="organizer-insights-heading" className="space-y-4">
         <h2 id="organizer-insights-heading" className="sr-only">
-          Organizer insights
+          Аналитика организатора
         </h2>
         <div className="grid gap-6 xl:grid-cols-2">
         <ChartContainer
-          title="Event status mix"
-          description="Distribution of your events by lifecycle status."
+          title="Распределение статусов"
+          description="Распределение ваших событий по статусам жизненного цикла."
           legend={
             statusBreakdown.length > 0 ? (
-              <span className="text-slate-600 dark:text-slate-400">{myEvents.length} total events</span>
+              <span className="text-slate-600 dark:text-slate-400">Всего событий: {myEvents.length}</span>
             ) : null
           }
         >
           {statusBreakdown.length === 0 ? (
-            <p className="text-sm text-slate-600 dark:text-slate-400">Create an event to see status trends.</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Создайте событие, чтобы увидеть статистику.</p>
           ) : (
             <ul className="space-y-3">
               {statusBreakdown.map(([status, count]) => {
@@ -204,7 +207,7 @@ export default function OrganizerDashboard() {
                 return (
                   <li key={status}>
                     <div className="mb-1 flex items-center justify-between gap-2 text-sm">
-                      <span className="font-medium text-slate-700 dark:text-slate-200">{status}</span>
+                      <span className="font-medium text-slate-700 dark:text-slate-200">{formatEventStatus(status)}</span>
                       <span className="text-slate-600 dark:text-slate-400">{count}</span>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
@@ -220,29 +223,29 @@ export default function OrganizerDashboard() {
           )}
         </ChartContainer>
 
-        <Card title="Roster fill rate" description="Combined registrations against total capacity.">
-          <ProgressBar label="Average fill across managed events" value={rosterFillRate} max={100} />
+        <Card title="Заполненность состава" description="Соотношение регистраций к общей вместимости.">
+          <ProgressBar label="Средняя заполненность управляемых событий" value={rosterFillRate} max={100} />
         </Card>
         </div>
       </section>
 
       <section aria-labelledby="organizer-actions-heading">
-        <Card title="Organizer quick actions" description="Primary management workflows.">
+        <Card title="Быстрые действия" description="Основные рабочие процессы управления.">
           <h2 id="organizer-actions-heading" className="sr-only">
-            Organizer quick actions
+            Быстрые действия организатора
           </h2>
           <div className="flex flex-wrap gap-3">
             <Link to="/organizer/events/new">
-              <Button>Create event</Button>
+              <Button>Создать событие</Button>
             </Link>
             <Link to="/organizer/events">
-              <Button variant="secondary">Manage events</Button>
+              <Button variant="secondary">Управление событиями</Button>
             </Link>
             <Link to="/organizer/roster">
-              <Button variant="secondary">Roster boards</Button>
+              <Button variant="secondary">Доски состава</Button>
             </Link>
             <Link to="/reports">
-              <Button variant="ghost">Generate reports</Button>
+              <Button variant="ghost">Сформировать отчёты</Button>
             </Link>
           </div>
         </Card>
@@ -250,12 +253,12 @@ export default function OrganizerDashboard() {
 
       <div className="grid gap-6 xl:grid-cols-2">
         <section aria-labelledby="organizer-events-heading">
-          <Card title="Recent events" description="Your latest scheduled sessions.">
+          <Card title="Недавние события" description="Последние запланированные сессии.">
             <h2 id="organizer-events-heading" className="sr-only">
-              Recent organizer events
+              Недавние события организатора
             </h2>
             {myEvents.length === 0 ? (
-              <p className="text-sm text-slate-600 dark:text-slate-400">No events created yet.</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">События ещё не созданы.</p>
             ) : (
               <ul className="space-y-3">
                 {myEvents.slice(0, 5).map((event: Event) => (
@@ -266,10 +269,10 @@ export default function OrganizerDashboard() {
                     <div className="min-w-0">
                       <p className="truncate font-medium text-slate-900 dark:text-slate-100">{event.title}</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {formatEventDate(event.scheduledStart)} · {event._count.registrations} registrations
+                        {formatEventDate(event.scheduledStart)} · {event._count.registrations} регистраций
                       </p>
                     </div>
-                    <Badge variant={eventStatusVariant(event.status)}>{event.status}</Badge>
+                    <Badge variant={eventStatusVariant(event.status)}>{formatEventStatus(event.status)}</Badge>
                   </li>
                 ))}
               </ul>
@@ -278,12 +281,12 @@ export default function OrganizerDashboard() {
         </section>
 
         <section aria-labelledby="organizer-pending-heading">
-          <Card title="Pending registrations" description="Players waiting for your decision.">
+          <Card title="Ожидающие регистрации" description="Игроки, ожидающие вашего решения.">
             <h2 id="organizer-pending-heading" className="sr-only">
-              Pending registrations
+              Ожидающие регистрации
             </h2>
             {registrations.length === 0 ? (
-              <p className="text-sm text-slate-600 dark:text-slate-400">No pending registrations.</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Нет ожидающих регистраций.</p>
             ) : (
               <ul className="space-y-3">
                 {registrations.slice(0, 5).map((registration: Registration) => (
@@ -296,7 +299,7 @@ export default function OrganizerDashboard() {
                         {registration.user.displayName}
                       </p>
                       <Badge variant={registrationStatusVariant(registration.status)}>
-                        {registration.status}
+                        {formatRegistrationStatus(registration.status)}
                       </Badge>
                     </div>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{registration.event.title}</p>

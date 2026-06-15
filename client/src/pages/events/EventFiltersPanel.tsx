@@ -4,34 +4,30 @@ import Checkbox from '../../components/ui/Checkbox';
 import SearchBar from '../../components/ui/SearchBar';
 import SelectDropdown from '../../components/ui/SelectDropdown';
 import TextInput from '../../components/ui/TextInput';
+import { eventStatusLabels } from '../../i18n/labels';
 import type { EventsFilterState } from '../../store/filtersSlice';
 import type { EventStatus, Game } from '../../types/index';
 
-const statusOptions: Array<{ value: EventStatus; label: string }> = [
-  { value: 'DRAFT', label: 'Draft' },
-  { value: 'OPEN', label: 'Open' },
-  { value: 'FULL', label: 'Full' },
-  { value: 'CLOSED', label: 'Closed' },
-  { value: 'COMPLETED', label: 'Completed' },
-  { value: 'CANCELLED', label: 'Cancelled' },
-];
+const statusOptions: Array<{ value: EventStatus; label: string }> = (
+  Object.entries(eventStatusLabels) as Array<[EventStatus, string]>
+).map(([value, label]) => ({ value, label }));
 
 const sortOptions = [
-  { value: 'scheduledStart', label: 'Start time' },
-  { value: 'title', label: 'Title' },
-  { value: 'createdAt', label: 'Created date' },
-  { value: 'status', label: 'Status' },
+  { value: 'scheduledStart', label: 'Время начала' },
+  { value: 'title', label: 'Название' },
+  { value: 'createdAt', label: 'Дата создания' },
+  { value: 'status', label: 'Статус' },
 ];
 
 const orderOptions = [
-  { value: 'asc', label: 'Ascending' },
-  { value: 'desc', label: 'Descending' },
+  { value: 'asc', label: 'По возрастанию' },
+  { value: 'desc', label: 'По убыванию' },
 ];
 
 const pageSizeOptions = [
-  { value: '10', label: '10 per page' },
-  { value: '20', label: '20 per page' },
-  { value: '50', label: '50 per page' },
+  { value: '10', label: '10 на странице' },
+  { value: '20', label: '20 на странице' },
+  { value: '50', label: '50 на странице' },
 ];
 
 export interface EventFiltersPanelProps {
@@ -56,16 +52,16 @@ export default function EventFiltersPanel({
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 id="event-filters-heading" className="text-base font-semibold text-slate-900 dark:text-slate-100">
-          Search and filters
+          Поиск и фильтры
         </h2>
         <Button type="button" variant="ghost" size="sm" onClick={onReset}>
-          Reset filters
+          Сбросить фильтры
         </Button>
       </div>
 
       <SearchBar
-        label="Search events"
-        placeholder="Search by title or description..."
+        label="Поиск событий"
+        placeholder="Поиск по названию или описанию..."
         value={filters.search}
         onChange={(value) => onFiltersChange({ search: value, page: 1 })}
         onSearch={(value) => onFiltersChange({ search: value, page: 1 })}
@@ -77,12 +73,12 @@ export default function EventFiltersPanel({
         items={[
           {
             id: 'filters',
-            title: 'Filter and sort options',
+            title: 'Параметры фильтрации и сортировки',
             content: (
               <div className="space-y-4 pt-2">
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   <SelectDropdown
-                    label="Game"
+                    label="Игра"
                     value={filters.gameId?.toString() ?? ''}
                     onChange={(event) =>
                       onFiltersChange({
@@ -90,11 +86,11 @@ export default function EventFiltersPanel({
                         page: 1,
                       })
                     }
-                    placeholder="All games"
+                    placeholder="Все игры"
                     options={games.map((game) => ({ value: String(game.id), label: game.title }))}
                   />
                   <SelectDropdown
-                    label="Status"
+                    label="Статус"
                     value={filters.status ?? ''}
                     onChange={(event) =>
                       onFiltersChange({
@@ -102,11 +98,11 @@ export default function EventFiltersPanel({
                         page: 1,
                       })
                     }
-                    placeholder="All statuses"
+                    placeholder="Все статусы"
                     options={statusOptions.map((option) => ({ value: option.value, label: option.label }))}
                   />
                   <SelectDropdown
-                    label="Sort by"
+                    label="Сортировка"
                     value={filters.sort}
                     onChange={(event) =>
                       onFiltersChange({
@@ -117,7 +113,7 @@ export default function EventFiltersPanel({
                     options={sortOptions}
                   />
                   <SelectDropdown
-                    label="Sort order"
+                    label="Порядок"
                     value={filters.order}
                     onChange={(event) =>
                       onFiltersChange({
@@ -128,19 +124,19 @@ export default function EventFiltersPanel({
                     options={orderOptions}
                   />
                   <TextInput
-                    label="Start date"
+                    label="Дата начала"
                     type="date"
                     value={filters.startDate}
                     onChange={(event) => onFiltersChange({ startDate: event.target.value, page: 1 })}
                   />
                   <TextInput
-                    label="End date"
+                    label="Дата окончания"
                     type="date"
                     value={filters.endDate}
                     onChange={(event) => onFiltersChange({ endDate: event.target.value, page: 1 })}
                   />
                   <SelectDropdown
-                    label="Page size"
+                    label="Размер страницы"
                     value={String(filters.pageSize)}
                     onChange={(event) =>
                       onFiltersChange({
@@ -154,7 +150,7 @@ export default function EventFiltersPanel({
 
                 {showAvailabilityFit ? (
                   <Checkbox
-                    label="Only show events that fit my availability"
+                    label="Показывать только события, подходящие по моей доступности"
                     checked={filters.availabilityFit}
                     onChange={(event) =>
                       onFiltersChange({

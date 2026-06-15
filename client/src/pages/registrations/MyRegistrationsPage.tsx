@@ -9,14 +9,17 @@ import Pagination from '../../components/ui/Pagination';
 import SelectDropdown from '../../components/ui/SelectDropdown';
 import Spinner from '../../components/ui/Spinner';
 import { useAuth } from '../../hooks/useAuth';
+import { formatRegistrationStatus, registrationStatusLabels } from '../../i18n/labels';
 import * as registrationService from '../../services/registrationService';
 import { ApiError } from '../../services/apiClient';
 import { setRegistrations, upsertRegistration } from '../../store/registrationsSlice';
 import type { AppDispatch, RootState } from '../../store/store';
 import type { Registration, RegistrationStatus } from '../../types/index';
 
+const dateLocale = 'ru-RU';
+
 function formatDateTime(value: string): string {
-  return new Date(value).toLocaleString(undefined, {
+  return new Date(value).toLocaleString(dateLocale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -47,11 +50,11 @@ function canCancelRegistration(registration: Registration): boolean {
 }
 
 const statusFilterOptions = [
-  { value: '', label: 'All statuses' },
-  { value: 'PENDING', label: 'Pending' },
-  { value: 'APPROVED', label: 'Approved' },
-  { value: 'DECLINED', label: 'Declined' },
-  { value: 'CANCELLED', label: 'Cancelled' },
+  { value: '', label: 'Все статусы' },
+  ...Object.entries(registrationStatusLabels).map(([value, label]) => ({
+    value,
+    label,
+  })),
 ];
 
 export default function MyRegistrationsPage() {
@@ -78,7 +81,7 @@ export default function MyRegistrationsPage() {
       });
       dispatch(setRegistrations(data));
     } catch {
-      setLoadError('Unable to load your registrations.');
+      setLoadError('Не удалось загрузить ваши регистрации.');
     } finally {
       setIsLoading(false);
     }
@@ -104,7 +107,7 @@ export default function MyRegistrationsPage() {
       if (error instanceof ApiError) {
         setActionError(error.message);
       } else {
-        setActionError('Unable to cancel registration.');
+        setActionError('Не удалось отменить регистрацию.');
       }
     } finally {
       setCancellingId(null);
@@ -114,8 +117,8 @@ export default function MyRegistrationsPage() {
   if (!isPlayer) {
     return (
       <EmptyState
-        title="Player registrations only"
-        description="Registration history is available to player accounts."
+        title="Только для игроков"
+        description="История регистраций доступна только аккаунтам игроков."
       />
     );
   }
@@ -123,13 +126,13 @@ export default function MyRegistrationsPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner label="Loading registrations" size="lg" />
+        <Spinner label="Загрузка регистраций" size="lg" />
       </div>
     );
   }
 
   if (loadError) {
-    return <EmptyState title="Registrations unavailable" description={loadError} />;
+    return <EmptyState title="Регистрации недоступны" description={loadError} />;
   }
 
   return (
@@ -139,10 +142,10 @@ export default function MyRegistrationsPage() {
         className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
       >
         <h2 id="registration-filters-heading" className="mb-3 text-base font-semibold text-slate-900 dark:text-slate-100">
-          Filter registrations
+          Фильтр регистраций
         </h2>
         <SelectDropdown
-          label="Status"
+          label="Статус"
           value={statusFilter}
           onChange={(event) => {
             setStatusFilter(event.target.value as RegistrationStatus | '');
@@ -160,25 +163,25 @@ export default function MyRegistrationsPage() {
 
       {registrations.length === 0 ? (
         <EmptyState
-          title="No registrations yet"
-          description="Browse open events and register to see your history here."
+          title="Регистраций пока нет"
+          description="Просмотрите открытые события и зарегистрируйтесь, чтобы увидеть историю здесь."
           action={
             <Link to="/events">
-              <Button>Browse events</Button>
+              <Button>Просмотр событий</Button>
             </Link>
           }
         />
       ) : (
         <>
           <DataTable<Registration>
-            caption="My event registrations"
+            caption="Мои регистрации на события"
             data={registrations}
             getRowKey={(registration) => registration.id}
             columns={[
               {
                 key: 'event',
-                header: 'Event',
-                mobileLabel: 'Event',
+                header: 'Событие',
+                mobileLabel: 'Событие',
                 render: (registration) => (
                   <div>
                     <Link
@@ -188,40 +191,40 @@ export default function MyRegistrationsPage() {
                       {registration.event.title}
                     </Link>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Starts {formatDateTime(registration.event.scheduledStart)}
+                      Начало {formatDateTime(registration.event.scheduledStart)}
                     </p>
                   </div>
                 ),
               },
               {
                 key: 'status',
-                header: 'Status',
+                header: 'Статус',
                 render: (registration) => (
                   <Badge variant={registrationStatusVariant(registration.status)}>
-                    {registration.status}
+                    {formatRegistrationStatus(registration.status)}
                   </Badge>
                 ),
               },
               {
                 key: 'role',
-                header: 'Requested role',
+                header: 'Запрошенная роль',
                 hideOnMobile: true,
-                render: (registration) => registration.requestedRoleName ?? 'No preference',
+                render: (registration) => registration.requestedRoleName ?? 'Без предпочтений',
               },
               {
                 key: 'slot',
-                header: 'Assigned slot',
+                header: 'Назначенный слот',
                 hideOnMobile: true,
-                render: (registration) => registration.eventSlot?.roleName ?? 'Unassigned',
+                render: (registration) => registration.eventSlot?.roleName ?? 'Не назначен',
               },
               {
                 key: 'joinedAt',
-                header: 'Registered',
+                header: 'Зарегистрирован',
                 render: (registration) => formatDateTime(registration.joinedAt),
               },
               {
                 key: 'actions',
-                header: 'Actions',
+                header: 'Действия',
                 hideOnMobile: true,
                 render: (registration) =>
                   canCancelRegistration(registration) ? (
@@ -232,7 +235,7 @@ export default function MyRegistrationsPage() {
                       disabled={cancellingId === registration.id}
                       onClick={() => void handleCancel(registration)}
                     >
-                      Cancel
+                      Отменить
                     </Button>
                   ) : (
                     <span className="text-sm text-slate-500 dark:text-slate-400">—</span>

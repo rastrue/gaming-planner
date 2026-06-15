@@ -44,7 +44,7 @@ export default function ReportsPage() {
 
       dispatch(setReports(data));
     } catch {
-      setLoadError('Unable to load report history.');
+      setLoadError('Не удалось загрузить историю отчётов.');
     } finally {
       setIsLoading(false);
     }
@@ -83,21 +83,21 @@ export default function ReportsPage() {
   if (isLoading && reports.length === 0) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner label="Loading reports" size="lg" />
+        <Spinner label="Загрузка отчётов" size="lg" />
       </div>
     );
   }
 
   if (loadError && reports.length === 0) {
-    return <EmptyState title="Reports unavailable" description={loadError} />;
+    return <EmptyState title="Отчёты недоступны" description={loadError} />;
   }
 
   return (
     <>
       <div className="space-y-6">
       <p className="text-sm text-slate-600 dark:text-slate-400">
-        Generate Event Attendance or Player Participation exports, download them as PDF or DOCX, and
-        send completed reports by email.
+        Формируйте отчёты о посещаемости событий или участии игроков, скачивайте их в формате PDF или DOCX
+        и отправляйте готовые отчёты по электронной почте.
       </p>
 
       {actionError ? (
@@ -108,7 +108,7 @@ export default function ReportsPage() {
 
       <ReportGeneratorForm
         onReportCreated={handleReportCreated}
-        onSuccess={(message, title = 'Report ready') =>
+        onSuccess={(message, title = 'Отчёт готов') =>
           showToast({ title, message, variant: 'success' })
         }
       />
@@ -124,7 +124,7 @@ export default function ReportsPage() {
         onReportDeleted={handleReportDeleted}
         onActionError={setActionError}
         onActionSuccess={(message) =>
-          showToast({ title: 'Report emailed', message, variant: 'success' })
+          showToast({ title: 'Отчёт отправлен', message, variant: 'success' })
         }
       />
       </div>

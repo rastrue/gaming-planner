@@ -35,8 +35,8 @@ export default function SettingsPage() {
 
     setResetOpen(false);
     showToast({
-      title: 'Settings reset',
-      message: 'QuestSync preferences were restored to defaults.',
+      title: 'Настройки сброшены',
+      message: 'Предпочтения QuestSync восстановлены по умолчанию.',
       variant: 'success',
     });
   };
@@ -45,33 +45,32 @@ export default function SettingsPage() {
     <>
       <div className="space-y-6">
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Manage appearance and interface preferences. Settings persist locally under the{' '}
-          <code className="rounded bg-slate-100 px-1 py-0.5 text-xs dark:bg-slate-800">{STORAGE_PREFIX}</code>{' '}
-          prefix.
+          Управление внешним видом и параметрами интерфейса. Настройки сохраняются локально с префиксом{' '}
+          <code className="rounded bg-slate-100 px-1 py-0.5 text-xs dark:bg-slate-800">{STORAGE_PREFIX}</code>.
         </p>
 
-        <Card title="Appearance" description="Choose how QuestSync looks on this device.">
+        <Card title="Внешний вид" description="Настройте отображение QuestSync на этом устройстве.">
           <ToggleSwitch
-            label="Dark mode"
-            description="Switch between light and dark themes."
+            label="Тёмная тема"
+            description="Переключение между светлой и тёмной темой."
             checked={themeMode === 'dark'}
             onChange={(checked) => dispatch(setThemeMode(checked ? 'dark' : 'light'))}
           />
         </Card>
 
-        <Card title="Interface" description="Adjust layout behavior across authenticated pages.">
+        <Card title="Интерфейс" description="Настройка поведения макета на страницах приложения.">
           <ToggleSwitch
-            label="Collapse sidebar"
-            description="Start with the navigation sidebar collapsed on desktop layouts."
+            label="Свернуть боковую панель"
+            description="На десктопе боковая панель изначально свёрнута."
             checked={sidebarCollapsed}
             onChange={(checked) => dispatch(setSidebarCollapsed(checked))}
           />
         </Card>
 
-        <Card title="Event catalog filters" description="Reset saved search, sort, and filter preferences.">
+        <Card title="Фильтры каталога событий" description="Сброс сохранённых параметров поиска и фильтрации.">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Restore the default event discovery filters on the catalog page.
+              Восстановить фильтры каталога событий по умолчанию.
             </p>
             <Button
               type="button"
@@ -79,31 +78,31 @@ export default function SettingsPage() {
               onClick={() => {
                 dispatch(resetEventsFilters());
                 showToast({
-                  title: 'Filters reset',
-                  message: 'Event catalog filters were restored to defaults.',
+                  title: 'Фильтры сброшены',
+                  message: 'Фильтры каталога событий восстановлены по умолчанию.',
                   variant: 'info',
                 });
               }}
             >
-              Reset catalog filters
+              Сбросить фильтры каталога
             </Button>
           </div>
         </Card>
 
         <Card
-          title="Reset application settings"
-          description="Remove all QuestSync local preferences and cached client state."
+          title="Сброс настроек приложения"
+          description="Удаление всех локальных предпочтений QuestSync и кэшированных данных клиента."
         >
           <div className="space-y-3">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              This removes every{' '}
+              Будут удалены все ключи{' '}
               <code className="rounded bg-slate-100 px-1 py-0.5 text-xs dark:bg-slate-800">{STORAGE_PREFIX}</code>{' '}
-              key from <code className="rounded bg-slate-100 px-1 py-0.5 text-xs dark:bg-slate-800">localStorage</code>,
-              restores theme and UI defaults, clears cached lists, and keeps your signed-in session intact.
+              из <code className="rounded bg-slate-100 px-1 py-0.5 text-xs dark:bg-slate-800">localStorage</code>,
+              восстановлены тема и параметры интерфейса, очищены кэшированные списки. Сессия входа сохранится.
             </p>
-            <Tooltip content="Clears QuestSync preferences only; other sites are unaffected.">
+            <Tooltip content="Очищаются только предпочтения QuestSync; другие сайты не затрагиваются.">
               <Button type="button" variant="danger" onClick={() => setResetOpen(true)}>
-                Reset application settings
+                Сбросить настройки приложения
               </Button>
             </Tooltip>
           </div>
@@ -111,22 +110,22 @@ export default function SettingsPage() {
 
         <ModalDialog
           open={resetOpen}
-          title="Reset application settings"
+          title="Сброс настроек приложения"
           onClose={() => setResetOpen(false)}
           footer={
             <>
               <Button type="button" variant="secondary" onClick={() => setResetOpen(false)}>
-                Cancel
+                Отмена
               </Button>
               <Button type="button" variant="danger" onClick={() => void handleReset()}>
-                Reset settings
+                Сбросить настройки
               </Button>
             </>
           }
         >
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Are you sure you want to reset QuestSync preferences on this device? Other websites stored in
-            your browser will not be affected.
+            Вы уверены, что хотите сбросить предпочтения QuestSync на этом устройстве? Данные других
+            сайтов в браузере не будут затронуты.
           </p>
         </ModalDialog>
       </div>

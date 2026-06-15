@@ -45,7 +45,7 @@ export default function LoginPage() {
         setFormError(error.message);
         setFieldErrors(mapFieldErrors(error.errors));
       } else {
-        setFormError('Unable to log in. Please try again.');
+        setFormError('Не удалось войти. Попробуйте снова.');
       }
     } finally {
       setIsSubmitting(false);
@@ -60,16 +60,16 @@ export default function LoginPage() {
       >
         <header className="space-y-1 text-center">
           <h1 id="login-heading" className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Sign in to QuestSync
+            Вход в QuestSync
           </h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Use your email or username to access your account.
+            Используйте email или имя пользователя для доступа к аккаунту.
           </p>
         </header>
 
         <form className="space-y-4" onSubmit={handleSubmit} noValidate>
           <TextInput
-            label="Email or username"
+            label="Email или имя пользователя"
             name="identifier"
             autoComplete="username"
             value={identifier}
@@ -78,7 +78,7 @@ export default function LoginPage() {
             required
           />
           <TextInput
-            label="Password"
+            label="Пароль"
             name="password"
             type="password"
             autoComplete="current-password"
@@ -95,17 +95,17 @@ export default function LoginPage() {
           ) : null}
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Signing in...' : 'Sign in'}
+            {isSubmitting ? 'Вход...' : 'Войти'}
           </Button>
         </form>
 
         <p className="text-center text-sm text-slate-600 dark:text-slate-400">
-          Need an account?{' '}
+          Нет аккаунта?{' '}
           <Link
             to="/register"
             className="cursor-pointer font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400"
           >
-            Create one
+            Создать
           </Link>
         </p>
       </section>

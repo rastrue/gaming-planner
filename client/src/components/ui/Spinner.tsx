@@ -15,7 +15,7 @@ const sizeClasses: Record<SpinnerSize, string> = {
   lg: 'h-8 w-8',
 };
 
-export default function Spinner({ label = 'Loading', size = 'md', className }: SpinnerProps) {
+export default function Spinner({ label = 'Загрузка', size = 'md', className }: SpinnerProps) {
   return (
     <div
       role="status"

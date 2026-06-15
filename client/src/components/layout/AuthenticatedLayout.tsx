@@ -4,54 +4,54 @@ import AppShell from './AppShell';
 
 function getPageMeta(pathname: string): { title: string; description?: string } {
   if (pathname === '/dashboard') {
-    return { title: 'Dashboard', description: 'Role-specific overview and quick actions.' };
+    return { title: 'Панель управления', description: 'Обзор и быстрые действия в зависимости от роли.' };
   }
 
   if (/^\/events\/\d+/.test(pathname)) {
-    return { title: 'Event Details', description: 'Event metadata, roster summary, and registration actions.' };
+    return { title: 'Детали события', description: 'Информация о событии, состав и действия по регистрации.' };
   }
 
   if (pathname === '/events') {
-    return { title: 'Discover Events', description: 'Browse upcoming multiplayer sessions.' };
+    return { title: 'События', description: 'Просмотр предстоящих игровых сессий.' };
   }
 
   if (pathname === '/availability') {
-    return { title: 'Availability Planner', description: 'Manage weekly availability windows.' };
+    return { title: 'Планировщик доступности', description: 'Управление еженедельными окнами доступности.' };
   }
 
   if (pathname === '/my-registrations') {
-    return { title: 'My Registrations', description: 'Track registration history and statuses.' };
+    return { title: 'Мои регистрации', description: 'История регистраций и их статусы.' };
   }
 
   if (pathname === '/reports') {
-    return { title: 'Reports', description: 'Generate, export, and email participation reports.' };
+    return { title: 'Отчёты', description: 'Формирование, экспорт и отправка отчётов по участию.' };
   }
 
   if (pathname === '/settings') {
-    return { title: 'Settings', description: 'Theme, preferences, and application reset.' };
+    return { title: 'Настройки', description: 'Тема, предпочтения и сброс приложения.' };
   }
 
   if (pathname === '/organizer/events/new') {
-    return { title: 'Create Event', description: 'Publish a new multiplayer event.' };
+    return { title: 'Создание события', description: 'Публикация нового многопользовательского события.' };
   }
 
   if (/^\/organizer\/events\/\d+\/edit/.test(pathname)) {
-    return { title: 'Edit Event', description: 'Update event details and scheduling.' };
+    return { title: 'Редактирование события', description: 'Обновление деталей и расписания события.' };
   }
 
   if (pathname === '/organizer/events') {
-    return { title: 'Manage Events', description: 'Organizer event management workspace.' };
+    return { title: 'Управление событиями', description: 'Рабочая область организатора для управления событиями.' };
   }
 
   if (/^\/organizer\/roster\/\d+/.test(pathname)) {
-    return { title: 'Roster Board', description: 'Assign approved players to roster slots.' };
+    return { title: 'Доска состава', description: 'Назначение одобренных игроков на слоты состава.' };
   }
 
   if (pathname === '/organizer/roster') {
-    return { title: 'Roster Management', description: 'Select an event to manage its roster.' };
+    return { title: 'Управление составом', description: 'Выберите событие для управления составом.' };
   }
 
-  return { title: 'QuestSync', description: 'QuestSync application page.' };
+  return { title: 'QuestSync', description: 'Страница приложения QuestSync.' };
 }
 
 export default function AuthenticatedLayout() {

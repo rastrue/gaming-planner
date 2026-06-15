@@ -11,7 +11,7 @@ export interface MobileNavToggleProps {
 export default function MobileNavToggle({ open, onToggle, className }: MobileNavToggleProps) {
   return (
     <IconButton
-      label={open ? 'Close navigation menu' : 'Open navigation menu'}
+      label={open ? 'Закрыть меню навигации' : 'Открыть меню навигации'}
       size="md"
       onClick={onToggle}
       className={cn('md:hidden', uiStyles.interactiveTransition, className)}

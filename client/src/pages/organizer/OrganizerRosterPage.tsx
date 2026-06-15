@@ -13,7 +13,7 @@ import type { AppDispatch, RootState } from '../../store/store';
 import type { Event } from '../../types/index';
 
 function formatEventDate(value: string): string {
-  return new Date(value).toLocaleString(undefined, {
+  return new Date(value).toLocaleString('ru-RU', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -52,7 +52,7 @@ export default function OrganizerRosterPage() {
         }
       } catch {
         if (active) {
-          setLoadError('Unable to load events for roster management.');
+          setLoadError('Не удалось загрузить события для управления составом.');
         }
       } finally {
         if (active) {
@@ -76,42 +76,42 @@ export default function OrganizerRosterPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner label="Loading roster events" size="lg" />
+        <Spinner label="Загрузка событий для состава" size="lg" />
       </div>
     );
   }
 
   if (loadError) {
-    return <EmptyState title="Roster events unavailable" description={loadError} />;
+    return <EmptyState title="События для состава недоступны" description={loadError} />;
   }
 
   return (
     <div className="space-y-6">
       <p className="text-sm text-slate-600 dark:text-slate-400">
-        Select an event to review registrations, assign players to slots, and mark attendance.
+        Выберите событие для проверки регистраций, назначения игроков на слоты и отметки посещаемости.
       </p>
 
       {myEvents.length === 0 ? (
         <EmptyState
-          title="No events to manage"
-          description="Create an event first, then return here to manage its roster."
+          title="Нет событий для управления"
+          description="Сначала создайте событие, затем вернитесь сюда для управления составом."
           action={
             <Link to="/organizer/events/new">
-              <Button>Create event</Button>
+              <Button>Создать событие</Button>
             </Link>
           }
         />
       ) : (
-        <Card title="Choose an event" description="Open the roster board for one of your organized events.">
+        <Card title="Выберите событие" description="Откройте доску состава для одного из ваших событий.">
           <DataTable<Event>
-            caption="Organizer roster events"
+            caption="События организатора для управления составом"
             data={myEvents}
             getRowKey={(event) => event.id}
             columns={[
               {
                 key: 'title',
-                header: 'Event',
-                mobileLabel: 'Event',
+                header: 'Событие',
+                mobileLabel: 'Событие',
                 render: (event) => (
                   <div>
                     <p className="font-medium text-slate-900 dark:text-slate-100">{event.title}</p>
@@ -121,23 +121,23 @@ export default function OrganizerRosterPage() {
               },
               {
                 key: 'schedule',
-                header: 'Starts',
+                header: 'Начало',
                 render: (event) => formatEventDate(event.scheduledStart),
               },
               {
                 key: 'registrations',
-                header: 'Registrations',
+                header: 'Регистрации',
                 hideOnMobile: true,
                 render: (event) => String(event._count.registrations),
               },
               {
                 key: 'actions',
-                header: 'Actions',
-                mobileLabel: 'Actions',
+                header: 'Действия',
+                mobileLabel: 'Действия',
                 render: (event) => (
                   <Link to={`/organizer/roster/${event.id}`}>
                     <Button type="button" size="sm">
-                      Open roster board
+                      Открыть доску состава
                     </Button>
                   </Link>
                 ),

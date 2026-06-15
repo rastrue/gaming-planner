@@ -16,8 +16,8 @@ export interface SearchBarProps {
 }
 
 export default function SearchBar({
-  label = 'Search',
-  placeholder = 'Search...',
+  label = 'Поиск',
+  placeholder = 'Поиск...',
   defaultValue = '',
   value,
   onChange,
@@ -70,7 +70,7 @@ export default function SearchBar({
         {currentValue ? (
           <IconButton
             type="button"
-            label="Clear search"
+            label="Очистить поиск"
             size="sm"
             disabled={disabled}
             onClick={handleReset}
@@ -88,7 +88,7 @@ export default function SearchBar({
             uiStyles.disabled,
           )}
         >
-          Search
+          Найти
         </button>
       </div>
     </form>

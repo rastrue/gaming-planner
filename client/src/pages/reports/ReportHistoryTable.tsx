@@ -7,26 +7,30 @@ import EmptyState from '../../components/ui/EmptyState';
 import ModalDialog from '../../components/ui/ModalDialog';
 import Pagination from '../../components/ui/Pagination';
 import TextInput from '../../components/ui/TextInput';
+import {
+  formatDeliveryChannel,
+  formatReportFormat,
+  formatReportKind,
+  formatReportStatus,
+} from '../../i18n/labels';
 import * as reportService from '../../services/reportService';
 import { ApiError } from '../../services/apiClient';
 import type { ReportRequest, ReportStatus } from '../../types/index';
+
+const dateLocale = 'ru-RU';
 
 function formatDateTime(value: string | null): string {
   if (!value) {
     return '—';
   }
 
-  return new Date(value).toLocaleString(undefined, {
+  return new Date(value).toLocaleString(dateLocale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
   });
-}
-
-function reportKindLabel(kind: ReportRequest['reportKind']): string {
-  return kind === 'EVENT_ATTENDANCE' ? 'Event Attendance' : 'Player Participation';
 }
 
 function reportStatusVariant(status: ReportStatus) {
@@ -98,7 +102,7 @@ export default function ReportHistoryTable({
       if (error instanceof ApiError) {
         onActionError(error.message);
       } else {
-        onActionError('Unable to download report.');
+        onActionError('Не удалось скачать отчёт.');
       }
     } finally {
       setIsSubmitting(false);
@@ -119,16 +123,16 @@ export default function ReportHistoryTable({
       onReportUpdated(updated);
 
       if (updated.status === 'FAILED') {
-        onActionError(updated.failedReason ?? 'Email delivery failed.');
+        onActionError(updated.failedReason ?? 'Не удалось отправить отчёт по email.');
       } else {
         setEmailTarget(null);
-        onActionSuccess?.(`Report emailed to ${recipientEmail.trim()}.`);
+        onActionSuccess?.(`Отчёт отправлен на ${recipientEmail.trim()}.`);
       }
     } catch (error) {
       if (error instanceof ApiError) {
         onActionError(error.message);
       } else {
-        onActionError('Unable to email report.');
+        onActionError('Не удалось отправить отчёт по email.');
       }
     } finally {
       setIsSubmitting(false);
@@ -150,7 +154,7 @@ export default function ReportHistoryTable({
       if (error instanceof ApiError) {
         onActionError(error.message);
       } else {
-        onActionError('Unable to delete report.');
+        onActionError('Не удалось удалить отчёт.');
       }
     } finally {
       setIsSubmitting(false);
@@ -159,55 +163,57 @@ export default function ReportHistoryTable({
 
   return (
     <>
-      <Card title="Report history" description="Previously generated exports and delivery status.">
+      <Card title="История отчётов" description="Ранее сформированные экспорты и статус доставки.">
         {totalReports === 0 ? (
           <EmptyState
-            title="No reports yet"
-            description="Generate an event attendance or player participation report to see it here."
+            title="Отчётов пока нет"
+            description="Сформируйте отчёт о посещаемости события или участии игрока, чтобы увидеть его здесь."
           />
         ) : (
           <>
             <DataTable<ReportRequest>
-              caption="Generated report requests"
+              caption="Сформированные запросы отчётов"
               data={reports}
               getRowKey={(report) => report.id}
               columns={[
                 {
                   key: 'kind',
-                  header: 'Report',
-                  mobileLabel: 'Report',
+                  header: 'Отчёт',
+                  mobileLabel: 'Отчёт',
                   render: (report) => (
                     <div>
                       <p className="font-medium text-slate-900 dark:text-slate-100">
-                        {reportKindLabel(report.reportKind)}
+                        {formatReportKind(report.reportKind)}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {report.outputFormat} · {report.deliveryChannel}
+                        {formatReportFormat(report.outputFormat)} · {formatDeliveryChannel(report.deliveryChannel)}
                       </p>
                     </div>
                   ),
                 },
                 {
                   key: 'status',
-                  header: 'Status',
+                  header: 'Статус',
                   render: (report) => (
-                    <Badge variant={reportStatusVariant(report.status)}>{report.status}</Badge>
+                    <Badge variant={reportStatusVariant(report.status)}>
+                      {formatReportStatus(report.status)}
+                    </Badge>
                   ),
                 },
                 {
                   key: 'requestedAt',
-                  header: 'Requested',
+                  header: 'Запрошен',
                   hideOnMobile: true,
                   render: (report) => formatDateTime(report.requestedAt),
                 },
                 {
                   key: 'delivery',
-                  header: 'Delivery',
+                  header: 'Доставка',
                   hideOnMobile: true,
                   render: (report) => (
                     <div className="text-sm text-slate-600 dark:text-slate-400">
-                      <p>Generated: {formatDateTime(report.generatedAt)}</p>
-                      <p>Emailed: {formatDateTime(report.emailedAt)}</p>
+                      <p>Сформирован: {formatDateTime(report.generatedAt)}</p>
+                      <p>Отправлен: {formatDateTime(report.emailedAt)}</p>
                       {report.failedReason ? (
                         <p className="text-red-600 dark:text-red-400">{report.failedReason}</p>
                       ) : null}
@@ -216,8 +222,8 @@ export default function ReportHistoryTable({
                 },
                 {
                   key: 'actions',
-                  header: 'Actions',
-                  mobileLabel: 'Actions',
+                  header: 'Действия',
+                  mobileLabel: 'Действия',
                   render: (report) => {
                     const canDownload = report.status === 'GENERATED' || report.status === 'EMAILED';
                     const isBusy = isSubmitting;
@@ -233,7 +239,7 @@ export default function ReportHistoryTable({
                               disabled={isBusy}
                               onClick={() => void handleDownload(report)}
                             >
-                              Download {report.outputFormat}
+                              Скачать {report.outputFormat}
                             </Button>
                             <Button
                               type="button"
@@ -241,7 +247,7 @@ export default function ReportHistoryTable({
                               disabled={isBusy}
                               onClick={() => openEmailModal(report)}
                             >
-                              Email
+                              На почту
                             </Button>
                           </>
                         ) : null}
@@ -252,7 +258,7 @@ export default function ReportHistoryTable({
                           disabled={isBusy}
                           onClick={() => setDeleteTarget(report)}
                         >
-                          Delete
+                          Удалить
                         </Button>
                       </div>
                     );
@@ -270,29 +276,29 @@ export default function ReportHistoryTable({
 
       <ModalDialog
         open={Boolean(emailTarget)}
-        title="Email report"
+        title="Отправить отчёт по email"
         onClose={() => setEmailTarget(null)}
         footer={
           <>
             <Button type="button" variant="secondary" onClick={() => setEmailTarget(null)}>
-              Cancel
+              Отмена
             </Button>
             <Button type="button" disabled={isSubmitting} onClick={() => void handleEmail()}>
-              Send email
+              Отправить
             </Button>
           </>
         }
       >
         <div className="space-y-4">
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Send{' '}
+            Отправить{' '}
             <span className="font-medium text-slate-900 dark:text-slate-100">
-              {emailTarget ? reportKindLabel(emailTarget.reportKind) : ''}
+              {emailTarget ? formatReportKind(emailTarget.reportKind) : ''}
             </span>{' '}
-            ({emailTarget?.outputFormat}) to a recipient.
+            ({emailTarget?.outputFormat}) получателю.
           </p>
           <TextInput
-            label="Recipient email"
+            label="Email получателя"
             name="recipientEmail"
             type="email"
             value={recipientEmail}
@@ -304,21 +310,21 @@ export default function ReportHistoryTable({
 
       <ModalDialog
         open={Boolean(deleteTarget)}
-        title="Delete report"
+        title="Удалить отчёт"
         onClose={() => setDeleteTarget(null)}
         footer={
           <>
             <Button type="button" variant="secondary" onClick={() => setDeleteTarget(null)}>
-              Cancel
+              Отмена
             </Button>
             <Button type="button" variant="danger" disabled={isSubmitting} onClick={() => void handleDelete()}>
-              Delete report
+              Удалить отчёт
             </Button>
           </>
         }
       >
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Delete this report request and remove its stored export file?
+          Удалить этот запрос отчёта и связанный с ним файл экспорта?
         </p>
       </ModalDialog>
     </>

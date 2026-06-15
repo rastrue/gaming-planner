@@ -42,10 +42,10 @@ export default function Pagination({ page, totalPages, onPageChange, className }
   const pages = getPageNumbers(page, totalPages);
 
   return (
-    <nav aria-label="Pagination" className={cn('flex flex-wrap items-center justify-center gap-1', className)}>
+    <nav aria-label="Пагинация" className={cn('flex flex-wrap items-center justify-center gap-1', className)}>
       <button
         type="button"
-        aria-label="Previous page"
+        aria-label="Предыдущая страница"
         disabled={page <= 1}
         onClick={() => onPageChange(page - 1)}
         className={cn(
@@ -56,7 +56,7 @@ export default function Pagination({ page, totalPages, onPageChange, className }
         )}
       >
         <ChevronLeft aria-hidden="true" className="h-4 w-4" />
-        <span className="hidden sm:inline">Previous</span>
+        <span className="hidden sm:inline">Назад</span>
       </button>
 
       <ul className="flex flex-wrap items-center gap-1">
@@ -69,7 +69,7 @@ export default function Pagination({ page, totalPages, onPageChange, className }
             <li key={item}>
               <button
                 type="button"
-                aria-label={`Page ${item}`}
+                aria-label={`Страница ${item}`}
                 aria-current={item === page ? 'page' : undefined}
                 onClick={() => onPageChange(item)}
                 className={cn(
@@ -90,7 +90,7 @@ export default function Pagination({ page, totalPages, onPageChange, className }
 
       <button
         type="button"
-        aria-label="Next page"
+        aria-label="Следующая страница"
         disabled={page >= totalPages}
         onClick={() => onPageChange(page + 1)}
         className={cn(
@@ -100,7 +100,7 @@ export default function Pagination({ page, totalPages, onPageChange, className }
           uiStyles.disabled,
         )}
       >
-        <span className="hidden sm:inline">Next</span>
+        <span className="hidden sm:inline">Вперёд</span>
         <ChevronRight aria-hidden="true" className="h-4 w-4" />
       </button>
     </nav>

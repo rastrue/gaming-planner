@@ -13,10 +13,13 @@ import * as registrationService from '../../services/registrationService';
 import { setEvents } from '../../store/eventsSlice';
 import { setRegistrations } from '../../store/registrationsSlice';
 import type { AppDispatch, RootState } from '../../store/store';
+import { formatRegistrationStatus } from '../../i18n/labels';
 import type { Event, Registration, RegistrationStatus } from '../../types/index';
 
+const dateLocale = 'ru-RU';
+
 function formatEventDate(value: string): string {
-  return new Date(value).toLocaleString(undefined, {
+  return new Date(value).toLocaleString(dateLocale, {
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
@@ -77,7 +80,7 @@ export default function PlayerDashboard() {
         dispatch(setRegistrations(registrationData));
       } catch {
         if (active) {
-          setLoadError('Unable to load player dashboard data.');
+          setLoadError('Не удалось загрузить данные панели игрока.');
         }
       } finally {
         if (active) {
@@ -122,7 +125,7 @@ export default function PlayerDashboard() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner label="Loading player dashboard" size="lg" />
+        <Spinner label="Загрузка панели игрока" size="lg" />
       </div>
     );
   }
@@ -130,7 +133,7 @@ export default function PlayerDashboard() {
   if (loadError) {
     return (
       <EmptyState
-        title="Dashboard unavailable"
+        title="Панель недоступна"
         description={loadError}
       />
     );
@@ -140,46 +143,46 @@ export default function PlayerDashboard() {
     <div className="space-y-6">
       <section aria-labelledby="player-stats-heading">
         <h2 id="player-stats-heading" className="sr-only">
-          Player statistics
+          Статистика игрока
         </h2>
         <div className="grid gap-4 sm:grid-cols-3">
-          <Card title="Open events" description="Sessions you can join right now.">
+          <Card title="Открытые события" description="Сессии, к которым можно присоединиться прямо сейчас.">
             <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">{stats.openEvents}</p>
           </Card>
-          <Card title="Active registrations" description="Pending or approved sign-ups.">
+          <Card title="Активные регистрации" description="Ожидающие или одобренные заявки.">
             <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
               {stats.activeRegistrations}
             </p>
           </Card>
-          <Card title="Approved sessions" description="Events you are cleared to play.">
+          <Card title="Одобренные сессии" description="События, на которые вам разрешено участвовать.">
             <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.approvedSessions}</p>
           </Card>
         </div>
       </section>
 
       <section aria-labelledby="player-progress-heading">
-        <Card title="Participation progress" description="Share of registrations approved by organizers.">
+        <Card title="Прогресс участия" description="Доля регистраций, одобренных организаторами.">
           <h2 id="player-progress-heading" className="sr-only">
-            Participation progress
+            Прогресс участия
           </h2>
-          <ProgressBar label="Approved registration rate" value={approvalRate} max={100} />
+          <ProgressBar label="Доля одобренных регистраций" value={approvalRate} max={100} />
         </Card>
       </section>
 
       <section aria-labelledby="player-actions-heading">
-        <Card title="Player quick actions" description="Discover events and manage participation.">
+        <Card title="Быстрые действия" description="Просмотр событий и управление участием.">
           <h2 id="player-actions-heading" className="sr-only">
-            Player quick actions
+            Быстрые действия
           </h2>
           <div className="flex flex-wrap gap-3">
             <Link to="/events">
-              <Button>Browse events</Button>
+              <Button>Просмотр событий</Button>
             </Link>
             <Link to="/availability">
-              <Button variant="secondary">Plan availability</Button>
+              <Button variant="secondary">Планировать доступность</Button>
             </Link>
             <Link to="/my-registrations">
-              <Button variant="ghost">View registrations</Button>
+              <Button variant="ghost">Мои регистрации</Button>
             </Link>
           </div>
         </Card>
@@ -187,12 +190,12 @@ export default function PlayerDashboard() {
 
       <div className="grid gap-6 xl:grid-cols-2">
         <section aria-labelledby="player-upcoming-heading">
-          <Card title="Upcoming open events" description="Sessions starting soon.">
+          <Card title="Предстоящие открытые события" description="Сессии, которые скоро начнутся.">
             <h2 id="player-upcoming-heading" className="sr-only">
-              Upcoming open events
+              Предстоящие открытые события
             </h2>
             {upcomingEvents.length === 0 ? (
-              <p className="text-sm text-slate-600 dark:text-slate-400">No upcoming open events found.</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Предстоящих открытых событий не найдено.</p>
             ) : (
               <ul className="space-y-3">
                 {upcomingEvents.map((event: Event) => (
@@ -211,7 +214,7 @@ export default function PlayerDashboard() {
                         to={`/events/${event.id}`}
                         className="cursor-pointer text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400"
                       >
-                        View
+                        Подробнее
                       </Link>
                     </div>
                   </li>
@@ -222,13 +225,13 @@ export default function PlayerDashboard() {
         </section>
 
         <section aria-labelledby="player-registrations-heading">
-          <Card title="Your registrations" description="Latest participation requests and statuses.">
+          <Card title="Ваши регистрации" description="Последние заявки на участие и их статусы.">
             <h2 id="player-registrations-heading" className="sr-only">
-              Your registrations
+              Ваши регистрации
             </h2>
             {registrations.length === 0 ? (
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                You have not registered for any events yet.
+                Вы ещё не зарегистрировались ни на одно событие.
               </p>
             ) : (
               <ul className="space-y-3">
@@ -240,11 +243,11 @@ export default function PlayerDashboard() {
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="font-medium text-slate-900 dark:text-slate-100">{registration.event.title}</p>
                       <Badge variant={registrationStatusVariant(registration.status)}>
-                        {registration.status}
+                        {formatRegistrationStatus(registration.status)}
                       </Badge>
                     </div>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      Registered {formatEventDate(registration.joinedAt)}
+                      Зарегистрирован {formatEventDate(registration.joinedAt)}
                     </p>
                   </li>
                 ))}

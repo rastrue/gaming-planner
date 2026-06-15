@@ -13,7 +13,7 @@ export default function ProtectedRoute({ isBootstrapped }: ProtectedRouteProps) 
   if (!isBootstrapped) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Spinner label="Checking session" size="lg" />
+        <Spinner label="Проверка сессии" size="lg" />
       </div>
     );
   }
