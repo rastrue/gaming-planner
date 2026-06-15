@@ -38,27 +38,6 @@ function dateKeyToDayOfWeek(dateKey: string): number {
   return new Date(year, month - 1, day).getDay();
 }
 
-function toDateKey(year: number, monthIndex: number, day: number): string {
-  return `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-}
-
-function availabilityDatesInMonth(windows: AvailabilityWindow[], month: Date): string[] {
-  const weekdaysWithAvailability = new Set(windows.map((window) => window.dayOfWeek));
-  const year = month.getFullYear();
-  const monthIndex = month.getMonth();
-  const lastDay = new Date(year, monthIndex + 1, 0).getDate();
-  const dates: string[] = [];
-
-  for (let day = 1; day <= lastDay; day += 1) {
-    const date = new Date(year, monthIndex, day);
-    if (weekdaysWithAvailability.has(date.getDay())) {
-      dates.push(toDateKey(year, monthIndex, day));
-    }
-  }
-
-  return dates;
-}
-
 export default function AvailabilityPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { isPlayer } = useAuth();
@@ -115,11 +94,6 @@ export default function AvailabilityPage() {
 
     return windows.filter((window) => window.dayOfWeek === selectedDayOfWeek);
   }, [selectedDayOfWeek, windows]);
-
-  const calendarSelectedDates = useMemo(
-    () => availabilityDatesInMonth(windows, calendarMonth),
-    [windows, calendarMonth],
-  );
 
   const handleCreateOrUpdate = async (values: Parameters<typeof availabilityService.createAvailabilityWindow>[0]) => {
     setFormError('');
@@ -203,7 +177,6 @@ export default function AvailabilityPage() {
           <CalendarWidget
             month={calendarMonth}
             onMonthChange={setCalendarMonth}
-            selectedDates={calendarSelectedDates}
             activeDate={selectedDateKey}
             onDateSelect={(dateKey) => {
               setSelectedDateKey(dateKey);
