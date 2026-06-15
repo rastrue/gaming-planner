@@ -22,9 +22,10 @@ import * as authService from './services/authService';
 import { clearCurrentUser, setCurrentUser } from './store/authSlice';
 import type { AppDispatch } from './store/store';
 import { useAuth } from './hooks/useAuth';
+import { getDefaultAuthenticatedPath } from './utils/routes';
 
 function GuestRoute({ isBootstrapped }: { isBootstrapped: boolean }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   if (!isBootstrapped) {
     return (
@@ -34,15 +35,15 @@ function GuestRoute({ isBootstrapped }: { isBootstrapped: boolean }) {
     );
   }
 
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+  if (isAuthenticated && user) {
+    return <Navigate to={getDefaultAuthenticatedPath(user.role.name)} replace />;
   }
 
   return <Outlet />;
 }
 
 function HomeRedirect({ isBootstrapped }: { isBootstrapped: boolean }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   if (!isBootstrapped) {
     return (
@@ -52,7 +53,12 @@ function HomeRedirect({ isBootstrapped }: { isBootstrapped: boolean }) {
     );
   }
 
-  return <Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />;
+  return (
+    <Navigate
+      to={isAuthenticated && user ? getDefaultAuthenticatedPath(user.role.name) : '/login'}
+      replace
+    />
+  );
 }
 
 export default function App() {
@@ -96,13 +102,13 @@ export default function App() {
 
         <Route element={<ProtectedRoute isBootstrapped={isBootstrapped} />}>
           <Route element={<AuthenticatedLayout />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/events" element={<EventsPage />} />
             <Route path="/events/:id" element={<EventDetailPage />} />
             <Route path="/availability" element={<AvailabilityPage />} />
             <Route path="/my-registrations" element={<MyRegistrationsPage />} />
 
             <Route element={<RoleRoute allowedRoles={['ORGANIZER']} />}>
+              <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/organizer/events" element={<OrganizerEventsPage />} />
               <Route path="/organizer/events/new" element={<EventFormPage />} />

@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import * as authService from '../../services/authService';
 import { ApiError } from '../../services/apiClient';
 import type { ApiFieldError } from '../../types/index';
+import { getDefaultAuthenticatedPath } from '../../utils/routes';
 
 function mapFieldErrors(errors?: ApiFieldError[]): Record<string, string> {
   const mapped: Record<string, string> = {};
@@ -37,8 +38,10 @@ export default function LoginPage() {
       const user = await authService.login({ identifier, password });
       setUser(user);
 
+      const from = (location.state as { from?: string } | null)?.from;
+      const defaultPath = getDefaultAuthenticatedPath(user.role.name);
       const redirectPath =
-        (location.state as { from?: string } | null)?.from ?? '/dashboard';
+        !from || (from === '/dashboard' && user.role.name === 'PLAYER') ? defaultPath : from;
       navigate(redirectPath, { replace: true });
     } catch (error) {
       if (error instanceof ApiError) {

@@ -1,7 +1,6 @@
 import {
   CalendarRange,
   Compass,
-  LayoutDashboard,
   ScrollText,
 } from 'lucide-react';
 import SidebarNav, { type SidebarNavItem } from '../ui/SidebarNav';
@@ -14,10 +13,6 @@ export interface PlayerNavProps {
 }
 
 function isNavItemActive(currentPath: string, href: string): boolean {
-  if (href === '/dashboard') {
-    return currentPath === '/dashboard';
-  }
-
   return currentPath === href || currentPath.startsWith(`${href}/`);
 }
 
@@ -28,12 +23,6 @@ export default function PlayerNav({
   className,
 }: PlayerNavProps) {
   const items: SidebarNavItem[] = [
-    {
-      label: 'Панель игрока',
-      href: '/dashboard',
-      icon: <LayoutDashboard className="h-4 w-4" />,
-      isActive: isNavItemActive(currentPath, '/dashboard'),
-    },
     {
       label: 'События',
       href: '/events',

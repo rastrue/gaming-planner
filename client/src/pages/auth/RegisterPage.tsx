@@ -7,6 +7,7 @@ import { useAuth } from '../../hooks/useAuth';
 import * as authService from '../../services/authService';
 import { ApiError } from '../../services/apiClient';
 import type { ApiFieldError, UserRoleName } from '../../types/index';
+import { getDefaultAuthenticatedPath } from '../../utils/routes';
 
 function mapFieldErrors(errors?: ApiFieldError[]): Record<string, string> {
   const mapped: Record<string, string> = {};
@@ -45,7 +46,7 @@ export default function RegisterPage() {
         roleName,
       });
       setUser(user);
-      navigate('/dashboard', { replace: true });
+      navigate(getDefaultAuthenticatedPath(user.role.name), { replace: true });
     } catch (error) {
       if (error instanceof ApiError) {
         setFormError(error.message);
