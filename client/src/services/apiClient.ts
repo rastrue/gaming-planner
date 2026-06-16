@@ -1,4 +1,5 @@
 import type { ApiFieldError } from '../types/index';
+import { notifyUnauthorized } from './sessionManager';
 
 const API_BASE = (import.meta.env.VITE_API_URL ?? '/api').replace(/\/$/, '');
 
@@ -73,7 +74,13 @@ export async function apiRequest<T>(
   });
 
   if (!response.ok) {
-    throw await parseErrorResponse(response);
+    const error = await parseErrorResponse(response);
+
+    if (error.statusCode === 401) {
+      notifyUnauthorized(path);
+    }
+
+    throw error;
   }
 
   if (response.status === 204) {
@@ -94,7 +101,13 @@ export async function apiRequestBlob(
   });
 
   if (!response.ok) {
-    throw await parseErrorResponse(response);
+    const error = await parseErrorResponse(response);
+
+    if (error.statusCode === 401) {
+      notifyUnauthorized(path);
+    }
+
+    throw error;
   }
 
   const blob = await response.blob();

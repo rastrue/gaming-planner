@@ -9,6 +9,7 @@ import * as eventService from '../../services/eventService';
 import * as registrationService from '../../services/registrationService';
 import * as reportService from '../../services/reportService';
 import { ApiError } from '../../services/apiClient';
+import { getActionErrorMessage } from '../../utils/apiErrors';
 import {
   deliveryChannelLabels,
   reportFormatLabels,
@@ -230,11 +231,12 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
         onSuccess?.(`Отчёт отправлен на ${recipientEmail.trim()}.`, 'Отчёт отправлен');
       }
     } catch (error) {
-      if (error instanceof ApiError) {
-        setFormError(error.message);
-        setFieldErrors(mapFieldErrors(error.errors));
-      } else {
-        setFormError('Не удалось сформировать отчёт.');
+      const message = getActionErrorMessage(error, 'Не удалось сформировать отчёт.');
+      if (message) {
+        setFormError(message);
+        if (error instanceof ApiError) {
+          setFieldErrors(mapFieldErrors(error.errors));
+        }
       }
     } finally {
       setIsSubmitting(false);

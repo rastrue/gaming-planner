@@ -14,7 +14,7 @@ import {
   formatReportStatus,
 } from '../../i18n/labels';
 import * as reportService from '../../services/reportService';
-import { ApiError } from '../../services/apiClient';
+import { getActionErrorMessage } from '../../utils/apiErrors';
 import type { ReportRequest, ReportStatus } from '../../types/index';
 
 const dateLocale = 'ru-RU';
@@ -99,10 +99,9 @@ export default function ReportHistoryTable({
       const download = await reportService.downloadReport(report.id);
       triggerBlobDownload(download.blob, download.fileName);
     } catch (error) {
-      if (error instanceof ApiError) {
-        onActionError(error.message);
-      } else {
-        onActionError('Не удалось скачать отчёт.');
+      const message = getActionErrorMessage(error, 'Не удалось скачать отчёт.');
+      if (message) {
+        onActionError(message);
       }
     } finally {
       setIsSubmitting(false);
@@ -129,10 +128,9 @@ export default function ReportHistoryTable({
         onActionSuccess?.(`Отчёт отправлен на ${recipientEmail.trim()}.`);
       }
     } catch (error) {
-      if (error instanceof ApiError) {
-        onActionError(error.message);
-      } else {
-        onActionError('Не удалось отправить отчёт по email.');
+      const message = getActionErrorMessage(error, 'Не удалось отправить отчёт по email.');
+      if (message) {
+        onActionError(message);
       }
     } finally {
       setIsSubmitting(false);
@@ -151,10 +149,9 @@ export default function ReportHistoryTable({
       onReportDeleted(deleteTarget.id);
       setDeleteTarget(null);
     } catch (error) {
-      if (error instanceof ApiError) {
-        onActionError(error.message);
-      } else {
-        onActionError('Не удалось удалить отчёт.');
+      const message = getActionErrorMessage(error, 'Не удалось удалить отчёт.');
+      if (message) {
+        onActionError(message);
       }
     } finally {
       setIsSubmitting(false);

@@ -22,6 +22,8 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { setUser } = useAuth();
+  const locationState = location.state as { from?: string; sessionExpired?: boolean } | null;
+  const sessionExpired = locationState?.sessionExpired === true;
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState('');
@@ -38,7 +40,7 @@ export default function LoginPage() {
       const user = await authService.login({ identifier, password });
       setUser(user);
 
-      const from = (location.state as { from?: string } | null)?.from;
+      const from = locationState?.from;
       const defaultPath = getDefaultAuthenticatedPath(user.role.name);
       const redirectPath =
         !from || (from === '/dashboard' && user.role.name === 'PLAYER') ? defaultPath : from;
@@ -71,6 +73,11 @@ export default function LoginPage() {
         </header>
 
         <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+          {sessionExpired ? (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+              Сессия завершилась. Войдите снова, чтобы продолжить.
+            </p>
+          ) : null}
           <TextInput
             label="Email или имя пользователя"
             name="identifier"
