@@ -105,6 +105,10 @@ export async function listRegistrations(
 
   if (user.roleName === UserRoleName.PLAYER) {
     where.userId = user.id;
+
+    if (query.eventId) {
+      where.eventId = query.eventId;
+    }
   } else if (query.eventId) {
     const event = await prisma.event.findUnique({
       where: { id: query.eventId },

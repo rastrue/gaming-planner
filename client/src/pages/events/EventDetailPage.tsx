@@ -139,7 +139,7 @@ export default function EventDetailPage() {
           }
 
           const existingRegistration =
-            registrationData.registrations.find((item) => item.userId === user.id) ?? null;
+            registrationData.registrations.find((item) => item.eventId === eventId) ?? null;
           setRegistration(existingRegistration);
           setAvailability(availabilityData);
 
