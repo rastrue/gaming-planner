@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import Button from '../../components/ui/Button';
@@ -14,8 +14,7 @@ import * as gameService from '../../services/gameService';
 import { ApiError } from '../../services/apiClient';
 import { upsertEvent } from '../../store/eventsSlice';
 import type { AppDispatch } from '../../store/store';
-import type { ApiFieldError, CreateEventInput, Event, EventStatus, Game } from '../../types/index';
-import { eventStatusLabels } from '../../i18n/labels';
+import type { ApiFieldError, CreateEventInput, Event, Game } from '../../types/index';
 import { isEventEditable } from '../../utils/eventRules';
 import EventSlotEditor from './EventSlotEditor';
 
@@ -66,7 +65,6 @@ function applyEventToForm(event: Event) {
     scheduledEnd: toDateTimeLocalValue(event.scheduledEnd),
     registrationDeadline: toDateTimeLocalValue(event.registrationDeadline),
     maxPlayers: String(event.maxPlayers),
-    status: event.status,
   };
 }
 
@@ -95,16 +93,6 @@ export default function EventFormPage() {
   const [scheduledEnd, setScheduledEnd] = useState(defaults.scheduledEnd);
   const [registrationDeadline, setRegistrationDeadline] = useState(defaults.registrationDeadline);
   const [maxPlayers, setMaxPlayers] = useState('10');
-  const [status, setStatus] = useState<EventStatus>('DRAFT');
-
-  const statusOptions = useMemo(() => {
-    const start = new Date(scheduledStart);
-    const hasStarted = !Number.isNaN(start.getTime()) && start.getTime() <= Date.now();
-
-    return (Object.entries(eventStatusLabels) as Array<[EventStatus, string]>)
-      .filter(([value]) => hasStarted || value !== 'COMPLETED')
-      .map(([value, label]) => ({ value, label }));
-  }, [scheduledStart]);
 
   useEffect(() => {
     let active = true;
@@ -148,7 +136,6 @@ export default function EventFormPage() {
           setScheduledEnd(formValues.scheduledEnd);
           setRegistrationDeadline(formValues.registrationDeadline);
           setMaxPlayers(formValues.maxPlayers);
-          setStatus(formValues.status);
         } else if (gameList.length > 0) {
           setGameId(String(gameList.find((game) => game.isActive)?.id ?? gameList[0].id));
         }
@@ -185,11 +172,6 @@ export default function EventFormPage() {
       return false;
     }
 
-    if (status === 'COMPLETED' && start.getTime() > Date.now()) {
-      setFormError('Нельзя завершить событие, которое ещё не началось. Его можно отменить.');
-      return false;
-    }
-
     return true;
   };
 
@@ -202,7 +184,6 @@ export default function EventFormPage() {
     scheduledEnd: fromDateTimeLocalValue(scheduledEnd),
     registrationDeadline: fromDateTimeLocalValue(registrationDeadline),
     maxPlayers: Number(maxPlayers),
-    status,
   });
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -373,15 +354,6 @@ export default function EventFormPage() {
               required
             />
           </div>
-
-          <SelectDropdown
-            label="Статус"
-            name="status"
-            value={status}
-            onChange={(event) => setStatus(event.target.value as EventStatus)}
-            options={statusOptions}
-            error={fieldErrors.status}
-          />
 
           {formError ? (
             <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">

@@ -248,10 +248,11 @@ export interface CreateEventInput {
   scheduledEnd: string;
   registrationDeadline: string;
   maxPlayers: number;
-  status?: EventStatus;
 }
 
-export type UpdateEventInput = Partial<CreateEventInput>;
+export type UpdateEventInput = Partial<CreateEventInput> & {
+  status?: EventStatus;
+};
 
 export interface CreateSlotInput {
   roleName: string;

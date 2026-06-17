@@ -216,13 +216,10 @@ export async function createEvent(
     throw new AppError(400, 'Выбранная игра недоступна');
   }
 
-  if (input.status === EventStatus.COMPLETED) {
-    assertCanCompleteEvent(input.scheduledStart);
-  }
-
   return prisma.event.create({
     data: {
       ...input,
+      status: EventStatus.DRAFT,
       organizerId,
     },
     select: eventSelect,

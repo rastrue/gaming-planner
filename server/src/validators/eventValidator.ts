@@ -52,10 +52,12 @@ const eventFieldsSchema = z.object({
   maxPlayers: z.coerce.number().int().positive('Максимум игроков должен быть не меньше 1'),
   status: z.nativeEnum(EventStatus, {
     errorMap: () => ({ message: 'Недопустимый статус события' }),
-  }).optional().default(EventStatus.DRAFT),
+  }).optional(),
 });
 
-export const createEventSchema = eventFieldsSchema.superRefine((data, ctx) => {
+const createEventFieldsSchema = eventFieldsSchema.omit({ status: true });
+
+export const createEventSchema = createEventFieldsSchema.superRefine((data, ctx) => {
   if (data.scheduledEnd <= data.scheduledStart) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
