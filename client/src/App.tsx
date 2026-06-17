@@ -17,7 +17,7 @@ import DashboardPage from './pages/dashboard/DashboardPage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import ReportsPage from './pages/reports/ReportsPage';
-import PlaceholderPage from './pages/PlaceholderPage';
+import NotFoundPage from './pages/NotFoundPage';
 import SessionExpiryHandler from './components/layout/SessionExpiryHandler';
 import * as authService from './services/authService';
 import { clearCurrentUser, setCurrentUser } from './store/authSlice';
@@ -122,7 +122,7 @@ export default function App() {
         </Route>
 
         <Route path="/" element={<HomeRedirect isBootstrapped={isBootstrapped} />} />
-        <Route path="*" element={<PlaceholderPage title="Страница не найдена" />} />
+        <Route path="*" element={<NotFoundPage isBootstrapped={isBootstrapped} />} />
       </Routes>
     </BrowserRouter>
   );

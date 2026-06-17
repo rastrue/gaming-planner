@@ -176,7 +176,7 @@ Protected by role checks on both client and server.
 | Path | Behavior |
 | --- | --- |
 | `/` | Redirect to role default (`/dashboard` or `/events`) or `/login` |
-| `*` | 404 placeholder |
+| `*` | 404 Not Found |
 
 There is **no `/settings` page**. Theme toggle and application reset live in the authenticated app header (`AppShell`).
 
