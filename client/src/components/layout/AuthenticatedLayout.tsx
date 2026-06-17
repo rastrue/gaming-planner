@@ -44,7 +44,7 @@ function getPageMeta(pathname: string): { title: string; description?: string } 
   }
 
   if (pathname === '/organizer/roster') {
-    return { title: 'Управление составом', description: 'Выберите событие для управления составом.' };
+    return { title: 'Управление составами', description: 'Выберите событие для управления составом.' };
   }
 
   return { title: 'QuestSync', description: 'Страница приложения QuestSync.' };

@@ -41,7 +41,7 @@ export default function OrganizerNav({
       isActive: isNavItemActive(currentPath, '/organizer/events'),
     },
     {
-      label: 'Управление составом',
+      label: 'Управление составами',
       href: '/organizer/roster',
       icon: <Users className="h-4 w-4" />,
       isActive: isNavItemActive(currentPath, '/organizer/roster'),
