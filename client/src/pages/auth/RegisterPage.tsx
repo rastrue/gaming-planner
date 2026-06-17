@@ -65,13 +65,10 @@ export default function RegisterPage() {
         aria-labelledby="register-heading"
         className="w-full max-w-md space-y-6 rounded-xl border border-slate-200 bg-white p-8 shadow-lg dark:border-slate-800 dark:bg-slate-900"
       >
-        <header className="space-y-1 text-center">
+        <header className="text-center">
           <h1 id="register-heading" className="text-2xl font-bold text-slate-900 dark:text-slate-100">
             Создание аккаунта QuestSync
           </h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            Выберите роль и настройте аккаунт для начала работы.
-          </p>
         </header>
 
         <form className="space-y-4" onSubmit={handleSubmit} noValidate>
