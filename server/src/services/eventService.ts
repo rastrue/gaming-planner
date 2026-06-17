@@ -1,4 +1,4 @@
-import { Prisma, UserRoleName } from '@prisma/client';
+import { EventStatus, Prisma, UserRoleName } from '@prisma/client';
 import { eventFitsAvailability } from '../lib/availabilityFit.js';
 import { AppError } from '../lib/errors.js';
 import prisma from '../lib/prisma.js';
@@ -185,6 +185,15 @@ async function assertOrganizerOwnsEvent(eventId: number, organizerId: number): P
   return event;
 }
 
+function assertCanCompleteEvent(scheduledStart: Date): void {
+  if (scheduledStart.getTime() > Date.now()) {
+    throw new AppError(
+      409,
+      'Нельзя завершить событие, которое ещё не началось. Его можно отменить.',
+    );
+  }
+}
+
 export async function createEvent(
   input: CreateEventInput,
   organizerId: number,
@@ -193,6 +202,10 @@ export async function createEvent(
 
   if (!game || !game.isActive) {
     throw new AppError(400, 'Выбранная игра недоступна');
+  }
+
+  if (input.status === EventStatus.COMPLETED) {
+    assertCanCompleteEvent(input.scheduledStart);
   }
 
   return prisma.event.create({
@@ -232,6 +245,12 @@ export async function updateEvent(
     if (registrationDeadline > scheduledStart) {
       throw new AppError(400, 'Срок регистрации должен быть не позже времени начала');
     }
+  }
+
+  if (input.status === EventStatus.COMPLETED) {
+    const current = await getEventById(id);
+    const scheduledStart = input.scheduledStart ?? current.scheduledStart;
+    assertCanCompleteEvent(scheduledStart);
   }
 
   return prisma.event.update({

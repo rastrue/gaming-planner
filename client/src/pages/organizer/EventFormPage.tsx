@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useState } from 'react';
+import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import Button from '../../components/ui/Button';
@@ -96,6 +96,15 @@ export default function EventFormPage() {
   const [maxPlayers, setMaxPlayers] = useState('10');
   const [status, setStatus] = useState<EventStatus>('DRAFT');
 
+  const statusOptions = useMemo(() => {
+    const start = new Date(scheduledStart);
+    const hasStarted = !Number.isNaN(start.getTime()) && start.getTime() <= Date.now();
+
+    return (Object.entries(eventStatusLabels) as Array<[EventStatus, string]>)
+      .filter(([value]) => hasStarted || value !== 'COMPLETED')
+      .map(([value, label]) => ({ value, label }));
+  }, [scheduledStart]);
+
   useEffect(() => {
     let active = true;
 
@@ -167,6 +176,11 @@ export default function EventFormPage() {
 
     if (deadline > start) {
       setFormError('Срок регистрации должен быть не позже времени начала.');
+      return false;
+    }
+
+    if (status === 'COMPLETED' && start.getTime() > Date.now()) {
+      setFormError('Нельзя завершить событие, которое ещё не началось. Его можно отменить.');
       return false;
     }
 
@@ -359,9 +373,7 @@ export default function EventFormPage() {
             name="status"
             value={status}
             onChange={(event) => setStatus(event.target.value as EventStatus)}
-            options={(Object.entries(eventStatusLabels) as Array<[EventStatus, string]>).map(
-              ([value, label]) => ({ value, label }),
-            )}
+            options={statusOptions}
             error={fieldErrors.status}
           />
 

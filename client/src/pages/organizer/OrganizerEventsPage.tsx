@@ -29,6 +29,25 @@ function formatEventDate(value: string): string {
   });
 }
 
+function hasEventStarted(event: Event): boolean {
+  return new Date(event.scheduledStart).getTime() <= Date.now();
+}
+
+function canCompleteEvent(event: Event): boolean {
+  return (
+    hasEventStarted(event) &&
+    (event.status === 'CLOSED' || event.status === 'OPEN' || event.status === 'FULL')
+  );
+}
+
+function canCancelEvent(event: Event): boolean {
+  return (
+    !hasEventStarted(event) &&
+    event.status !== 'COMPLETED' &&
+    event.status !== 'CANCELLED'
+  );
+}
+
 function eventStatusVariant(status: EventStatus) {
   switch (status) {
     case 'OPEN':
@@ -264,7 +283,7 @@ export default function OrganizerEventsPage() {
                           Закрыть
                         </Button>
                       ) : null}
-                      {event.status === 'CLOSED' || event.status === 'OPEN' ? (
+                      {canCompleteEvent(event) ? (
                         <Button
                           type="button"
                           variant="secondary"
@@ -273,6 +292,17 @@ export default function OrganizerEventsPage() {
                           onClick={() => void updateStatus(event, 'COMPLETED')}
                         >
                           Завершить
+                        </Button>
+                      ) : null}
+                      {canCancelEvent(event) ? (
+                        <Button
+                          type="button"
+                          variant="danger"
+                          size="sm"
+                          disabled={isBusy}
+                          onClick={() => void updateStatus(event, 'CANCELLED')}
+                        >
+                          Отменить
                         </Button>
                       ) : null}
                       <Button
