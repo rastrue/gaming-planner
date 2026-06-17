@@ -298,8 +298,8 @@ export default function RosterBoardPage() {
         title="Состав недоступен"
         description={loadError || 'Событие не найдено.'}
         action={
-          <Link to="/organizer/events">
-            <Button variant="secondary">Назад к событиям</Button>
+          <Link to="/organizer/roster">
+            <Button variant="secondary">Назад к составам</Button>
           </Link>
         }
       />
@@ -327,16 +327,9 @@ export default function RosterBoardPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {canEditRoster ? (
-            <Link to={`/organizer/events/${event.id}/edit`}>
-              <Button type="button" variant="secondary">
-                Редактировать событие
-              </Button>
-            </Link>
-          ) : null}
-          <Link to="/organizer/events">
+          <Link to="/organizer/roster">
             <Button type="button" variant="ghost">
-              Назад к событиям
+              Назад к составам
             </Button>
           </Link>
         </div>
@@ -409,15 +402,8 @@ export default function RosterBoardPage() {
           title="Слоты состава не определены"
           description={
             canEditRoster
-              ? 'Добавьте слоты состава на странице редактирования события перед назначением игроков.'
+              ? 'Слоты для этого события не определены. Добавьте их в разделе «Управление событиями».'
               : 'Для этого события слоты состава не были определены.'
-          }
-          action={
-            canEditRoster ? (
-              <Link to={`/organizer/events/${event.id}/edit`}>
-                <Button>Редактировать слоты события</Button>
-              </Link>
-            ) : undefined
           }
         />
       ) : (

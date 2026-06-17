@@ -96,12 +96,7 @@ export default function OrganizerRosterPage() {
       {myEvents.length === 0 ? (
         <EmptyState
           title="Нет событий для управления"
-          description="Сначала создайте событие, затем вернитесь сюда для управления составом."
-          action={
-            <Link to="/organizer/events/new">
-              <Button>Создать событие</Button>
-            </Link>
-          }
+          description="Сначала создайте событие в разделе «Управление событиями», затем вернитесь сюда для работы с составом."
         />
       ) : (
         <Card title="Выберите событие" description="Откройте доску состава для одного из ваших событий.">

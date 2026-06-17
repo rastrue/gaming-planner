@@ -23,6 +23,125 @@ dotenv.config();
 const prisma = new PrismaClient();
 const SEED_PASSWORD = 'Password123!';
 
+const REGIONS = ['EU-West', 'EU-Central', 'NA-East', 'NA-West', 'Asia-Pacific', 'SA-South'];
+const TIMEZONES = ['Europe/Berlin', 'Europe/London', 'America/New_York', 'America/Los_Angeles', 'Asia/Tokyo'];
+
+const ROLE_TEMPLATES: Record<GameGenre, string[]> = {
+  [GameGenre.MMORPG]: ['Tank', 'Healer', 'DPS', 'Support'],
+  [GameGenre.MOBA]: ['Captain', 'Flex', 'Support', 'Carry'],
+  [GameGenre.FPS]: ['Entry', 'Support', 'Anchor', 'Flex'],
+  [GameGenre.RPG]: ['Leader', 'Support', 'Scout', 'Specialist'],
+  [GameGenre.SURVIVAL]: ['Builder', 'Scout', 'Gatherer', 'Guard'],
+  [GameGenre.STRATEGY]: ['Commander', 'Economy', 'Scout', 'Defense'],
+  [GameGenre.SPORTS]: ['Captain', 'Striker', 'Defender', 'Goalkeeper'],
+  [GameGenre.OTHER]: ['Lead', 'Support', 'Flex', 'Reserve'],
+};
+
+const GAME_DEFINITIONS: Array<{ slug: string; title: string; genre: GameGenre; platform: string; isActive?: boolean }> = [
+  { slug: 'aether-raids', title: 'Aether Raids Online', genre: GameGenre.MMORPG, platform: 'PC' },
+  { slug: 'neon-siege', title: 'Neon Siege', genre: GameGenre.FPS, platform: 'PC' },
+  { slug: 'rift-tactics', title: 'Rift Tactics', genre: GameGenre.MOBA, platform: 'PC' },
+  { slug: 'starforge-colony', title: 'Starforge Colony', genre: GameGenre.SURVIVAL, platform: 'PC' },
+  { slug: 'iron-legion', title: 'Iron Legion Tactics', genre: GameGenre.STRATEGY, platform: 'PC' },
+  { slug: 'crystal-quest', title: 'Crystal Quest Saga', genre: GameGenre.RPG, platform: 'PC' },
+  { slug: 'velocity-cup', title: 'Velocity Cup', genre: GameGenre.SPORTS, platform: 'PC' },
+  { slug: 'void-runners', title: 'Void Runners', genre: GameGenre.FPS, platform: 'PC' },
+  { slug: 'elder-realms', title: 'Elder Realms', genre: GameGenre.MMORPG, platform: 'PC' },
+  { slug: 'nexus-clash', title: 'Nexus Clash', genre: GameGenre.MOBA, platform: 'PC' },
+  { slug: 'frontier-outpost', title: 'Frontier Outpost', genre: GameGenre.SURVIVAL, platform: 'PC' },
+  { slug: 'arcade-legends', title: 'Arcade Legends', genre: GameGenre.OTHER, platform: 'PC' },
+  { slug: 'storm-grid', title: 'Storm Grid', genre: GameGenre.STRATEGY, platform: 'PC' },
+  { slug: 'mythic-chronicles', title: 'Mythic Chronicles', genre: GameGenre.RPG, platform: 'PC' },
+  { slug: 'retro-rally', title: 'Retro Rally League', genre: GameGenre.SPORTS, platform: 'PC', isActive: false },
+];
+
+const EVENT_STATUS_WEIGHTS: Array<{ status: EventStatus; weight: number }> = [
+  { status: EventStatus.DRAFT, weight: 12 },
+  { status: EventStatus.OPEN, weight: 22 },
+  { status: EventStatus.FULL, weight: 10 },
+  { status: EventStatus.CLOSED, weight: 10 },
+  { status: EventStatus.COMPLETED, weight: 28 },
+  { status: EventStatus.CANCELLED, weight: 18 },
+];
+
+const EVENT_TITLE_PREFIXES = [
+  'Weekly',
+  'Weekend',
+  'Community',
+  'Ranked',
+  'Casual',
+  'Progression',
+  'Scrim',
+  'Tournament',
+  'Practice',
+  'Charity',
+];
+
+function pickOne<T>(items: T[]): T {
+  return items[Math.floor(Math.random() * items.length)]!;
+}
+
+function pickMany<T>(items: T[], count: number): T[] {
+  const copy = [...items];
+  const result: T[] = [];
+  while (result.length < count && copy.length > 0) {
+    const index = Math.floor(Math.random() * copy.length);
+    result.push(copy.splice(index, 1)[0]!);
+  }
+  return result;
+}
+
+function weightedStatus(): EventStatus {
+  const total = EVENT_STATUS_WEIGHTS.reduce((sum, item) => sum + item.weight, 0);
+  let roll = Math.random() * total;
+
+  for (const item of EVENT_STATUS_WEIGHTS) {
+    roll -= item.weight;
+    if (roll <= 0) {
+      return item.status;
+    }
+  }
+
+  return EventStatus.DRAFT;
+}
+
+function inDays(base: Date, days: number, startHour = 18, durationHours = 4): {
+  scheduledStart: Date;
+  scheduledEnd: Date;
+  registrationDeadline: Date;
+} {
+  const scheduledStart = new Date(base);
+  scheduledStart.setDate(scheduledStart.getDate() + days);
+  scheduledStart.setHours(startHour, 0, 0, 0);
+
+  const scheduledEnd = new Date(scheduledStart);
+  scheduledEnd.setHours(scheduledStart.getHours() + durationHours);
+
+  const registrationDeadline = new Date(scheduledStart);
+  registrationDeadline.setDate(registrationDeadline.getDate() - 1);
+  registrationDeadline.setHours(23, 59, 0, 0);
+
+  return { scheduledStart, scheduledEnd, registrationDeadline };
+}
+
+function statusDayOffset(status: EventStatus, index: number): number {
+  switch (status) {
+    case EventStatus.COMPLETED:
+      return -((index % 45) + 3);
+    case EventStatus.CANCELLED:
+      return -((index % 20) + 1);
+    case EventStatus.CLOSED:
+      return (index % 5) + 1;
+    case EventStatus.FULL:
+      return (index % 12) + 2;
+    case EventStatus.OPEN:
+      return (index % 30) + 3;
+    case EventStatus.DRAFT:
+    default:
+      return (index % 25) + 5;
+  }
+}
+
 async function main() {
   await prisma.reportRequest.deleteMany();
   await prisma.registration.deleteMany();
@@ -34,6 +153,7 @@ async function main() {
   await prisma.role.deleteMany();
 
   const passwordHash = await bcrypt.hash(SEED_PASSWORD, 10);
+  const now = new Date();
 
   const organizerRole = await prisma.role.create({
     data: {
@@ -49,366 +169,283 @@ async function main() {
     },
   });
 
-  const organizerAlice = await prisma.user.create({
-    data: {
-      username: 'org_alice',
-      email: 'alice.organizer@questsync.test',
-      passwordHash,
-      displayName: 'Alice Organizer',
-      roleId: organizerRole.id,
-    },
-  });
-
-  const organizerBob = await prisma.user.create({
-    data: {
-      username: 'org_bob',
-      email: 'bob.organizer@questsync.test',
-      passwordHash,
-      displayName: 'Bob Organizer',
-      roleId: organizerRole.id,
-    },
-  });
-
-  const playerCarol = await prisma.user.create({
-    data: {
-      username: 'player_carol',
-      email: 'carol.player@questsync.test',
-      passwordHash,
-      displayName: 'Carol Player',
-      roleId: playerRole.id,
-    },
-  });
-
-  const playerDave = await prisma.user.create({
-    data: {
-      username: 'player_dave',
-      email: 'dave.player@questsync.test',
-      passwordHash,
-      displayName: 'Dave Player',
-      roleId: playerRole.id,
-    },
-  });
-
-  const playerEve = await prisma.user.create({
-    data: {
-      username: 'player_eve',
-      email: 'eve.player@questsync.test',
-      passwordHash,
-      displayName: 'Eve Player',
-      roleId: playerRole.id,
-    },
-  });
-
-  const games = await Promise.all([
-    prisma.game.create({
+  const coreUsers = await Promise.all([
+    prisma.user.create({
       data: {
-        slug: 'aether-raids',
-        title: 'Aether Raids Online',
-        genre: GameGenre.MMORPG,
-        platform: 'PC',
+        username: 'org_alice',
+        email: 'alice.organizer@questsync.test',
+        passwordHash,
+        displayName: 'Alice Organizer',
+        roleId: organizerRole.id,
       },
     }),
-    prisma.game.create({
+    prisma.user.create({
       data: {
-        slug: 'neon-siege',
-        title: 'Neon Siege',
-        genre: GameGenre.FPS,
-        platform: 'PC',
+        username: 'org_bob',
+        email: 'bob.organizer@questsync.test',
+        passwordHash,
+        displayName: 'Bob Organizer',
+        roleId: organizerRole.id,
       },
     }),
-    prisma.game.create({
+    prisma.user.create({
       data: {
-        slug: 'rift-tactics',
-        title: 'Rift Tactics',
-        genre: GameGenre.MOBA,
-        platform: 'PC',
+        username: 'player_carol',
+        email: 'carol.player@questsync.test',
+        passwordHash,
+        displayName: 'Carol Player',
+        roleId: playerRole.id,
       },
     }),
-    prisma.game.create({
+    prisma.user.create({
       data: {
-        slug: 'starforge-colony',
-        title: 'Starforge Colony',
-        genre: GameGenre.SURVIVAL,
-        platform: 'PC',
+        username: 'player_dave',
+        email: 'dave.player@questsync.test',
+        passwordHash,
+        displayName: 'Dave Player',
+        roleId: playerRole.id,
+      },
+    }),
+    prisma.user.create({
+      data: {
+        username: 'player_eve',
+        email: 'eve.player@questsync.test',
+        passwordHash,
+        displayName: 'Eve Player',
+        roleId: playerRole.id,
       },
     }),
   ]);
 
-  const now = new Date();
-  const inDays = (days: number, hours = 18) => {
-    const date = new Date(now);
-    date.setDate(date.getDate() + days);
-    date.setHours(hours, 0, 0, 0);
-    return date;
-  };
+  const extraOrganizers = await Promise.all(
+    Array.from({ length: 4 }, (_, index) =>
+      prisma.user.create({
+        data: {
+          username: `org_${String(index + 3).padStart(2, '0')}`,
+          email: `organizer${index + 3}@questsync.test`,
+          passwordHash,
+          displayName: `Organizer ${index + 3}`,
+          roleId: organizerRole.id,
+        },
+      }),
+    ),
+  );
 
-  const events = await Promise.all([
-    prisma.event.create({
-      data: {
-        gameId: games[0].id,
-        organizerId: organizerAlice.id,
-        title: 'Weekly Aether Raid',
-        description: 'Coordinated raid night for core progression.',
-        serverRegion: 'EU-West',
-        scheduledStart: inDays(7),
-        scheduledEnd: inDays(7, 22),
-        registrationDeadline: inDays(6),
-        maxPlayers: 8,
-        status: EventStatus.OPEN,
-      },
-    }),
-    prisma.event.create({
-      data: {
-        gameId: games[1].id,
-        organizerId: organizerAlice.id,
-        title: 'Neon Siege Scrim Block',
-        description: 'Ranked practice session with role assignments.',
-        serverRegion: 'NA-East',
-        scheduledStart: inDays(10),
-        scheduledEnd: inDays(10, 21),
-        registrationDeadline: inDays(9),
-        maxPlayers: 10,
-        status: EventStatus.OPEN,
-      },
-    }),
-    prisma.event.create({
-      data: {
-        gameId: games[2].id,
-        organizerId: organizerBob.id,
-        title: 'Rift Tactics Team Night',
-        description: 'Draft-friendly team event for support and DPS roles.',
-        serverRegion: 'EU-Central',
-        scheduledStart: inDays(14),
-        scheduledEnd: inDays(14, 23),
-        registrationDeadline: inDays(13),
-        maxPlayers: 6,
-        status: EventStatus.DRAFT,
-      },
-    }),
-    prisma.event.create({
-      data: {
-        gameId: games[3].id,
-        organizerId: organizerBob.id,
-        title: 'Starforge Survival Sprint',
-        description: 'Completed colony run with attendance tracking.',
-        serverRegion: 'NA-West',
-        scheduledStart: inDays(-3),
-        scheduledEnd: inDays(-3, 22),
-        registrationDeadline: inDays(-5),
-        maxPlayers: 4,
-        status: EventStatus.COMPLETED,
-      },
-    }),
-  ]);
+  const extraPlayers = await Promise.all(
+    Array.from({ length: 25 }, (_, index) =>
+      prisma.user.create({
+        data: {
+          username: `player_${String(index + 6).padStart(2, '0')}`,
+          email: `player${index + 6}@questsync.test`,
+          passwordHash,
+          displayName: `Player ${index + 6}`,
+          roleId: playerRole.id,
+          isActive: index !== 24,
+        },
+      }),
+    ),
+  );
 
-  const slots = await Promise.all([
-    prisma.eventSlot.create({
-      data: {
-        eventId: events[0].id,
-        roleName: 'Tank',
-        displayOrder: 1,
-        requiredCount: 1,
-      },
-    }),
-    prisma.eventSlot.create({
-      data: {
-        eventId: events[0].id,
-        roleName: 'Healer',
-        displayOrder: 2,
-        requiredCount: 2,
-      },
-    }),
-    prisma.eventSlot.create({
-      data: {
-        eventId: events[1].id,
-        roleName: 'Entry',
-        displayOrder: 1,
-        requiredCount: 2,
-      },
-    }),
-    prisma.eventSlot.create({
-      data: {
-        eventId: events[1].id,
-        roleName: 'Support',
-        displayOrder: 2,
-        requiredCount: 2,
-      },
-    }),
-    prisma.eventSlot.create({
-      data: {
-        eventId: events[2].id,
-        roleName: 'Captain',
-        displayOrder: 1,
-        requiredCount: 1,
-      },
-    }),
-    prisma.eventSlot.create({
-      data: {
-        eventId: events[2].id,
-        roleName: 'Flex',
-        displayOrder: 2,
-        requiredCount: 2,
-      },
-    }),
-    prisma.eventSlot.create({
-      data: {
-        eventId: events[3].id,
-        roleName: 'Builder',
-        displayOrder: 1,
-        requiredCount: 1,
-      },
-    }),
-    prisma.eventSlot.create({
-      data: {
-        eventId: events[3].id,
-        roleName: 'Scout',
-        displayOrder: 2,
-        requiredCount: 1,
-      },
-    }),
-  ]);
+  const organizers = [...coreUsers.slice(0, 2), ...extraOrganizers];
+  const players = [...coreUsers.slice(2), ...extraPlayers];
 
-  await Promise.all([
-    prisma.registration.create({
-      data: {
-        eventId: events[0].id,
-        userId: playerCarol.id,
-        eventSlotId: slots[0].id,
-        requestedRoleName: 'Tank',
-        status: RegistrationStatus.APPROVED,
-      },
-    }),
-    prisma.registration.create({
-      data: {
-        eventId: events[0].id,
-        userId: playerDave.id,
-        eventSlotId: slots[1].id,
-        requestedRoleName: 'Healer',
-        status: RegistrationStatus.APPROVED,
-      },
-    }),
-    prisma.registration.create({
-      data: {
-        eventId: events[0].id,
-        userId: playerEve.id,
-        requestedRoleName: 'Healer',
-        status: RegistrationStatus.PENDING,
-      },
-    }),
-    prisma.registration.create({
-      data: {
-        eventId: events[1].id,
-        userId: playerCarol.id,
-        requestedRoleName: 'Entry',
-        status: RegistrationStatus.APPROVED,
-      },
-    }),
-    prisma.registration.create({
-      data: {
-        eventId: events[1].id,
-        userId: playerDave.id,
-        requestedRoleName: 'Support',
-        status: RegistrationStatus.DECLINED,
-      },
-    }),
-    prisma.registration.create({
-      data: {
-        eventId: events[3].id,
-        userId: playerEve.id,
-        eventSlotId: slots[7].id,
-        requestedRoleName: 'Scout',
-        status: RegistrationStatus.APPROVED,
-        attendanceStatus: AttendanceStatus.PRESENT,
-      },
-    }),
-  ]);
+  const games = await Promise.all(
+    GAME_DEFINITIONS.map((game) =>
+      prisma.game.create({
+        data: {
+          slug: game.slug,
+          title: game.title,
+          genre: game.genre,
+          platform: game.platform,
+          isActive: game.isActive ?? true,
+        },
+      }),
+    ),
+  );
 
-  await Promise.all([
-    prisma.availabilityWindow.create({
-      data: {
-        userId: playerCarol.id,
-        dayOfWeek: 1,
-        startMinute: 18 * 60,
-        endMinute: 22 * 60,
-        timezone: 'Europe/Berlin',
-      },
-    }),
-    prisma.availabilityWindow.create({
-      data: {
-        userId: playerCarol.id,
-        dayOfWeek: 5,
-        startMinute: 19 * 60,
-        endMinute: 23 * 60,
-        timezone: 'Europe/Berlin',
-      },
-    }),
-    prisma.availabilityWindow.create({
-      data: {
-        userId: playerDave.id,
-        dayOfWeek: 2,
-        startMinute: 17 * 60,
-        endMinute: 21 * 60,
-        timezone: 'America/New_York',
-      },
-    }),
-    prisma.availabilityWindow.create({
-      data: {
-        userId: playerDave.id,
-        dayOfWeek: 4,
-        startMinute: 20 * 60,
-        endMinute: 24 * 60,
-        timezone: 'America/New_York',
-      },
-    }),
-    prisma.availabilityWindow.create({
-      data: {
-        userId: playerEve.id,
-        dayOfWeek: 6,
-        startMinute: 14 * 60,
-        endMinute: 20 * 60,
-        timezone: 'America/Los_Angeles',
-      },
-    }),
-    prisma.availabilityWindow.create({
-      data: {
-        userId: playerEve.id,
-        dayOfWeek: 0,
-        startMinute: 16 * 60,
-        endMinute: 22 * 60,
-        timezone: 'America/Los_Angeles',
-      },
-    }),
-  ]);
+  const eventCount = 72;
+  const events = [];
 
-  await Promise.all([
-    prisma.reportRequest.create({
+  for (let index = 0; index < eventCount; index += 1) {
+    const game = games[index % games.length]!;
+    const organizer = organizers[index % organizers.length]!;
+    const status = weightedStatus();
+    const dayOffset = statusDayOffset(status, index);
+    const startHour = 16 + (index % 5);
+    const durationHours = 3 + (index % 3);
+    const schedule = inDays(now, dayOffset, startHour, durationHours);
+    const prefix = EVENT_TITLE_PREFIXES[index % EVENT_TITLE_PREFIXES.length]!;
+
+    const event = await prisma.event.create({
       data: {
-        requestedByUserId: organizerAlice.id,
-        eventId: events[3].id,
-        reportKind: ReportKind.EVENT_ATTENDANCE,
-        outputFormat: ReportFormat.PDF,
-        deliveryChannel: DeliveryChannel.DOWNLOAD,
-        status: ReportStatus.GENERATED,
-        fileName: 'event-attendance-starforge.pdf',
-        storagePath: 'reports/event-attendance-starforge.pdf',
-        generatedAt: new Date(),
+        gameId: game.id,
+        organizerId: organizer.id,
+        title: `${prefix} ${game.title} #${index + 1}`,
+        description: `Тестовое событие для ${game.title}. Статус: ${status}. Слоты и регистрации сгенерированы автоматически.`,
+        serverRegion: REGIONS[index % REGIONS.length]!,
+        scheduledStart: schedule.scheduledStart,
+        scheduledEnd: schedule.scheduledEnd,
+        registrationDeadline: schedule.registrationDeadline,
+        maxPlayers: 6 + (index % 9),
+        status,
       },
-    }),
-    prisma.reportRequest.create({
+    });
+
+    events.push(event);
+  }
+
+  const slotsByEventId = new Map<number, Array<{ id: number; roleName: string; requiredCount: number }>>();
+
+  for (const event of events) {
+    const game = games.find((item) => item.id === event.gameId)!;
+    const roleNames = ROLE_TEMPLATES[game.genre].slice(0, 2 + (event.id % 3));
+    const createdSlots = [];
+
+    for (let order = 0; order < roleNames.length; order += 1) {
+      const slot = await prisma.eventSlot.create({
+        data: {
+          eventId: event.id,
+          roleName: roleNames[order]!,
+          displayOrder: order + 1,
+          requiredCount: 1 + (order % 2),
+        },
+      });
+      createdSlots.push(slot);
+    }
+
+    slotsByEventId.set(event.id, createdSlots);
+  }
+
+  const registrationStatuses = [
+    RegistrationStatus.PENDING,
+    RegistrationStatus.APPROVED,
+    RegistrationStatus.DECLINED,
+    RegistrationStatus.CANCELLED,
+  ];
+
+  let registrationCount = 0;
+
+  for (const event of events) {
+    if (event.status === EventStatus.DRAFT || event.status === EventStatus.CANCELLED) {
+      continue;
+    }
+
+    const slots = slotsByEventId.get(event.id) ?? [];
+    const participantCount =
+      event.status === EventStatus.COMPLETED || event.status === EventStatus.FULL
+        ? Math.min(event.maxPlayers, 4 + (event.id % 5))
+        : 2 + (event.id % 4);
+
+    const eventPlayers = pickMany(players, Math.min(participantCount, players.length));
+
+    for (let playerIndex = 0; playerIndex < eventPlayers.length; playerIndex += 1) {
+      const player = eventPlayers[playerIndex]!;
+      const slot = slots[playerIndex % Math.max(slots.length, 1)];
+      let status: RegistrationStatus;
+
+      if (event.status === EventStatus.COMPLETED) {
+        status = RegistrationStatus.APPROVED;
+      } else if (event.status === EventStatus.FULL || event.status === EventStatus.CLOSED) {
+        status = playerIndex < event.maxPlayers ? RegistrationStatus.APPROVED : RegistrationStatus.PENDING;
+      } else {
+        status = registrationStatuses[(event.id + playerIndex) % registrationStatuses.length]!;
+        if (status === RegistrationStatus.APPROVED && playerIndex >= event.maxPlayers) {
+          status = RegistrationStatus.PENDING;
+        }
+      }
+
+      let attendanceStatus = AttendanceStatus.NOT_MARKED;
+      if (event.status === EventStatus.COMPLETED && status === RegistrationStatus.APPROVED) {
+        attendanceStatus =
+          (event.id + playerIndex) % 5 === 0 ? AttendanceStatus.ABSENT : AttendanceStatus.PRESENT;
+      }
+
+      await prisma.registration.create({
+        data: {
+          eventId: event.id,
+          userId: player.id,
+          eventSlotId: status === RegistrationStatus.APPROVED && slot ? slot.id : undefined,
+          requestedRoleName: slot?.roleName ?? pickOne(ROLE_TEMPLATES[games.find((g) => g.id === event.gameId)!.genre]),
+          status,
+          attendanceStatus,
+        },
+      });
+
+      registrationCount += 1;
+    }
+  }
+
+  let availabilityCount = 0;
+
+  for (const player of players) {
+    const windowCount = 2 + (player.id % 3);
+    const usedDays = new Set<number>();
+
+    for (let windowIndex = 0; windowIndex < windowCount; windowIndex += 1) {
+      let dayOfWeek = (player.id + windowIndex * 2) % 7;
+      while (usedDays.has(dayOfWeek)) {
+        dayOfWeek = (dayOfWeek + 1) % 7;
+      }
+      usedDays.add(dayOfWeek);
+
+      const startHour = 16 + ((player.id + windowIndex) % 4);
+      await prisma.availabilityWindow.create({
+        data: {
+          userId: player.id,
+          dayOfWeek,
+          startMinute: startHour * 60,
+          endMinute: (startHour + 3) * 60,
+          timezone: TIMEZONES[(player.id + windowIndex) % TIMEZONES.length]!,
+        },
+      });
+      availabilityCount += 1;
+    }
+  }
+
+  const completedEvents = events.filter((event) => event.status === EventStatus.COMPLETED);
+  const reportStatuses = [ReportStatus.QUEUED, ReportStatus.GENERATED, ReportStatus.EMAILED, ReportStatus.FAILED];
+  let reportCount = 0;
+
+  for (let index = 0; index < 18; index += 1) {
+    const organizer = organizers[index % organizers.length]!;
+    const player = players[index % players.length]!;
+    const event = completedEvents[index % Math.max(completedEvents.length, 1)] ?? events[index % events.length]!;
+    const reportKind = index % 2 === 0 ? ReportKind.EVENT_ATTENDANCE : ReportKind.PLAYER_PARTICIPATION;
+    const outputFormat = index % 2 === 0 ? ReportFormat.PDF : ReportFormat.DOCX;
+    const deliveryChannel = index % 3 === 0 ? DeliveryChannel.EMAIL : DeliveryChannel.DOWNLOAD;
+    const status = reportStatuses[index % reportStatuses.length]!;
+    const generated = status === ReportStatus.GENERATED || status === ReportStatus.EMAILED;
+
+    await prisma.reportRequest.create({
       data: {
-        requestedByUserId: organizerBob.id,
-        subjectUserId: playerCarol.id,
-        reportKind: ReportKind.PLAYER_PARTICIPATION,
-        outputFormat: ReportFormat.DOCX,
-        deliveryChannel: DeliveryChannel.EMAIL,
-        recipientEmail: 'carol.player@questsync.test',
-        status: ReportStatus.QUEUED,
+        requestedByUserId: organizer.id,
+        subjectUserId: reportKind === ReportKind.PLAYER_PARTICIPATION ? player.id : undefined,
+        eventId: reportKind === ReportKind.EVENT_ATTENDANCE ? event.id : undefined,
+        periodStart: reportKind === ReportKind.PLAYER_PARTICIPATION ? inDays(now, -30).scheduledStart : undefined,
+        periodEnd: reportKind === ReportKind.PLAYER_PARTICIPATION ? inDays(now, -1).scheduledStart : undefined,
+        reportKind,
+        outputFormat,
+        deliveryChannel,
+        recipientEmail: deliveryChannel === DeliveryChannel.EMAIL ? player.email : undefined,
+        status,
+        fileName: generated ? `report-${index + 1}.${outputFormat.toLowerCase()}` : undefined,
+        storagePath: generated ? `reports/report-${index + 1}.${outputFormat.toLowerCase()}` : undefined,
+        generatedAt: generated ? new Date(now.getTime() - index * 3_600_000) : undefined,
+        emailedAt: status === ReportStatus.EMAILED ? new Date(now.getTime() - index * 1_800_000) : undefined,
+        failedReason: status === ReportStatus.FAILED ? 'SMTP connection timed out during seed simulation' : undefined,
       },
-    }),
-  ]);
+    });
+    reportCount += 1;
+  }
 
   console.log('QuestSync seed completed.');
   console.log(`Default password for seeded users: ${SEED_PASSWORD}`);
+  console.log(`Users: ${organizers.length} organizers, ${players.length} players`);
+  console.log(`Games: ${games.length}`);
+  console.log(`Events: ${events.length}`);
+  console.log(`Registrations: ${registrationCount}`);
+  console.log(`Availability windows: ${availabilityCount}`);
+  console.log(`Report requests: ${reportCount}`);
 }
 
 main()
