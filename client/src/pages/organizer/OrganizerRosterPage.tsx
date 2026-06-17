@@ -6,11 +6,13 @@ import Card from '../../components/ui/Card';
 import DataTable from '../../components/ui/DataTable';
 import EmptyState from '../../components/ui/EmptyState';
 import Spinner from '../../components/ui/Spinner';
+import TableActionPlaceholder from '../../components/ui/TableActionPlaceholder';
 import { useAuth } from '../../hooks/useAuth';
 import * as eventService from '../../services/eventService';
 import { setEvents } from '../../store/eventsSlice';
 import type { AppDispatch, RootState } from '../../store/store';
 import type { Event } from '../../types/index';
+import { isEventEditable } from '../../utils/eventRules';
 
 function formatEventDate(value: string): string {
   return new Date(value).toLocaleString('ru-RU', {
@@ -134,13 +136,33 @@ export default function OrganizerRosterPage() {
                 key: 'actions',
                 header: 'Действия',
                 mobileLabel: 'Действия',
-                render: (event) => (
-                  <Link to={`/organizer/roster/${event.id}`}>
-                    <Button type="button" size="sm">
-                      Открыть доску состава
-                    </Button>
-                  </Link>
-                ),
+                render: (event) => {
+                  if (event.status === 'CANCELLED') {
+                    return <TableActionPlaceholder />;
+                  }
+
+                  if (event.status === 'COMPLETED') {
+                    return (
+                      <Link to={`/organizer/roster/${event.id}`}>
+                        <Button type="button" size="sm" variant="secondary">
+                          Посещаемость
+                        </Button>
+                      </Link>
+                    );
+                  }
+
+                  if (!isEventEditable(event.status)) {
+                    return <TableActionPlaceholder />;
+                  }
+
+                  return (
+                    <Link to={`/organizer/roster/${event.id}`}>
+                      <Button type="button" size="sm">
+                        Открыть доску состава
+                      </Button>
+                    </Link>
+                  );
+                },
               },
             ]}
           />

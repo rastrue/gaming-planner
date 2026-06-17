@@ -16,6 +16,7 @@ import { upsertEvent } from '../../store/eventsSlice';
 import type { AppDispatch } from '../../store/store';
 import type { ApiFieldError, CreateEventInput, Event, EventStatus, Game } from '../../types/index';
 import { eventStatusLabels } from '../../i18n/labels';
+import { isEventEditable } from '../../utils/eventRules';
 import EventSlotEditor from './EventSlotEditor';
 
 function mapFieldErrors(errors?: ApiFieldError[]): Record<string, string> {
@@ -129,6 +130,11 @@ export default function EventFormPage() {
 
           if (event.organizerId !== user?.id) {
             setLoadError('Вы можете редактировать только события, которые организуете.');
+            return;
+          }
+
+          if (!isEventEditable(event.status)) {
+            setLoadError('Завершённые и отменённые события нельзя редактировать.');
             return;
           }
 

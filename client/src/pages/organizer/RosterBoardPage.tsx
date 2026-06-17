@@ -15,6 +15,7 @@ import { upsertRegistration } from '../../store/registrationsSlice';
 import type { AppDispatch } from '../../store/store';
 import type { AttendanceStatus, Event, EventSlot, EventStatus, Registration } from '../../types/index';
 import { formatEventStatus } from '../../i18n/labels';
+import { isEventEditable } from '../../utils/eventRules';
 import RegistrationReviewPanel from './RegistrationReviewPanel';
 import RosterSlotColumn, {
   PlayerAssignmentCard,
@@ -89,6 +90,11 @@ export default function RosterBoardPage() {
 
       if (eventData.organizerId !== user?.id) {
         setLoadError('Вы можете управлять составом только для событий, которые организуете.');
+        return;
+      }
+
+      if (eventData.status === 'CANCELLED') {
+        setLoadError('Отменённое событие нельзя изменять.');
         return;
       }
 
@@ -301,6 +307,7 @@ export default function RosterBoardPage() {
   }
 
   const canMarkAttendance = event.status === 'COMPLETED';
+  const canEditRoster = isEventEditable(event.status);
 
   return (
     <div className="space-y-6">
@@ -314,18 +321,19 @@ export default function RosterBoardPage() {
             {event.game.title} · Начало {formatEventDate(event.scheduledStart)}
           </p>
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Перетащите одобренных игроков на слоты состава.{' '}
-            {canMarkAttendance
-              ? 'Отмечайте посещаемость под каждым назначением.'
-              : 'Отметка посещаемости станет доступна после завершения события.'}
+            {canEditRoster
+              ? 'Перетащите одобренных игроков на слоты состава. Отметка посещаемости станет доступна после завершения события.'
+              : 'Событие завершено. Доступна только отметка посещаемости.'}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link to={`/organizer/events/${event.id}/edit`}>
-            <Button type="button" variant="secondary">
-              Редактировать событие
-            </Button>
-          </Link>
+          {canEditRoster ? (
+            <Link to={`/organizer/events/${event.id}/edit`}>
+              <Button type="button" variant="secondary">
+                Редактировать событие
+              </Button>
+            </Link>
+          ) : null}
           <Link to="/organizer/events">
             <Button type="button" variant="ghost">
               Назад к событиям
@@ -340,27 +348,37 @@ export default function RosterBoardPage() {
         </p>
       ) : null}
 
-      <RegistrationReviewPanel
-        registrations={registrations}
-        busyId={busyRegistrationId}
-        onApprove={handleApprove}
-        onDecline={handleDecline}
-        onCancel={handleCancel}
-      />
+      {canEditRoster ? (
+        <RegistrationReviewPanel
+          registrations={registrations}
+          busyId={busyRegistrationId}
+          onApprove={handleApprove}
+          onDecline={handleDecline}
+          onCancel={handleCancel}
+        />
+      ) : null}
 
       <Card
         title="Неназначенные игроки"
-        description="Одобренные игроки, ожидающие назначения на слот. Перетащите их в колонку ниже."
+        description={
+          canEditRoster
+            ? 'Одобренные игроки, ожидающие назначения на слот. Перетащите их в колонку ниже.'
+            : 'Список одобренных игроков без назначенного слота.'
+        }
       >
         <div
-          onDragOver={(dragEvent) => {
-            allowDrop(dragEvent);
-            setDragOverSlotId('unassigned');
-          }}
-          onDragLeave={() => setDragOverSlotId(null)}
-          onDrop={handleDropOnUnassigned}
+          onDragOver={
+            canEditRoster
+              ? (dragEvent) => {
+                  allowDrop(dragEvent);
+                  setDragOverSlotId('unassigned');
+                }
+              : undefined
+          }
+          onDragLeave={canEditRoster ? () => setDragOverSlotId(null) : undefined}
+          onDrop={canEditRoster ? handleDropOnUnassigned : undefined}
           className={`min-h-24 rounded-lg border border-dashed p-3 transition-colors ${
-            dragOverSlotId === 'unassigned'
+            canEditRoster && dragOverSlotId === 'unassigned'
               ? 'border-primary-400 bg-primary-50 dark:border-primary-700 dark:bg-primary-950/40'
               : 'border-slate-300 dark:border-slate-700'
           }`}
@@ -375,9 +393,9 @@ export default function RosterBoardPage() {
                 <PlayerAssignmentCard
                   key={registration.id}
                   registration={registration}
-                  draggable
-                  onDragStart={handleDragStart}
-                  onDragEnd={handleDragEnd}
+                  draggable={canEditRoster}
+                  onDragStart={canEditRoster ? handleDragStart : undefined}
+                  onDragEnd={canEditRoster ? handleDragEnd : undefined}
                   isDragging={draggingRegistrationId === registration.id}
                 />
               ))}
@@ -389,17 +407,23 @@ export default function RosterBoardPage() {
       {slots.length === 0 ? (
         <EmptyState
           title="Слоты состава не определены"
-          description="Добавьте слоты состава на странице редактирования события перед назначением игроков."
+          description={
+            canEditRoster
+              ? 'Добавьте слоты состава на странице редактирования события перед назначением игроков.'
+              : 'Для этого события слоты состава не были определены.'
+          }
           action={
-            <Link to={`/organizer/events/${event.id}/edit`}>
-              <Button>Редактировать слоты события</Button>
-            </Link>
+            canEditRoster ? (
+              <Link to={`/organizer/events/${event.id}/edit`}>
+                <Button>Редактировать слоты события</Button>
+              </Link>
+            ) : undefined
           }
         />
       ) : (
         <section aria-label="Доска слотов состава" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {slots.map((slot) => {
-            const canAcceptDrop = canSlotAcceptRegistration(slot.id, draggingRegistrationId);
+            const canAcceptDrop = canEditRoster && canSlotAcceptRegistration(slot.id, draggingRegistrationId);
 
             return (
             <RosterSlotColumn
@@ -409,12 +433,13 @@ export default function RosterBoardPage() {
               canAcceptDrop={canAcceptDrop}
               isDragOver={dragOverSlotId === slot.id && canAcceptDrop}
               canMarkAttendance={canMarkAttendance}
+              readOnly={!canEditRoster}
               busyRegistrationId={busyRegistrationId}
               draggingRegistrationId={draggingRegistrationId}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
               onDragOver={(dragEvent) => {
-                if (!canSlotAcceptRegistration(slot.id, draggingRegistrationId)) {
+                if (!canEditRoster || !canSlotAcceptRegistration(slot.id, draggingRegistrationId)) {
                   dragEvent.dataTransfer.dropEffect = 'none';
                   return;
                 }

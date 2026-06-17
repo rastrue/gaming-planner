@@ -5,16 +5,17 @@ import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import DataTable from '../../components/ui/DataTable';
 import EmptyState from '../../components/ui/EmptyState';
-import ModalDialog from '../../components/ui/ModalDialog';
 import Pagination from '../../components/ui/Pagination';
 import Spinner from '../../components/ui/Spinner';
+import TableActionPlaceholder from '../../components/ui/TableActionPlaceholder';
 import { useAuth } from '../../hooks/useAuth';
 import * as eventService from '../../services/eventService';
 import { ApiError } from '../../services/apiClient';
-import { removeEvent, setEvents, upsertEvent } from '../../store/eventsSlice';
+import { setEvents, upsertEvent } from '../../store/eventsSlice';
 import type { AppDispatch, RootState } from '../../store/store';
 import { formatEventStatus } from '../../i18n/labels';
 import type { Event, EventStatus } from '../../types/index';
+import { canCancelOpenEvent, isEventEditable } from '../../utils/eventRules';
 
 const PAGE_SIZE = 10;
 const dateLocale = 'ru-RU';
@@ -35,16 +36,9 @@ function hasEventStarted(event: Event): boolean {
 
 function canCompleteEvent(event: Event): boolean {
   return (
+    isEventEditable(event.status) &&
     hasEventStarted(event) &&
     (event.status === 'CLOSED' || event.status === 'OPEN' || event.status === 'FULL')
-  );
-}
-
-function canCancelEvent(event: Event): boolean {
-  return (
-    !hasEventStarted(event) &&
-    event.status !== 'COMPLETED' &&
-    event.status !== 'CANCELLED'
   );
 }
 
@@ -75,7 +69,6 @@ export default function OrganizerEventsPage() {
   const [loadError, setLoadError] = useState('');
   const [actionError, setActionError] = useState('');
   const [busyEventId, setBusyEventId] = useState<number | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Event | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -145,29 +138,6 @@ export default function OrganizerEventsPage() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!deleteTarget) {
-      return;
-    }
-
-    setActionError('');
-    setBusyEventId(deleteTarget.id);
-
-    try {
-      await eventService.deleteEvent(deleteTarget.id);
-      dispatch(removeEvent(deleteTarget.id));
-      setDeleteTarget(null);
-    } catch (error) {
-      if (error instanceof ApiError) {
-        setActionError(error.message);
-      } else {
-        setActionError('Не удалось удалить событие.');
-      }
-    } finally {
-      setBusyEventId(null);
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
@@ -184,7 +154,7 @@ export default function OrganizerEventsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Управляйте организуемыми событиями, обновляйте статусы и открывайте редактирование.
+          Управляйте активными событиями. Завершённые и отменённые события сохраняются только для истории.
         </p>
         <Link to="/organizer/events/new">
           <Button>Создать событие</Button>
@@ -249,6 +219,21 @@ export default function OrganizerEventsPage() {
                 mobileLabel: 'Действия',
                 render: (event) => {
                   const isBusy = busyEventId === event.id;
+                  const editable = isEventEditable(event.status);
+
+                  if (!editable) {
+                    if (event.status === 'COMPLETED') {
+                      return (
+                        <Link to={`/organizer/roster/${event.id}`}>
+                          <Button type="button" variant="secondary" size="sm">
+                            Посещаемость
+                          </Button>
+                        </Link>
+                      );
+                    }
+
+                    return <TableActionPlaceholder />;
+                  }
 
                   return (
                     <div className="flex flex-wrap gap-2">
@@ -294,7 +279,7 @@ export default function OrganizerEventsPage() {
                           Завершить
                         </Button>
                       ) : null}
-                      {canCancelEvent(event) ? (
+                      {canCancelOpenEvent(event.status) ? (
                         <Button
                           type="button"
                           variant="danger"
@@ -305,15 +290,6 @@ export default function OrganizerEventsPage() {
                           Отменить
                         </Button>
                       ) : null}
-                      <Button
-                        type="button"
-                        variant="danger"
-                        size="sm"
-                        disabled={isBusy}
-                        onClick={() => setDeleteTarget(event)}
-                      >
-                        Удалить
-                      </Button>
                     </div>
                   );
                 },
@@ -324,33 +300,6 @@ export default function OrganizerEventsPage() {
           <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </>
       )}
-
-      <ModalDialog
-        open={Boolean(deleteTarget)}
-        title="Удалить событие"
-        onClose={() => setDeleteTarget(null)}
-        footer={
-          <>
-            <Button type="button" variant="secondary" onClick={() => setDeleteTarget(null)}>
-              Отмена
-            </Button>
-            <Button
-              type="button"
-              variant="danger"
-              disabled={busyEventId === deleteTarget?.id}
-              onClick={() => void handleDelete()}
-            >
-              Удалить событие
-            </Button>
-          </>
-        }
-      >
-        <p className="text-sm text-slate-600 dark:text-slate-400">
-          Вы уверены, что хотите удалить{' '}
-          <span className="font-medium text-slate-900 dark:text-slate-100">{deleteTarget?.title}</span>?
-          Это действие нельзя отменить.
-        </p>
-      </ModalDialog>
     </div>
   );
 }

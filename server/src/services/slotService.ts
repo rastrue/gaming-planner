@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { EventStatus, Prisma } from '@prisma/client';
 import { AppError } from '../lib/errors.js';
 import prisma from '../lib/prisma.js';
 import { getEventById } from './eventService.js';
@@ -26,6 +26,10 @@ async function assertOrganizerOwnsEvent(eventId: number, organizerId: number): P
 
   if (event.organizerId !== organizerId) {
     throw new AppError(403, 'Вы можете управлять слотами только для событий, которые организуете');
+  }
+
+  if (event.status === EventStatus.COMPLETED || event.status === EventStatus.CANCELLED) {
+    throw new AppError(409, 'Завершённые и отменённые события нельзя изменять');
   }
 }
 

@@ -285,6 +285,25 @@ async function applyOrganizerUpdate(
     throw new AppError(403, 'Вы можете управлять регистрациями только для событий, которые организуете');
   }
 
+  if (registration.event.status === EventStatus.CANCELLED) {
+    throw new AppError(409, 'Отменённые события нельзя изменять');
+  }
+
+  if (registration.event.status === EventStatus.COMPLETED) {
+    const isAttendanceOnly =
+      input.attendanceStatus !== undefined &&
+      input.status === undefined &&
+      input.eventSlotId === undefined &&
+      input.requestedRoleName === undefined;
+
+    if (!isAttendanceOnly) {
+      throw new AppError(
+        409,
+        'Завершённое событие нельзя изменять. Доступна только отметка посещаемости.',
+      );
+    }
+  }
+
   const data: Prisma.RegistrationUpdateInput = {};
 
   if (input.status) {

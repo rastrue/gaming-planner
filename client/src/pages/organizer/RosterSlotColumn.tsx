@@ -65,6 +65,7 @@ export interface RosterSlotColumnProps {
   canAcceptDrop?: boolean;
   isDragOver: boolean;
   canMarkAttendance: boolean;
+  readOnly?: boolean;
   busyRegistrationId: number | null;
   draggingRegistrationId: number | null;
   onDragStart: (registrationId: number, event: DragEvent<HTMLDivElement>) => void;
@@ -81,6 +82,7 @@ export default function RosterSlotColumn({
   canAcceptDrop = true,
   isDragOver,
   canMarkAttendance,
+  readOnly = false,
   busyRegistrationId,
   draggingRegistrationId,
   onDragStart,
@@ -120,16 +122,16 @@ export default function RosterSlotColumn({
       >
         {assignments.length === 0 ? (
           <p className="rounded-lg border border-dashed border-slate-300 px-3 py-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-            {isFull ? 'Слот заполнен' : 'Перетащите одобренных игроков сюда'}
+            {isFull ? 'Слот заполнен' : readOnly ? 'Нет назначений' : 'Перетащите одобренных игроков сюда'}
           </p>
         ) : (
           assignments.map((registration) => (
             <div key={registration.id} className="space-y-2">
               <PlayerAssignmentCard
                 registration={registration}
-                draggable
-                onDragStart={onDragStart}
-                onDragEnd={onDragEnd}
+                draggable={!readOnly}
+                onDragStart={readOnly ? undefined : onDragStart}
+                onDragEnd={readOnly ? undefined : onDragEnd}
                 isDragging={draggingRegistrationId === registration.id}
               />
               {canMarkAttendance ? (

@@ -194,6 +194,18 @@ function assertCanCompleteEvent(scheduledStart: Date): void {
   }
 }
 
+function assertCanCancelEvent(currentStatus: EventStatus): void {
+  if (currentStatus !== EventStatus.OPEN) {
+    throw new AppError(409, 'Отменить можно только открытое событие');
+  }
+}
+
+function assertEventIsEditable(status: EventStatus): void {
+  if (status === EventStatus.COMPLETED || status === EventStatus.CANCELLED) {
+    throw new AppError(409, 'Завершённые и отменённые события нельзя изменять');
+  }
+}
+
 export async function createEvent(
   input: CreateEventInput,
   organizerId: number,
@@ -222,7 +234,13 @@ export async function updateEvent(
   input: UpdateEventInput,
   organizerId: number,
 ): Promise<EventRecord> {
-  await assertOrganizerOwnsEvent(id, organizerId);
+  const current = await assertOrganizerOwnsEvent(id, organizerId);
+
+  assertEventIsEditable(current.status);
+
+  if (input.status === EventStatus.CANCELLED) {
+    assertCanCancelEvent(current.status);
+  }
 
   if (input.gameId) {
     const game = await prisma.game.findUnique({ where: { id: input.gameId } });
@@ -248,7 +266,6 @@ export async function updateEvent(
   }
 
   if (input.status === EventStatus.COMPLETED) {
-    const current = await getEventById(id);
     const scheduledStart = input.scheduledStart ?? current.scheduledStart;
     assertCanCompleteEvent(scheduledStart);
   }
@@ -262,7 +279,10 @@ export async function updateEvent(
 
 export async function deleteEvent(id: number, organizerId: number): Promise<void> {
   await assertOrganizerOwnsEvent(id, organizerId);
-  await prisma.event.delete({ where: { id } });
+  throw new AppError(
+    409,
+    'События нельзя удалять. Отмените открытое событие, чтобы сохранить историю.',
+  );
 }
 
 export function assertOrganizerRole(roleName: UserRoleName): void {
