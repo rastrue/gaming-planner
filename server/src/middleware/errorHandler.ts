@@ -26,7 +26,7 @@ export function errorHandler(
 
   if (error instanceof ZodError) {
     res.status(400).json({
-      message: 'Validation failed',
+      message: 'Ошибка валидации',
       errors: error.errors.map((issue) => ({
         field: issue.path.join('.') || 'body',
         message: issue.message,
@@ -36,7 +36,7 @@ export function errorHandler(
   }
 
   console.error(error);
-  res.status(500).json({ message: 'Internal server error' });
+  res.status(500).json({ message: 'Внутренняя ошибка сервера' });
 }
 
 export function validateBody<T extends ZodTypeAny>(schema: T) {

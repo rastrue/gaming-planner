@@ -1,4 +1,7 @@
 import './loadEnv.js';
+import { setupZodErrorMap } from './lib/zodErrorMap.js';
+
+setupZodErrorMap();
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';

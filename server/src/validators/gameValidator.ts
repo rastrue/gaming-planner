@@ -4,35 +4,35 @@ import { z } from 'zod';
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export const gameIdParamsSchema = z.object({
-  id: z.coerce.number().int().positive('Game id must be a positive integer'),
+  id: z.coerce.number().int().positive('Идентификатор игры должен быть положительным целым числом'),
 });
 
 export const createGameSchema = z.object({
   slug: z
     .string()
     .trim()
-    .min(2, 'Slug must be at least 2 characters')
-    .max(64, 'Slug must be at most 64 characters')
-    .regex(slugPattern, 'Slug must use lowercase letters, numbers, and hyphens'),
+    .min(2, 'Slug должен содержать минимум 2 символа')
+    .max(64, 'Slug должен содержать не более 64 символов')
+    .regex(slugPattern, 'Slug может содержать только строчные буквы, цифры и дефисы'),
   title: z
     .string()
     .trim()
-    .min(1, 'Title is required')
-    .max(128, 'Title must be at most 128 characters'),
+    .min(1, 'Название обязательно')
+    .max(128, 'Название должно содержать не более 128 символов'),
   genre: z.nativeEnum(GameGenre, {
-    errorMap: () => ({ message: 'Genre must be a valid game genre' }),
+    errorMap: () => ({ message: 'Укажите корректный жанр игры' }),
   }),
   platform: z
     .string()
     .trim()
-    .min(1, 'Platform is required')
-    .max(64, 'Platform must be at most 64 characters'),
+    .min(1, 'Платформа обязательна')
+    .max(64, 'Платформа должна содержать не более 64 символов'),
   isActive: z.boolean().optional().default(true),
 });
 
 export const updateGameSchema = createGameSchema.partial().refine(
   (data) => Object.keys(data).length > 0,
-  { message: 'At least one field must be provided for update' },
+  { message: 'Укажите хотя бы одно поле для обновления' },
 );
 
 export type CreateGameInput = z.infer<typeof createGameSchema>;

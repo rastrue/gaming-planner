@@ -2,30 +2,58 @@ import { AttendanceStatus, RegistrationStatus } from '@prisma/client';
 import { z } from 'zod';
 
 export const registrationIdParamsSchema = z.object({
-  id: z.coerce.number().int().positive('Registration id must be a positive integer'),
+  id: z.coerce.number().int().positive('Идентификатор регистрации должен быть положительным целым числом'),
 });
 
 export const listRegistrationsQuerySchema = z.object({
-  eventId: z.coerce.number().int().positive().optional(),
-  status: z.nativeEnum(RegistrationStatus).optional(),
-  page: z.coerce.number().int().positive().optional().default(1),
-  pageSize: z.coerce.number().int().positive().max(100).optional().default(10),
+  eventId: z.coerce.number().int().positive('Идентификатор события должен быть положительным числом').optional(),
+  status: z.nativeEnum(RegistrationStatus, {
+    errorMap: () => ({ message: 'Недопустимый статус регистрации' }),
+  }).optional(),
+  page: z.coerce.number().int().positive('Номер страницы должен быть положительным числом').optional().default(1),
+  pageSize: z.coerce
+    .number()
+    .int()
+    .positive('Размер страницы должен быть положительным числом')
+    .max(100, 'Размер страницы не может превышать 100')
+    .optional()
+    .default(10),
 });
 
 export const createRegistrationSchema = z.object({
-  eventId: z.coerce.number().int().positive('Event id is required'),
-  requestedRoleName: z.string().trim().min(1).max(64).optional(),
+  eventId: z.coerce.number().int().positive('Идентификатор события обязателен'),
+  requestedRoleName: z
+    .string()
+    .trim()
+    .min(1, 'Название роли не может быть пустым')
+    .max(64, 'Название роли должно содержать не более 64 символов')
+    .optional(),
 });
 
 export const updateRegistrationSchema = z
   .object({
-    status: z.nativeEnum(RegistrationStatus).optional(),
-    eventSlotId: z.coerce.number().int().positive().nullable().optional(),
-    attendanceStatus: z.nativeEnum(AttendanceStatus).optional(),
-    requestedRoleName: z.string().trim().min(1).max(64).nullable().optional(),
+    status: z.nativeEnum(RegistrationStatus, {
+      errorMap: () => ({ message: 'Недопустимый статус регистрации' }),
+    }).optional(),
+    eventSlotId: z.coerce
+      .number()
+      .int()
+      .positive('Идентификатор слота должен быть положительным числом')
+      .nullable()
+      .optional(),
+    attendanceStatus: z.nativeEnum(AttendanceStatus, {
+      errorMap: () => ({ message: 'Недопустимый статус посещаемости' }),
+    }).optional(),
+    requestedRoleName: z
+      .string()
+      .trim()
+      .min(1, 'Название роли не может быть пустым')
+      .max(64, 'Название роли должно содержать не более 64 символов')
+      .nullable()
+      .optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
-    message: 'At least one field must be provided for update',
+    message: 'Укажите хотя бы одно поле для обновления',
   });
 
 export type ListRegistrationsQuery = z.infer<typeof listRegistrationsQuerySchema>;

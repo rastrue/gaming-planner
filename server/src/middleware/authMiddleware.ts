@@ -39,7 +39,7 @@ export function requireAuth(req: Request, _res: Response, next: NextFunction): v
     const token = extractAccessToken(req);
 
     if (!token) {
-      throw new AppError(401, 'Authentication required');
+      throw new AppError(401, 'Требуется авторизация');
     }
 
     const payload = verifyAccessToken(token);
@@ -54,7 +54,7 @@ export function requireAuth(req: Request, _res: Response, next: NextFunction): v
       return;
     }
 
-    next(new AppError(401, 'Invalid or expired session'));
+    next(new AppError(401, 'Недействительная или истёкшая сессия'));
   }
 }
 
@@ -81,12 +81,12 @@ export function optionalAuth(req: Request, _res: Response, next: NextFunction): 
 export function requireRoles(...allowedRoles: UserRoleName[]): RequestHandler {
   return (req: Request, _res: Response, next: NextFunction): void => {
     if (!req.user) {
-      next(new AppError(401, 'Authentication required'));
+      next(new AppError(401, 'Требуется авторизация'));
       return;
     }
 
     if (!allowedRoles.includes(req.user.roleName)) {
-      next(new AppError(403, 'Insufficient permissions for this action'));
+      next(new AppError(403, 'Недостаточно прав для этого действия'));
       return;
     }
 

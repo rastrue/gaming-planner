@@ -98,7 +98,7 @@ export async function listEvents(
   availabilityUserId?: number,
 ): Promise<PaginatedEvents> {
   if (query.availabilityFit && !availabilityUserId) {
-    throw new AppError(401, 'Authentication required for availability fit filtering');
+    throw new AppError(401, 'Требуется авторизация для фильтрации по доступности');
   }
 
   const where = buildEventWhere(query);
@@ -169,7 +169,7 @@ export async function getEventById(id: number): Promise<EventRecord> {
   });
 
   if (!event) {
-    throw new AppError(404, 'Event not found');
+    throw new AppError(404, 'Событие не найдено');
   }
 
   return event;
@@ -179,7 +179,7 @@ async function assertOrganizerOwnsEvent(eventId: number, organizerId: number): P
   const event = await getEventById(eventId);
 
   if (event.organizerId !== organizerId) {
-    throw new AppError(403, 'You can only manage events that you organize');
+    throw new AppError(403, 'Вы можете управлять только событиями, которые организуете');
   }
 
   return event;
@@ -192,7 +192,7 @@ export async function createEvent(
   const game = await prisma.game.findUnique({ where: { id: input.gameId } });
 
   if (!game || !game.isActive) {
-    throw new AppError(400, 'Selected game is not available');
+    throw new AppError(400, 'Выбранная игра недоступна');
   }
 
   return prisma.event.create({
@@ -215,7 +215,7 @@ export async function updateEvent(
     const game = await prisma.game.findUnique({ where: { id: input.gameId } });
 
     if (!game || !game.isActive) {
-      throw new AppError(400, 'Selected game is not available');
+      throw new AppError(400, 'Выбранная игра недоступна');
     }
   }
 
@@ -226,11 +226,11 @@ export async function updateEvent(
     const registrationDeadline = input.registrationDeadline ?? current.registrationDeadline;
 
     if (scheduledEnd <= scheduledStart) {
-      throw new AppError(400, 'Scheduled end must be after scheduled start');
+      throw new AppError(400, 'Время окончания должно быть позже времени начала');
     }
 
     if (registrationDeadline > scheduledStart) {
-      throw new AppError(400, 'Registration deadline must be on or before scheduled start');
+      throw new AppError(400, 'Срок регистрации должен быть не позже времени начала');
     }
   }
 
@@ -248,6 +248,6 @@ export async function deleteEvent(id: number, organizerId: number): Promise<void
 
 export function assertOrganizerRole(roleName: UserRoleName): void {
   if (roleName !== UserRoleName.ORGANIZER) {
-    throw new AppError(403, 'Organizer access required');
+    throw new AppError(403, 'Требуются права организатора');
   }
 }

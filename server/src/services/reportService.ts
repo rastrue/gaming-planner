@@ -69,7 +69,7 @@ async function getReportByIdInternal(id: number): Promise<ReportRequestRecord> {
   });
 
   if (!report) {
-    throw new AppError(404, 'Report request not found');
+    throw new AppError(404, 'Запрос отчёта не найден');
   }
 
   return report;
@@ -77,14 +77,14 @@ async function getReportByIdInternal(id: number): Promise<ReportRequestRecord> {
 
 function assertCanAccessReport(report: ReportRequestRecord, user: AuthenticatedUser): void {
   if (report.requestedByUserId !== user.id) {
-    throw new AppError(403, 'You do not have access to this report request');
+    throw new AppError(403, 'У вас нет доступа к этому запросу отчёта');
   }
 }
 
 async function assertCanCreateReport(input: CreateReportInput, user: AuthenticatedUser): Promise<void> {
   if (input.reportKind === ReportKind.EVENT_ATTENDANCE) {
     if (user.roleName !== UserRoleName.ORGANIZER) {
-      throw new AppError(403, 'Only organizers can generate event attendance reports');
+      throw new AppError(403, 'Отчёты по посещаемости событий могут формировать только организаторы');
     }
 
     const event = await prisma.event.findUnique({
@@ -93,18 +93,18 @@ async function assertCanCreateReport(input: CreateReportInput, user: Authenticat
     });
 
     if (!event) {
-      throw new AppError(404, 'Event not found');
+      throw new AppError(404, 'Событие не найдено');
     }
 
     if (event.organizerId !== user.id) {
-      throw new AppError(403, 'You can only generate reports for events that you organize');
+      throw new AppError(403, 'Вы можете формировать отчёты только для событий, которые организуете');
     }
 
     return;
   }
 
   if (user.roleName === UserRoleName.PLAYER && input.subjectUserId !== user.id) {
-    throw new AppError(403, 'Players can only generate their own participation reports');
+    throw new AppError(403, 'Игроки могут формировать только отчёты о своём участии');
   }
 
   const subject = await prisma.user.findUnique({
@@ -113,7 +113,7 @@ async function assertCanCreateReport(input: CreateReportInput, user: Authenticat
   });
 
   if (!subject) {
-    throw new AppError(404, 'Subject user not found');
+    throw new AppError(404, 'Пользователь не найден');
   }
 }
 
@@ -156,7 +156,7 @@ async function generateAndPersistReport(
       select: reportSelect,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Report generation failed';
+    const message = error instanceof Error ? error.message : 'Не удалось сформировать отчёт';
 
     return prisma.reportRequest.update({
       where: { id: reportId },
@@ -228,7 +228,7 @@ export async function createReport(
   const generated = await generateAndPersistReport(queued.id, input);
 
   if (generated.status === ReportStatus.FAILED) {
-    throw new AppError(500, generated.failedReason ?? 'Report generation failed');
+    throw new AppError(500, generated.failedReason ?? 'Не удалось сформировать отчёт');
   }
 
   return generated;
@@ -272,17 +272,17 @@ export async function getReportDownload(
   assertCanAccessReport(report, user);
 
   if (report.status !== ReportStatus.GENERATED && report.status !== ReportStatus.EMAILED) {
-    throw new AppError(409, 'Report file is not available for download');
+    throw new AppError(409, 'Файл отчёта недоступен для скачивания');
   }
 
   if (!report.storagePath || !report.fileName) {
-    throw new AppError(404, 'Report file not found');
+    throw new AppError(404, 'Файл отчёта не найден');
   }
 
   try {
     await fs.access(report.storagePath);
   } catch {
-    throw new AppError(404, 'Report file not found on disk');
+    throw new AppError(404, 'Файл отчёта не найден на диске');
   }
 
   return {
@@ -301,17 +301,17 @@ export async function emailReport(
   assertCanAccessReport(report, user);
 
   if (report.status !== ReportStatus.GENERATED && report.status !== ReportStatus.EMAILED) {
-    throw new AppError(409, 'Report must be generated before it can be emailed');
+    throw new AppError(409, 'Перед отправкой по email отчёт должен быть сформирован');
   }
 
   const recipientEmail = input.recipientEmail ?? report.recipientEmail;
 
   if (!recipientEmail) {
-    throw new AppError(400, 'Recipient email is required');
+    throw new AppError(400, 'Укажите email получателя');
   }
 
   if (!report.storagePath || !report.fileName) {
-    throw new AppError(404, 'Report file not found');
+    throw new AppError(404, 'Файл отчёта не найден');
   }
 
   try {
@@ -336,7 +336,7 @@ export async function emailReport(
       select: reportSelect,
     });
   } catch (error) {
-    const message = error instanceof AppError ? error.message : 'Email delivery failed';
+    const message = error instanceof AppError ? error.message : 'Не удалось отправить отчёт по email';
 
     return prisma.reportRequest.update({
       where: { id },

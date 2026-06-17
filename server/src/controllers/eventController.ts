@@ -16,7 +16,7 @@ export async function getEventById(req: Request, res: Response): Promise<void> {
 
 export async function createEvent(req: Request, res: Response): Promise<void> {
   if (!req.user) {
-    throw new AppError(401, 'Authentication required');
+    throw new AppError(401, 'Требуется авторизация');
   }
 
   const event = await eventService.createEvent(req.body as CreateEventInput, req.user.id);
@@ -25,7 +25,7 @@ export async function createEvent(req: Request, res: Response): Promise<void> {
 
 export async function updateEvent(req: Request, res: Response): Promise<void> {
   if (!req.user) {
-    throw new AppError(401, 'Authentication required');
+    throw new AppError(401, 'Требуется авторизация');
   }
 
   const event = await eventService.updateEvent(
@@ -38,7 +38,7 @@ export async function updateEvent(req: Request, res: Response): Promise<void> {
 
 export async function deleteEvent(req: Request, res: Response): Promise<void> {
   if (!req.user) {
-    throw new AppError(401, 'Authentication required');
+    throw new AppError(401, 'Требуется авторизация');
   }
 
   await eventService.deleteEvent(Number(req.params.id), req.user.id);

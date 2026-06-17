@@ -30,7 +30,7 @@ export async function getGameById(id: number): Promise<GameRecord> {
   });
 
   if (!game) {
-    throw new AppError(404, 'Game not found');
+    throw new AppError(404, 'Игра не найдена');
   }
 
   return game;
@@ -50,7 +50,7 @@ export async function createGame(input: CreateGameInput): Promise<GameRecord> {
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      throw new AppError(409, 'A game with this slug or title already exists');
+      throw new AppError(409, 'Игра с таким slug или названием уже существует');
     }
 
     throw error;
@@ -68,7 +68,7 @@ export async function updateGame(id: number, input: UpdateGameInput): Promise<Ga
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      throw new AppError(409, 'A game with this slug or title already exists');
+      throw new AppError(409, 'Игра с таким slug или названием уже существует');
     }
 
     throw error;
@@ -83,7 +83,7 @@ export async function deleteGame(id: number): Promise<void> {
   });
 
   if (linkedEvents > 0) {
-    throw new AppError(409, 'Cannot delete a game that is linked to existing events');
+    throw new AppError(409, 'Нельзя удалить игру, связанную с существующими событиями');
   }
 
   await prisma.game.delete({ where: { id } });

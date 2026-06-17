@@ -11,7 +11,7 @@ export class AppError extends Error {
 
 export class ValidationError extends AppError {
   constructor(errors: Array<{ field: string; message: string }>) {
-    super(400, 'Validation failed', errors);
+    super(400, 'Ошибка валидации', errors);
     this.name = 'ValidationError';
   }
 }

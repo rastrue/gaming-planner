@@ -25,7 +25,7 @@ async function assertOrganizerOwnsEvent(eventId: number, organizerId: number): P
   const event = await getEventById(eventId);
 
   if (event.organizerId !== organizerId) {
-    throw new AppError(403, 'You can only manage slots for events that you organize');
+    throw new AppError(403, 'Вы можете управлять слотами только для событий, которые организуете');
   }
 }
 
@@ -36,7 +36,7 @@ async function getSlotById(id: number): Promise<EventSlotRecord> {
   });
 
   if (!slot) {
-    throw new AppError(404, 'Event slot not found');
+    throw new AppError(404, 'Слот события не найден');
   }
 
   return slot;
@@ -46,7 +46,7 @@ function handleUniqueConstraint(error: unknown): never {
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
     throw new AppError(
       409,
-      'Slot role name or display order must be unique within the same event',
+      'Название роли или порядок отображения должны быть уникальными в рамках одного события',
     );
   }
 
@@ -109,7 +109,7 @@ export async function deleteEventSlot(id: number, organizerId: number): Promise<
   await assertOrganizerOwnsEvent(slot.eventId, organizerId);
 
   if (slot._count.registrations > 0) {
-    throw new AppError(409, 'Cannot delete a slot that has assigned registrations');
+    throw new AppError(409, 'Нельзя удалить слот с назначенными регистрациями');
   }
 
   await prisma.eventSlot.delete({ where: { id } });

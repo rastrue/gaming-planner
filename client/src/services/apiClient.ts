@@ -36,8 +36,27 @@ function buildQuery(params?: Record<string, QueryValue> | object): string {
   return query ? `?${query}` : '';
 }
 
+const HTTP_STATUS_MESSAGES: Record<number, string> = {
+  400: 'Некорректный запрос',
+  401: 'Требуется авторизация',
+  403: 'Доступ запрещён',
+  404: 'Не найдено',
+  409: 'Конфликт данных',
+  500: 'Внутренняя ошибка сервера',
+  502: 'Ошибка внешнего сервиса',
+  503: 'Сервис временно недоступен',
+};
+
+function resolveErrorMessage(response: Response, payloadMessage?: string): string {
+  if (payloadMessage) {
+    return payloadMessage;
+  }
+
+  return HTTP_STATUS_MESSAGES[response.status] ?? 'Запрос не выполнен';
+}
+
 async function parseErrorResponse(response: Response): Promise<ApiError> {
-  let message = response.statusText || 'Request failed';
+  let message = resolveErrorMessage(response);
   let errors: ApiFieldError[] | undefined;
 
   try {
@@ -46,13 +65,10 @@ async function parseErrorResponse(response: Response): Promise<ApiError> {
       errors?: ApiFieldError[];
     };
 
-    if (payload.message) {
-      message = payload.message;
-    }
-
+    message = resolveErrorMessage(response, payload.message);
     errors = payload.errors;
   } catch {
-    // Non-JSON error bodies fall back to status text.
+    // Non-JSON error bodies fall back to mapped status message.
   }
 
   return new ApiError(response.status, message, errors);

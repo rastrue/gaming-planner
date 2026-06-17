@@ -10,7 +10,7 @@ export async function listEventSlots(req: Request, res: Response): Promise<void>
 
 export async function createEventSlot(req: Request, res: Response): Promise<void> {
   if (!req.user) {
-    throw new AppError(401, 'Authentication required');
+    throw new AppError(401, 'Требуется авторизация');
   }
 
   const slot = await slotService.createEventSlot(
@@ -23,7 +23,7 @@ export async function createEventSlot(req: Request, res: Response): Promise<void
 
 export async function updateEventSlot(req: Request, res: Response): Promise<void> {
   if (!req.user) {
-    throw new AppError(401, 'Authentication required');
+    throw new AppError(401, 'Требуется авторизация');
   }
 
   const slot = await slotService.updateEventSlot(
@@ -36,7 +36,7 @@ export async function updateEventSlot(req: Request, res: Response): Promise<void
 
 export async function deleteEventSlot(req: Request, res: Response): Promise<void> {
   if (!req.user) {
-    throw new AppError(401, 'Authentication required');
+    throw new AppError(401, 'Требуется авторизация');
   }
 
   await slotService.deleteEventSlot(Number(req.params.id), req.user.id);

@@ -68,7 +68,7 @@ export async function registerUser(input: RegisterInput): Promise<PublicUser> {
   });
 
   if (!role) {
-    throw new AppError(500, 'Selected role is not configured');
+    throw new AppError(500, 'Выбранная роль не настроена');
   }
 
   const existingUser = await prisma.user.findFirst({
@@ -80,10 +80,10 @@ export async function registerUser(input: RegisterInput): Promise<PublicUser> {
 
   if (existingUser) {
     if (existingUser.username === input.username) {
-      throw new AppError(409, 'Username is already taken');
+      throw new AppError(409, 'Имя пользователя уже занято');
     }
 
-    throw new AppError(409, 'Email is already registered');
+    throw new AppError(409, 'Email уже зарегистрирован');
   }
 
   const passwordHash = await bcrypt.hash(input.password, 10);
@@ -115,13 +115,13 @@ export async function loginUser(input: LoginInput): Promise<PublicUser> {
   });
 
   if (!user || !user.isActive) {
-    throw new AppError(401, 'Invalid credentials');
+    throw new AppError(401, 'Неверные учётные данные');
   }
 
   const passwordMatches = await bcrypt.compare(input.password, user.passwordHash);
 
   if (!passwordMatches) {
-    throw new AppError(401, 'Invalid credentials');
+    throw new AppError(401, 'Неверные учётные данные');
   }
 
   const { passwordHash: _passwordHash, ...publicUser } = user;
@@ -135,7 +135,7 @@ export async function getUserById(userId: number): Promise<PublicUser> {
   });
 
   if (!user || !user.isActive) {
-    throw new AppError(401, 'User not found or inactive');
+    throw new AppError(401, 'Пользователь не найден или неактивен');
   }
 
   return toPublicUser(user);

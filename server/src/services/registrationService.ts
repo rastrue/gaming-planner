@@ -75,7 +75,7 @@ async function getRegistrationByIdInternal(id: number): Promise<RegistrationReco
   });
 
   if (!registration) {
-    throw new AppError(404, 'Registration not found');
+    throw new AppError(404, 'Регистрация не найдена');
   }
 
   return registration;
@@ -90,7 +90,7 @@ function assertCanViewRegistration(registration: RegistrationRecord, user: Authe
     return;
   }
 
-  throw new AppError(403, 'You do not have access to this registration');
+  throw new AppError(403, 'У вас нет доступа к этой регистрации');
 }
 
 export async function listRegistrations(
@@ -116,11 +116,11 @@ export async function listRegistrations(
     });
 
     if (!event) {
-      throw new AppError(404, 'Event not found');
+      throw new AppError(404, 'Событие не найдено');
     }
 
     if (event.organizerId !== user.id) {
-      throw new AppError(403, 'You can only view registrations for events that you organize');
+      throw new AppError(403, 'Вы можете просматривать регистрации только для событий, которые организуете');
     }
 
     where.eventId = query.eventId;
@@ -164,7 +164,7 @@ export async function createRegistration(
   input: CreateRegistrationInput,
 ): Promise<RegistrationRecord> {
   if (user.roleName !== UserRoleName.PLAYER) {
-    throw new AppError(403, 'Only players can register for events');
+    throw new AppError(403, 'Регистрироваться на события могут только игроки');
   }
 
   const event = await prisma.event.findUnique({
@@ -177,11 +177,11 @@ export async function createRegistration(
   });
 
   if (!event) {
-    throw new AppError(404, 'Event not found');
+    throw new AppError(404, 'Событие не найдено');
   }
 
   if (!isRegistrationOpen(event)) {
-    throw new AppError(409, 'Registration is not open for this event');
+    throw new AppError(409, 'Регистрация на это событие не открыта');
   }
 
   const existing = await prisma.registration.findUnique({
@@ -199,7 +199,7 @@ export async function createRegistration(
       existing.status === RegistrationStatus.PENDING ||
       existing.status === RegistrationStatus.APPROVED
     ) {
-      throw new AppError(409, 'You are already registered for this event');
+      throw new AppError(409, 'Вы уже зарегистрированы на это событие');
     }
 
     if (
@@ -232,7 +232,7 @@ export async function createRegistration(
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      throw new AppError(409, 'You are already registered for this event');
+      throw new AppError(409, 'Вы уже зарегистрированы на это событие');
     }
 
     throw error;
@@ -245,29 +245,29 @@ async function applyPlayerUpdate(
   userId: number,
 ): Promise<Prisma.RegistrationUpdateInput> {
   if (registration.userId !== userId) {
-    throw new AppError(403, 'You can only update your own registration');
+    throw new AppError(403, 'Вы можете изменять только свою регистрацию');
   }
 
   const allowedFields = ['status'];
   const inputKeys = Object.keys(input);
 
   if (inputKeys.some((key) => !allowedFields.includes(key))) {
-    throw new AppError(403, 'Players can only cancel their own registration');
+    throw new AppError(403, 'Игроки могут отменять только свою регистрацию');
   }
 
   if (input.status !== RegistrationStatus.CANCELLED) {
-    throw new AppError(400, 'Players can only cancel registrations');
+    throw new AppError(400, 'Игроки могут только отменять регистрации');
   }
 
   if (
     registration.status !== RegistrationStatus.PENDING &&
     registration.status !== RegistrationStatus.APPROVED
   ) {
-    throw new AppError(409, 'This registration cannot be cancelled');
+    throw new AppError(409, 'Эту регистрацию нельзя отменить');
   }
 
   if (!isRegistrationOpen(registration.event)) {
-    throw new AppError(409, 'Registration is closed for this event');
+    throw new AppError(409, 'Регистрация на это событие закрыта');
   }
 
   return {
@@ -282,7 +282,7 @@ async function applyOrganizerUpdate(
   organizerId: number,
 ): Promise<Prisma.RegistrationUpdateInput> {
   if (registration.event.organizerId !== organizerId) {
-    throw new AppError(403, 'You can only manage registrations for events that you organize');
+    throw new AppError(403, 'Вы можете управлять регистрациями только для событий, которые организуете');
   }
 
   const data: Prisma.RegistrationUpdateInput = {};
@@ -293,11 +293,11 @@ async function applyOrganizerUpdate(
       input.status !== RegistrationStatus.DECLINED &&
       input.status !== RegistrationStatus.CANCELLED
     ) {
-      throw new AppError(400, 'Organizers can only approve, decline, or cancel registrations');
+      throw new AppError(400, 'Организаторы могут только одобрять, отклонять или отменять регистрации');
     }
 
     if (registration.status === RegistrationStatus.CANCELLED) {
-      throw new AppError(409, 'Cancelled registrations cannot be updated');
+      throw new AppError(409, 'Отменённые регистрации нельзя изменить');
     }
 
     data.status = input.status;
@@ -309,7 +309,7 @@ async function applyOrganizerUpdate(
 
   if (input.eventSlotId !== undefined) {
     if (registration.status !== RegistrationStatus.APPROVED) {
-      throw new AppError(409, 'Only approved registrations can be assigned to slots');
+      throw new AppError(409, 'На слот можно назначить только одобренные регистрации');
     }
 
     if (input.eventSlotId === null) {
@@ -334,14 +334,14 @@ async function applyOrganizerUpdate(
       });
 
       if (!slot || slot.eventId !== registration.eventId) {
-        throw new AppError(400, 'Selected slot does not belong to this event');
+        throw new AppError(400, 'Выбранный слот не принадлежит этому событию');
       }
 
       if (
         registration.eventSlotId !== input.eventSlotId &&
         slot._count.registrations >= slot.requiredCount
       ) {
-        throw new AppError(409, 'This roster slot is already full');
+        throw new AppError(409, 'Этот слот состава уже заполнен');
       }
 
       data.eventSlot = { connect: { id: input.eventSlotId } };
@@ -350,11 +350,11 @@ async function applyOrganizerUpdate(
 
   if (input.attendanceStatus) {
     if (registration.event.status !== EventStatus.COMPLETED) {
-      throw new AppError(409, 'Attendance can only be marked after the event is completed');
+      throw new AppError(409, 'Посещаемость можно отметить только после завершения события');
     }
 
     if (registration.status !== RegistrationStatus.APPROVED) {
-      throw new AppError(409, 'Attendance can only be marked for approved registrations');
+      throw new AppError(409, 'Посещаемость можно отметить только для одобренных регистраций');
     }
 
     data.attendanceStatus = input.attendanceStatus;
@@ -365,7 +365,7 @@ async function applyOrganizerUpdate(
   }
 
   if (Object.keys(data).length === 0) {
-    throw new AppError(400, 'No valid organizer updates were provided');
+    throw new AppError(400, 'Не указаны допустимые изменения для организатора');
   }
 
   return data;
@@ -395,14 +395,14 @@ export async function deleteRegistration(id: number, user: AuthenticatedUser): P
 
   if (user.roleName === UserRoleName.PLAYER) {
     if (registration.userId !== user.id) {
-      throw new AppError(403, 'You can only delete your own registration');
+      throw new AppError(403, 'Вы можете удалять только свою регистрацию');
     }
 
     if (registration.status !== RegistrationStatus.PENDING) {
-      throw new AppError(409, 'Only pending registrations can be deleted');
+      throw new AppError(409, 'Удалить можно только ожидающие регистрации');
     }
   } else if (registration.event.organizerId !== user.id) {
-    throw new AppError(403, 'You can only delete registrations for events that you organize');
+    throw new AppError(403, 'Вы можете удалять регистрации только для событий, которые организуете');
   }
 
   await prisma.registration.delete({ where: { id } });
