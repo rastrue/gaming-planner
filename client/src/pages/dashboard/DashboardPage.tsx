@@ -1,8 +1,6 @@
-import { Link } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Badge from '../../components/ui/Badge';
-import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import ChartContainer from '../../components/ui/ChartContainer';
 import EmptyState from '../../components/ui/EmptyState';
@@ -227,28 +225,6 @@ export default function OrganizerDashboard() {
           <ProgressBar label="Средняя заполненность управляемых событий" value={rosterFillRate} max={100} />
         </Card>
         </div>
-      </section>
-
-      <section aria-labelledby="organizer-actions-heading">
-        <Card title="Быстрые действия" description="Основные рабочие процессы управления.">
-          <h2 id="organizer-actions-heading" className="sr-only">
-            Быстрые действия организатора
-          </h2>
-          <div className="flex flex-wrap gap-3">
-            <Link to="/organizer/events/new">
-              <Button>Создать событие</Button>
-            </Link>
-            <Link to="/organizer/events">
-              <Button variant="secondary">Управление событиями</Button>
-            </Link>
-            <Link to="/organizer/roster">
-              <Button variant="secondary">Доски состава</Button>
-            </Link>
-            <Link to="/reports">
-              <Button variant="ghost">Сформировать отчёты</Button>
-            </Link>
-          </div>
-        </Card>
       </section>
 
       <div className="grid gap-6 xl:grid-cols-2">
