@@ -29,7 +29,7 @@ export default function OrganizerNav({
 }: OrganizerNavProps) {
   const items: SidebarNavItem[] = [
     {
-      label: 'Панель организатора',
+      label: 'Дашборд',
       href: '/dashboard',
       icon: <LayoutDashboard className="h-4 w-4" />,
       isActive: isNavItemActive(currentPath, '/dashboard'),
