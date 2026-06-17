@@ -8,31 +8,6 @@ Built as a TypeScript monorepo with a React client, Express API, and PostgreSQL 
 
 ---
 
-## Highlights
-
-| For organizers | For players |
-| --- | --- |
-| Organizer dashboard with stats and pending registrations | Browse, search, filter, and paginate events |
-| Create, edit, publish, and delete events | Set weekly availability windows |
-| Define roster slots per event | Register for open sessions |
-| Approve registrations and assign roles via drag-and-drop | Re-register after a declined or cancelled registration |
-| Two-step roster flow: event picker and board | View and cancel eligible registrations |
-| Generate PDF/DOCX reports and email delivery | Theme and preference controls in the app header |
-
----
-
-## Tech stack
-
-**Frontend** — React 18 · Vite · TypeScript · Tailwind CSS · Redux Toolkit (synchronous only) · React Router
-
-**Backend** — Express · TypeScript · Prisma · PostgreSQL · Zod · JWT (httpOnly cookies)
-
-**Reports** — jsPDF · docx · Nodemailer
-
-**State & networking** — API calls live in `client/src/services/`; Redux holds client-side state and `localStorage` sync only (no `createAsyncThunk` or RTK Query).
-
----
-
 ## Architecture
 
 ```mermaid
@@ -139,49 +114,6 @@ After login, organizers land on `/dashboard`; players land on `/events`.
 
 ---
 
-## Routes
-
-### Auth (public)
-
-| Path | Page |
-| --- | --- |
-| `/login` | Sign in |
-| `/register` | Create account |
-
-### Shared (authenticated)
-
-| Path | Page |
-| --- | --- |
-| `/events` | Event catalog with search, filters, sort, pagination |
-| `/events/:id` | Event details and registration |
-| `/availability` | Weekly availability planner |
-| `/my-registrations` | Registration history and statuses |
-
-### Organizer only
-
-Protected by role checks on both client and server.
-
-| Path | Page |
-| --- | --- |
-| `/dashboard` | Organizer dashboard |
-| `/organizer/events` | Event management list |
-| `/organizer/events/new` | Create event |
-| `/organizer/events/:id/edit` | Edit event |
-| `/organizer/roster` | Roster event picker |
-| `/organizer/roster/:eventId` | Drag-and-drop roster board |
-| `/reports` | Report generation, export, and history |
-
-### Other
-
-| Path | Behavior |
-| --- | --- |
-| `/` | Redirect to role default (`/dashboard` or `/events`) or `/login` |
-| `*` | 404 Not Found |
-
-There is **no `/settings` page**. Theme toggle and application reset live in the authenticated app header (`AppShell`).
-
----
-
 ## Project structure
 
 ```
@@ -229,24 +161,6 @@ Run from the **repository root**:
 
 ---
 
-## API overview
-
-All endpoints are prefixed with `/api`.
-
-| Resource | Endpoints |
-| --- | --- |
-| Auth | `POST /auth/register` · `POST /auth/login` · `GET /auth/me` · `POST /auth/logout` |
-| Games | Full CRUD on `/games` |
-| Events | Full CRUD on `/events` with search, filter, sort, pagination |
-| Slots | Nested under `/events/:eventId/slots`; mutations on `/event-slots/:id` |
-| Registrations | CRUD — cancel, approve/decline, slot assignment, attendance |
-| Availability | Weekly window CRUD on `/availability` |
-| Reports | Generate, download (PDF/DOCX), and email delivery |
-
-Organizer-only routes are protected server-side with role-based access control.
-
----
-
 ## Roles
 
 QuestSync has two distinct roles — no separate admin account:
@@ -255,17 +169,6 @@ QuestSync has two distinct roles — no separate admin account:
 - **Player** — event discovery, availability, registrations. Default route: `/events`. No dashboard or reports in navigation.
 
 Navigation, landing routes, and permissions differ materially between roles. Roster slot assignment respects each slot's `requiredCount` on both client and server.
-
----
-
-## Client preferences
-
-Theme, sidebar state, and catalog filters persist in `localStorage` under the `questsync:` prefix.
-
-From the authenticated header:
-
-1. **Theme toggle** — Sun/Moon icon; preference is saved automatically.
-2. **Reset application settings** — removes all `questsync:` keys, resets Redux slices, and restores the active session user.
 
 ---
 
