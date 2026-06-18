@@ -15,7 +15,7 @@ export function computeRegistrationDeadline(scheduledStart: Date): Date {
 }
 
 export function resolveEventStatus(event: EventLifecycleInput, now = Date.now()): EventStatus {
-  if (event.status === EventStatus.DRAFT || TERMINAL_STATUSES.has(event.status)) {
+  if (TERMINAL_STATUSES.has(event.status)) {
     return event.status;
   }
 
@@ -51,7 +51,6 @@ export function canCancelPublishedEvent(status: EventStatus): boolean {
 export function canCompleteEventStatus(status: EventStatus, scheduledStart: Date, now = Date.now()): boolean {
   return (
     !TERMINAL_STATUSES.has(status) &&
-    status !== EventStatus.DRAFT &&
     scheduledStart.getTime() <= now &&
     (status === EventStatus.WAITING || status === EventStatus.STARTED || status === EventStatus.FULL)
   );

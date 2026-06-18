@@ -38,8 +38,6 @@ function eventStatusVariant(status: EventStatus) {
   switch (status) {
     case 'REGISTRATION':
       return 'success';
-    case 'DRAFT':
-      return 'default';
     case 'FULL':
       return 'warning';
     case 'WAITING':
@@ -227,16 +225,6 @@ export default function OrganizerEventsPage() {
                           Редактировать
                         </Button>
                       </Link>
-                      {event.status === 'DRAFT' ? (
-                        <Button
-                          type="button"
-                          size="sm"
-                          disabled={isBusy}
-                          onClick={() => void updateStatus(event, 'REGISTRATION')}
-                        >
-                          Опубликовать
-                        </Button>
-                      ) : null}
                       {canCompleteEvent(event) ? (
                         <Button
                           type="button"

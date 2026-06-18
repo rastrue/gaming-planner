@@ -56,8 +56,7 @@ const GAME_DEFINITIONS: Array<{ slug: string; title: string; genre: GameGenre; p
 ];
 
 const EVENT_STATUS_WEIGHTS: Array<{ status: EventStatus; weight: number }> = [
-  { status: EventStatus.DRAFT, weight: 12 },
-  { status: EventStatus.REGISTRATION, weight: 18 },
+  { status: EventStatus.REGISTRATION, weight: 30 },
   { status: EventStatus.FULL, weight: 8 },
   { status: EventStatus.WAITING, weight: 12 },
   { status: EventStatus.STARTED, weight: 10 },
@@ -103,7 +102,7 @@ function weightedStatus(): EventStatus {
     }
   }
 
-  return EventStatus.DRAFT;
+  return EventStatus.REGISTRATION;
 }
 
 function inDays(base: Date, days: number, startHour = 18, durationHours = 4): {
@@ -137,7 +136,6 @@ function statusDayOffset(status: EventStatus, index: number): number {
       return (index % 12) + 2;
     case EventStatus.REGISTRATION:
       return (index % 30) + 3;
-    case EventStatus.DRAFT:
     default:
       return (index % 25) + 5;
   }
@@ -327,7 +325,7 @@ async function main() {
   let registrationCount = 0;
 
   for (const event of events) {
-    if (event.status === EventStatus.DRAFT || event.status === EventStatus.CANCELLED) {
+    if (event.status === EventStatus.CANCELLED) {
       continue;
     }
 

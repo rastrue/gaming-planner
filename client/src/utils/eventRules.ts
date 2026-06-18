@@ -19,7 +19,6 @@ export function hasEventStarted(scheduledStart: string | Date): boolean {
 export function canCompleteEventStatus(status: EventStatus, scheduledStart: string | Date): boolean {
   return (
     isEventEditable(status) &&
-    status !== 'DRAFT' &&
     hasEventStarted(scheduledStart) &&
     (status === 'WAITING' || status === 'STARTED' || status === 'FULL')
   );

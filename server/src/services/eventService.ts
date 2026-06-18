@@ -122,10 +122,6 @@ function assertAllowedStatusTransition(current: EventRecord, next: EventStatus):
     return;
   }
 
-  if (next === EventStatus.REGISTRATION && current.status === EventStatus.DRAFT) {
-    return;
-  }
-
   if (next === EventStatus.COMPLETED) {
     assertCanCompleteEvent(current.scheduledStart);
 
@@ -269,15 +265,17 @@ export async function createEvent(
     throw new AppError(400, 'Выбранная игра недоступна');
   }
 
-  return prisma.event.create({
+  const created = await prisma.event.create({
     data: {
       ...input,
       registrationDeadline: computeRegistrationDeadline(input.scheduledStart),
-      status: EventStatus.DRAFT,
+      status: EventStatus.REGISTRATION,
       organizerId,
     },
     select: eventSelect,
   });
+
+  return syncEventLifecycle(created);
 }
 
 export async function updateEvent(

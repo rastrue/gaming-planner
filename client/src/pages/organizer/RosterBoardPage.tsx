@@ -27,8 +27,6 @@ function eventStatusVariant(status: EventStatus) {
   switch (status) {
     case 'REGISTRATION':
       return 'success';
-    case 'DRAFT':
-      return 'default';
     case 'FULL':
       return 'warning';
     case 'WAITING':

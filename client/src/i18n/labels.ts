@@ -9,7 +9,6 @@ import type {
 } from '../types/index';
 
 export const eventStatusLabels: Record<EventStatus, string> = {
-  DRAFT: 'Черновик',
   REGISTRATION: 'Регистрация',
   FULL: 'Заполнено',
   WAITING: 'Ожидание',
