@@ -86,8 +86,10 @@ export default function EventFiltersPanel({
                         page: 1,
                       })
                     }
-                    placeholder="Все игры"
-                    options={games.map((game) => ({ value: String(game.id), label: game.title }))}
+                    options={[
+                      { value: '', label: 'Все игры' },
+                      ...games.map((game) => ({ value: String(game.id), label: game.title })),
+                    ]}
                   />
                   <SelectDropdown
                     label="Статус"
@@ -98,8 +100,10 @@ export default function EventFiltersPanel({
                         page: 1,
                       })
                     }
-                    placeholder="Все статусы"
-                    options={statusOptions.map((option) => ({ value: option.value, label: option.label }))}
+                    options={[
+                      { value: '', label: 'Все статусы' },
+                      ...statusOptions.map((option) => ({ value: option.value, label: option.label })),
+                    ]}
                   />
                   <SelectDropdown
                     label="Сортировка"
