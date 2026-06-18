@@ -42,10 +42,6 @@ export function canCancelPublishedEvent(status: EventStatus): boolean {
   return status === EventStatus.REGISTRATION || status === EventStatus.WAITING;
 }
 
-export function canManuallyCloseRegistration(status: EventStatus): boolean {
-  return status === EventStatus.REGISTRATION || status === EventStatus.FULL;
-}
-
 export function canCompleteEventStatus(status: EventStatus, scheduledStart: Date, now = Date.now()): boolean {
   return (
     !TERMINAL_STATUSES.has(status) &&

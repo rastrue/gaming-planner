@@ -12,10 +12,6 @@ export function canCancelOpenEvent(status: EventStatus): boolean {
   return status === 'REGISTRATION' || status === 'WAITING';
 }
 
-export function canManuallyCloseRegistration(status: EventStatus): boolean {
-  return status === 'REGISTRATION' || status === 'FULL';
-}
-
 export function hasEventStarted(scheduledStart: string | Date): boolean {
   return new Date(scheduledStart).getTime() <= Date.now();
 }

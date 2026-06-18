@@ -3,7 +3,6 @@ import { eventFitsAvailability } from '../lib/availabilityFit.js';
 import {
   canCancelPublishedEvent,
   canCompleteEventStatus,
-  canManuallyCloseRegistration,
   resolveEventStatus,
 } from '../lib/eventLifecycle.js';
 import { AppError } from '../lib/errors.js';
@@ -123,10 +122,6 @@ function assertAllowedStatusTransition(current: EventRecord, next: EventStatus):
   }
 
   if (next === EventStatus.REGISTRATION && current.status === EventStatus.DRAFT) {
-    return;
-  }
-
-  if (next === EventStatus.WAITING && canManuallyCloseRegistration(current.status)) {
     return;
   }
 

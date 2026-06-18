@@ -15,7 +15,7 @@ import { setEvents, upsertEvent } from '../../store/eventsSlice';
 import type { AppDispatch, RootState } from '../../store/store';
 import { formatEventStatus } from '../../i18n/labels';
 import type { Event, EventStatus } from '../../types/index';
-import { canCancelOpenEvent, canCompleteEventStatus, canManuallyCloseRegistration, isEventEditable } from '../../utils/eventRules';
+import { canCancelOpenEvent, canCompleteEventStatus, isEventEditable } from '../../utils/eventRules';
 
 const PAGE_SIZE = 10;
 const dateLocale = 'ru-RU';
@@ -235,17 +235,6 @@ export default function OrganizerEventsPage() {
                           onClick={() => void updateStatus(event, 'REGISTRATION')}
                         >
                           Опубликовать
-                        </Button>
-                      ) : null}
-                      {canManuallyCloseRegistration(event.status) ? (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          disabled={isBusy}
-                          onClick={() => void updateStatus(event, 'WAITING')}
-                        >
-                          Закрыть регистрацию
                         </Button>
                       ) : null}
                       {canCompleteEvent(event) ? (
