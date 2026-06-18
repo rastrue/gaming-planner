@@ -203,8 +203,9 @@ export default function EventFormPage() {
       } else {
         const created = await eventService.createEvent(payload);
         dispatch(upsertEvent(created));
-        navigate(`/organizer/events/${created.id}/edit`, { replace: true });
       }
+
+      navigate('/organizer/events');
     } catch (error) {
       if (error instanceof ApiError) {
         setFormError(error.message);
