@@ -15,7 +15,7 @@ import { ApiError } from '../../services/apiClient';
 import { upsertEvent } from '../../store/eventsSlice';
 import type { AppDispatch } from '../../store/store';
 import type { ApiFieldError, CreateEventInput, Event, Game } from '../../types/index';
-import { isEventEditable } from '../../utils/eventRules';
+import { canEditEventDetails, isEventEditable } from '../../utils/eventRules';
 
 function mapFieldErrors(errors?: ApiFieldError[]): Record<string, string> {
   const mapped: Record<string, string> = {};
@@ -114,6 +114,11 @@ export default function EventFormPage() {
 
           if (!isEventEditable(event.status)) {
             setLoadError('Завершённые и отменённые события нельзя редактировать.');
+            return;
+          }
+
+          if (!canEditEventDetails(event)) {
+            setLoadError('Нельзя редактировать событие, на которое уже зарегистрировались игроки.');
             return;
           }
 

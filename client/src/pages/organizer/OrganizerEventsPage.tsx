@@ -15,7 +15,7 @@ import { setEvents, upsertEvent } from '../../store/eventsSlice';
 import type { AppDispatch, RootState } from '../../store/store';
 import { formatEventStatus } from '../../i18n/labels';
 import type { Event, EventStatus } from '../../types/index';
-import { canCancelOpenEvent, canCompleteEventStatus, isEventEditable } from '../../utils/eventRules';
+import { canCancelOpenEvent, canCompleteEventStatus, canEditEventDetails, isEventEditable } from '../../utils/eventRules';
 
 const PAGE_SIZE = 10;
 const dateLocale = 'ru-RU';
@@ -210,19 +210,28 @@ export default function OrganizerEventsPage() {
                 render: (event) => {
                   const isBusy = busyEventId === event.id;
                   const editable = isEventEditable(event.status);
+                  const canEditDetails = canEditEventDetails(event);
+                  const showComplete = canCompleteEvent(event);
+                  const showCancel = canCancelOpenEvent(event.status);
 
-                  if (!editable) {
+                  if (!editable || (!canEditDetails && !showComplete && !showCancel)) {
                     return <TableActionPlaceholder />;
                   }
 
                   return (
                     <div className="flex flex-wrap gap-2">
-                      <Link to={`/organizer/events/${event.id}/edit`}>
-                        <Button type="button" variant="secondary" size="sm">
-                          Редактировать
+                      {showCancel ? (
+                        <Button
+                          type="button"
+                          variant="danger"
+                          size="sm"
+                          disabled={isBusy}
+                          onClick={() => void updateStatus(event, 'CANCELLED')}
+                        >
+                          Отменить
                         </Button>
-                      </Link>
-                      {canCompleteEvent(event) ? (
+                      ) : null}
+                      {showComplete ? (
                         <Button
                           type="button"
                           variant="secondary"
@@ -233,16 +242,12 @@ export default function OrganizerEventsPage() {
                           Завершить
                         </Button>
                       ) : null}
-                      {canCancelOpenEvent(event.status) ? (
-                        <Button
-                          type="button"
-                          variant="danger"
-                          size="sm"
-                          disabled={isBusy}
-                          onClick={() => void updateStatus(event, 'CANCELLED')}
-                        >
-                          Отменить
-                        </Button>
+                      {canEditDetails ? (
+                        <Link to={`/organizer/events/${event.id}/edit`}>
+                          <Button type="button" variant="secondary" size="sm">
+                            Редактировать
+                          </Button>
+                        </Link>
                       ) : null}
                     </div>
                   );

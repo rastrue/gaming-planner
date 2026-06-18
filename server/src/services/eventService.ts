@@ -255,6 +255,12 @@ function assertEventIsEditable(status: EventStatus): void {
   }
 }
 
+function assertEventDetailsEditable(event: EventRecord): void {
+  if (event._count.registrations > 0) {
+    throw new AppError(409, 'Нельзя редактировать событие, на которое уже зарегистрировались игроки');
+  }
+}
+
 export async function createEvent(
   input: CreateEventInput,
   organizerId: number,
@@ -287,6 +293,11 @@ export async function updateEvent(
   const syncedCurrent = await syncEventLifecycle(current);
 
   assertEventIsEditable(syncedCurrent.status);
+
+  const isDetailsUpdate = Object.keys(input).some((key) => key !== 'status');
+  if (isDetailsUpdate) {
+    assertEventDetailsEditable(syncedCurrent);
+  }
 
   if (input.status) {
     assertAllowedStatusTransition(syncedCurrent, input.status);
