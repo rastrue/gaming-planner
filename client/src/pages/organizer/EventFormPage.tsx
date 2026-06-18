@@ -118,7 +118,9 @@ export default function EventFormPage() {
           }
 
           if (!canEditEventDetails(event)) {
-            setLoadError('Нельзя редактировать событие, на которое уже зарегистрировались игроки.');
+            setLoadError(
+              'Редактировать можно только события в статусе «Регистрация» без зарегистрированных игроков.',
+            );
             return;
           }
 

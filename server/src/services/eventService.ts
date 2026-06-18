@@ -256,8 +256,11 @@ function assertEventIsEditable(status: EventStatus): void {
 }
 
 function assertEventDetailsEditable(event: EventRecord): void {
-  if (event._count.registrations > 0) {
-    throw new AppError(409, 'Нельзя редактировать событие, на которое уже зарегистрировались игроки');
+  if (event.status !== EventStatus.REGISTRATION || event._count.registrations > 0) {
+    throw new AppError(
+      409,
+      'Редактировать можно только события в статусе «Регистрация» без зарегистрированных игроков',
+    );
   }
 }
 

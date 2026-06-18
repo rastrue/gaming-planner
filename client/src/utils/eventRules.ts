@@ -12,7 +12,7 @@ export function canEditEventDetails(event: {
   status: EventStatus;
   _count: { registrations: number };
 }): boolean {
-  return isEventEditable(event.status) && event._count.registrations === 0;
+  return event.status === 'REGISTRATION' && event._count.registrations === 0;
 }
 
 export function canCancelOpenEvent(status: EventStatus): boolean {
