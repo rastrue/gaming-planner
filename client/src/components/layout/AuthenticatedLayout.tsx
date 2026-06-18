@@ -28,7 +28,7 @@ function getPageMeta(pathname: string): { title: string; description?: string } 
   }
 
   if (/^\/organizer\/events\/\d+\/edit/.test(pathname)) {
-    return { title: 'Редактирование события', description: 'Обновление деталей и расписания события.' };
+    return { title: 'Редактирование события' };
   }
 
   if (pathname === '/organizer/events') {

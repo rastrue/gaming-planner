@@ -17,6 +17,10 @@ export default function PageHeader({
   actions,
   className,
 }: PageHeaderProps) {
+  if (!title && !description && !breadcrumbs?.length && !actions) {
+    return null;
+  }
+
   return (
     <header className={cn('space-y-3 border-b border-slate-200 px-4 py-4 md:px-6 dark:border-slate-800', className)}>
       {breadcrumbs && breadcrumbs.length > 0 ? <Breadcrumbs items={breadcrumbs} /> : null}
