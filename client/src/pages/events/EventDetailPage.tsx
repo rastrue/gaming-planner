@@ -333,11 +333,7 @@ export default function EventDetailPage() {
           <Card title="Ваша доступность" description="Окна доступности в день проведения события.">
             {matchingAvailability.length === 0 ? (
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                У вас нет окон доступности в{' '}
-                {weekdayLabelsLong[new Date(event.scheduledStart).getDay()]}.{' '}
-                <Link to="/availability" className="font-medium text-primary-600 dark:text-primary-400">
-                  Обновить доступность
-                </Link>
+                У вас нет окон доступности в {weekdayLabelsLong[new Date(event.scheduledStart).getDay()]}.
               </p>
             ) : (
               <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
