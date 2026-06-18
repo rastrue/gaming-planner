@@ -8,6 +8,12 @@ export interface EventLifecycleInput {
 
 const TERMINAL_STATUSES = new Set<EventStatus>([EventStatus.COMPLETED, EventStatus.CANCELLED]);
 
+const REGISTRATION_CLOSE_OFFSET_MS = 60 * 60 * 1000;
+
+export function computeRegistrationDeadline(scheduledStart: Date): Date {
+  return new Date(scheduledStart.getTime() - REGISTRATION_CLOSE_OFFSET_MS);
+}
+
 export function resolveEventStatus(event: EventLifecycleInput, now = Date.now()): EventStatus {
   if (event.status === EventStatus.DRAFT || TERMINAL_STATUSES.has(event.status)) {
     return event.status;

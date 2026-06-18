@@ -279,7 +279,7 @@ export default function EventDetailPage() {
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card title="Расписание" description="Время проведения и срок регистрации.">
+        <Card title="Расписание" description="Время проведения. Регистрация закрывается за час до начала.">
           <dl className="space-y-3 text-sm">
             <div>
               <dt className="font-medium text-slate-700 dark:text-slate-200">Начало</dt>
@@ -290,7 +290,7 @@ export default function EventDetailPage() {
               <dd className="text-slate-600 dark:text-slate-400">{formatDateTime(event.scheduledEnd)}</dd>
             </div>
             <div>
-              <dt className="font-medium text-slate-700 dark:text-slate-200">Срок регистрации</dt>
+              <dt className="font-medium text-slate-700 dark:text-slate-200">Регистрация до</dt>
               <dd className="text-slate-600 dark:text-slate-400">
                 {formatDateTime(event.registrationDeadline)}
               </dd>

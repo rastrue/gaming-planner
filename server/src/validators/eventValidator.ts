@@ -48,7 +48,6 @@ const eventFieldsSchema = z.object({
     .max(64, 'Регион сервера должен содержать не более 64 символов'),
   scheduledStart: z.coerce.date({ invalid_type_error: 'Некорректная дата начала' }),
   scheduledEnd: z.coerce.date({ invalid_type_error: 'Некорректная дата окончания' }),
-  registrationDeadline: z.coerce.date({ invalid_type_error: 'Некорректный срок регистрации' }),
   maxPlayers: z.coerce.number().int().positive('Максимум игроков должен быть не меньше 1'),
   status: z.nativeEnum(EventStatus, {
     errorMap: () => ({ message: 'Недопустимый статус события' }),
@@ -63,14 +62,6 @@ export const createEventSchema = createEventFieldsSchema.superRefine((data, ctx)
       code: z.ZodIssueCode.custom,
       message: 'Время окончания должно быть позже времени начала',
       path: ['scheduledEnd'],
-    });
-  }
-
-  if (data.registrationDeadline > data.scheduledStart) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Срок регистрации должен быть не позже времени начала',
-      path: ['registrationDeadline'],
     });
   }
 });

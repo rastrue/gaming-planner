@@ -246,7 +246,6 @@ export interface CreateEventInput {
   serverRegion: string;
   scheduledStart: string;
   scheduledEnd: string;
-  registrationDeadline: string;
   maxPlayers: number;
 }
 

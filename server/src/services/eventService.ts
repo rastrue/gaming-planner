@@ -3,6 +3,7 @@ import { eventFitsAvailability } from '../lib/availabilityFit.js';
 import {
   canCancelPublishedEvent,
   canCompleteEventStatus,
+  computeRegistrationDeadline,
   resolveEventStatus,
 } from '../lib/eventLifecycle.js';
 import { AppError } from '../lib/errors.js';
@@ -271,6 +272,7 @@ export async function createEvent(
   return prisma.event.create({
     data: {
       ...input,
+      registrationDeadline: computeRegistrationDeadline(input.scheduledStart),
       status: EventStatus.DRAFT,
       organizerId,
     },
@@ -304,17 +306,12 @@ export async function updateEvent(
     }
   }
 
-  if (input.scheduledStart || input.scheduledEnd || input.registrationDeadline) {
+  if (input.scheduledStart || input.scheduledEnd) {
     const scheduledStart = input.scheduledStart ?? syncedCurrent.scheduledStart;
     const scheduledEnd = input.scheduledEnd ?? syncedCurrent.scheduledEnd;
-    const registrationDeadline = input.registrationDeadline ?? syncedCurrent.registrationDeadline;
 
     if (scheduledEnd <= scheduledStart) {
       throw new AppError(400, 'Время окончания должно быть позже времени начала');
-    }
-
-    if (registrationDeadline > scheduledStart) {
-      throw new AppError(400, 'Срок регистрации должен быть не позже времени начала');
     }
   }
 
@@ -323,9 +320,17 @@ export async function updateEvent(
     assertCanCompleteEvent(scheduledStart);
   }
 
+  const data: Prisma.EventUpdateInput = { ...input };
+
+  if (input.scheduledStart) {
+    data.registrationDeadline = computeRegistrationDeadline(
+      input.scheduledStart ?? syncedCurrent.scheduledStart,
+    );
+  }
+
   const updated = await prisma.event.update({
     where: { id },
-    data: input,
+    data,
     select: eventSelect,
   });
 

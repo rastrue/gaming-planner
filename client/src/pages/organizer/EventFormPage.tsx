@@ -43,14 +43,9 @@ function defaultScheduleValues() {
   const end = new Date(start);
   end.setHours(22, 0, 0, 0);
 
-  const deadline = new Date(start);
-  deadline.setDate(deadline.getDate() - 1);
-  deadline.setHours(23, 59, 0, 0);
-
   return {
     scheduledStart: toDateTimeLocalValue(start.toISOString()),
     scheduledEnd: toDateTimeLocalValue(end.toISOString()),
-    registrationDeadline: toDateTimeLocalValue(deadline.toISOString()),
   };
 }
 
@@ -62,7 +57,6 @@ function applyEventToForm(event: Event) {
     serverRegion: event.serverRegion,
     scheduledStart: toDateTimeLocalValue(event.scheduledStart),
     scheduledEnd: toDateTimeLocalValue(event.scheduledEnd),
-    registrationDeadline: toDateTimeLocalValue(event.registrationDeadline),
     maxPlayers: String(event.maxPlayers),
   };
 }
@@ -89,7 +83,6 @@ export default function EventFormPage() {
   const [serverRegion, setServerRegion] = useState('');
   const [scheduledStart, setScheduledStart] = useState(defaults.scheduledStart);
   const [scheduledEnd, setScheduledEnd] = useState(defaults.scheduledEnd);
-  const [registrationDeadline, setRegistrationDeadline] = useState(defaults.registrationDeadline);
   const [maxPlayers, setMaxPlayers] = useState('10');
 
   useEffect(() => {
@@ -131,7 +124,6 @@ export default function EventFormPage() {
           setServerRegion(formValues.serverRegion);
           setScheduledStart(formValues.scheduledStart);
           setScheduledEnd(formValues.scheduledEnd);
-          setRegistrationDeadline(formValues.registrationDeadline);
           setMaxPlayers(formValues.maxPlayers);
         } else if (gameList.length > 0) {
           setGameId(String(gameList.find((game) => game.isActive)?.id ?? gameList[0].id));
@@ -157,15 +149,9 @@ export default function EventFormPage() {
   const validateLocally = (): boolean => {
     const start = new Date(scheduledStart);
     const end = new Date(scheduledEnd);
-    const deadline = new Date(registrationDeadline);
 
     if (end <= start) {
       setFormError('Время окончания должно быть позже времени начала.');
-      return false;
-    }
-
-    if (deadline > start) {
-      setFormError('Срок регистрации должен быть не позже времени начала.');
       return false;
     }
 
@@ -179,7 +165,6 @@ export default function EventFormPage() {
     serverRegion: serverRegion.trim(),
     scheduledStart: fromDateTimeLocalValue(scheduledStart),
     scheduledEnd: fromDateTimeLocalValue(scheduledEnd),
-    registrationDeadline: fromDateTimeLocalValue(registrationDeadline),
     maxPlayers: Number(maxPlayers),
   });
 
@@ -262,7 +247,7 @@ export default function EventFormPage() {
 
       <Card
         title={isEditMode ? 'Детали события' : 'Новое событие'}
-        description="Укажите игру, расписание, окно регистрации и вместимость."
+        description="Укажите игру, расписание и вместимость. Регистрация закрывается автоматически за час до начала."
       >
         <form className="space-y-4" onSubmit={handleSubmit} noValidate>
           <SelectDropdown
@@ -328,27 +313,16 @@ export default function EventFormPage() {
             />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <TextInput
-              label="Срок регистрации"
-              name="registrationDeadline"
-              type="datetime-local"
-              value={registrationDeadline}
-              onChange={(event) => setRegistrationDeadline(event.target.value)}
-              error={fieldErrors.registrationDeadline}
-              required
-            />
-            <TextInput
-              label="Макс. игроков"
-              name="maxPlayers"
-              type="number"
-              min={1}
-              value={maxPlayers}
-              onChange={(event) => setMaxPlayers(event.target.value)}
-              error={fieldErrors.maxPlayers}
-              required
-            />
-          </div>
+          <TextInput
+            label="Макс. игроков"
+            name="maxPlayers"
+            type="number"
+            min={1}
+            value={maxPlayers}
+            onChange={(event) => setMaxPlayers(event.target.value)}
+            error={fieldErrors.maxPlayers}
+            required
+          />
 
           {formError ? (
             <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">

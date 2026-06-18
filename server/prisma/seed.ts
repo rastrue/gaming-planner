@@ -118,9 +118,7 @@ function inDays(base: Date, days: number, startHour = 18, durationHours = 4): {
   const scheduledEnd = new Date(scheduledStart);
   scheduledEnd.setHours(scheduledStart.getHours() + durationHours);
 
-  const registrationDeadline = new Date(scheduledStart);
-  registrationDeadline.setDate(registrationDeadline.getDate() - 1);
-  registrationDeadline.setHours(23, 59, 0, 0);
+  const registrationDeadline = new Date(scheduledStart.getTime() - 60 * 60 * 1000);
 
   return { scheduledStart, scheduledEnd, registrationDeadline };
 }
