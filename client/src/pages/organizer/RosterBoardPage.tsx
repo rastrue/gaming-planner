@@ -59,7 +59,7 @@ function readDraggedRegistrationId(event: DragEvent): number | null {
 }
 
 export default function RosterBoardPage() {
-  const { eventId: eventIdParam } = useParams();
+  const { id: eventIdParam } = useParams();
   const eventId = Number(eventIdParam);
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useAuth();
@@ -300,8 +300,8 @@ export default function RosterBoardPage() {
         title="Состав недоступен"
         description={loadError || 'Событие не найдено.'}
         action={
-          <Link to="/organizer/roster">
-            <Button variant="secondary">Назад к составам</Button>
+          <Link to="/organizer/events">
+            <Button variant="secondary">Назад к событиям</Button>
           </Link>
         }
       />
@@ -329,9 +329,9 @@ export default function RosterBoardPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link to="/organizer/roster">
+          <Link to="/organizer/events">
             <Button type="button" variant="ghost">
-              Назад к составам
+              Назад к событиям
             </Button>
           </Link>
         </div>

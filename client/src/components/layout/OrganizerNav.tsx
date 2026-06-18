@@ -1,4 +1,4 @@
-import { CalendarClock, ClipboardList, Users } from 'lucide-react';
+import { CalendarClock, ClipboardList } from 'lucide-react';
 import SidebarNav, { type SidebarNavItem } from '../ui/SidebarNav';
 
 export interface OrganizerNavProps {
@@ -23,13 +23,9 @@ export default function OrganizerNav({
       label: 'Управление событиями',
       href: '/organizer/events',
       icon: <ClipboardList className="h-4 w-4" />,
-      isActive: isNavItemActive(currentPath, '/organizer/events'),
-    },
-    {
-      label: 'Управление составами',
-      href: '/organizer/roster',
-      icon: <Users className="h-4 w-4" />,
-      isActive: isNavItemActive(currentPath, '/organizer/roster'),
+      isActive:
+        isNavItemActive(currentPath, '/organizer/events') ||
+        /^\/organizer\/events\/\d+\/roster/.test(currentPath),
     },
     {
       label: 'Отчёты и экспорт',

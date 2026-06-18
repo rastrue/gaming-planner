@@ -213,8 +213,13 @@ export default function OrganizerEventsPage() {
                   const canEditDetails = canEditEventDetails(event);
                   const showComplete = canCompleteEvent(event);
                   const showCancel = canCancelOpenEvent(event.status);
+                  const showRosterBoard = editable;
+                  const showAttendance = event.status === 'COMPLETED';
 
-                  if (!editable || (!canEditDetails && !showComplete && !showCancel)) {
+                  const hasEventActions = editable && (showCancel || showComplete || canEditDetails);
+                  const hasRosterActions = showRosterBoard || showAttendance;
+
+                  if (!hasEventActions && !hasRosterActions) {
                     return <TableActionPlaceholder />;
                   }
 
@@ -246,6 +251,20 @@ export default function OrganizerEventsPage() {
                         <Link to={`/organizer/events/${event.id}/edit`}>
                           <Button type="button" variant="secondary" size="sm">
                             Редактировать
+                          </Button>
+                        </Link>
+                      ) : null}
+                      {showRosterBoard ? (
+                        <Link to={`/organizer/events/${event.id}/roster`}>
+                          <Button type="button" size="sm">
+                            Состав
+                          </Button>
+                        </Link>
+                      ) : null}
+                      {showAttendance ? (
+                        <Link to={`/organizer/events/${event.id}/roster`}>
+                          <Button type="button" size="sm" variant="secondary">
+                            Посещаемость
                           </Button>
                         </Link>
                       ) : null}

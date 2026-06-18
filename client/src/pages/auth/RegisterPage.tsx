@@ -116,7 +116,7 @@ export default function RegisterPage() {
               {
                 value: 'ORGANIZER',
                 label: 'Организатор',
-                description: 'Управление событиями, управление составами и учёт посещаемости.',
+                description: 'Управление событиями, составом и учёт посещаемости.',
               },
             ]}
           />
