@@ -17,6 +17,7 @@ import type { AttendanceStatus, Event, EventSlot, EventStatus, Registration } fr
 import { formatEventStatus } from '../../i18n/labels';
 import { isEventEditable } from '../../utils/eventRules';
 import RegistrationReviewPanel from './RegistrationReviewPanel';
+import EventSlotEditor from './EventSlotEditor';
 import RosterSlotColumn, {
   PlayerAssignmentCard,
   REGISTRATION_DRAG_TYPE,
@@ -342,6 +343,10 @@ export default function RosterBoardPage() {
       ) : null}
 
       {canEditRoster ? (
+        <EventSlotEditor eventId={event.id} onSlotsChange={() => void loadBoard()} />
+      ) : null}
+
+      {canEditRoster ? (
         <RegistrationReviewPanel
           registrations={registrations}
           busyId={busyRegistrationId}
@@ -402,7 +407,7 @@ export default function RosterBoardPage() {
           title="Слоты состава не определены"
           description={
             canEditRoster
-              ? 'Слоты для этого события не определены. Добавьте их в разделе «Управление событиями».'
+              ? 'Добавьте слоты состава в блоке «Слоты состава» выше перед назначением игроков.'
               : 'Для этого события слоты состава не были определены.'
           }
         />

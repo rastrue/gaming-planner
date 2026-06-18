@@ -16,7 +16,6 @@ import { upsertEvent } from '../../store/eventsSlice';
 import type { AppDispatch } from '../../store/store';
 import type { ApiFieldError, CreateEventInput, Event, Game } from '../../types/index';
 import { isEventEditable } from '../../utils/eventRules';
-import EventSlotEditor from './EventSlotEditor';
 
 function mapFieldErrors(errors?: ApiFieldError[]): Record<string, string> {
   const mapped: Record<string, string> = {};
@@ -77,7 +76,6 @@ export default function EventFormPage() {
   const { user } = useAuth();
 
   const [games, setGames] = useState<Game[]>([]);
-  const [savedEvent, setSavedEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(isEditMode);
   const [loadError, setLoadError] = useState('');
   const [formError, setFormError] = useState('');
@@ -127,7 +125,6 @@ export default function EventFormPage() {
           }
 
           const formValues = applyEventToForm(event);
-          setSavedEvent(event);
           setGameId(formValues.gameId);
           setTitle(formValues.title);
           setDescription(formValues.description);
@@ -203,7 +200,6 @@ export default function EventFormPage() {
       if (isEditMode && eventId) {
         const updated = await eventService.updateEvent(eventId, payload);
         dispatch(upsertEvent(updated));
-        setSavedEvent(updated);
       } else {
         const created = await eventService.createEvent(payload);
         dispatch(upsertEvent(created));
@@ -248,15 +244,13 @@ export default function EventFormPage() {
     label: `${game.title} (${game.platform})`,
   }));
 
-  const slotEventId = savedEvent?.id ?? (isEditMode ? eventId : null);
-
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-slate-600 dark:text-slate-400">
           {isEditMode
-            ? 'Обновите детали события и управляйте требованиями к слотам состава.'
-            : 'Создайте новое событие, затем определите слоты состава после сохранения.'}
+            ? 'Обновите детали события: игра, расписание и вместимость.'
+            : 'Создайте новое событие с расписанием и параметрами регистрации.'}
         </p>
         <Link to="/organizer/events">
           <Button type="button" variant="secondary">
@@ -373,8 +367,6 @@ export default function EventFormPage() {
           </div>
         </form>
       </Card>
-
-      {slotEventId ? <EventSlotEditor eventId={slotEventId} /> : null}
     </div>
   );
 }

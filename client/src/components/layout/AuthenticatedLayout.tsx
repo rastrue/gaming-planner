@@ -40,7 +40,7 @@ function getPageMeta(pathname: string): { title: string; description?: string } 
   }
 
   if (/^\/organizer\/roster\/\d+/.test(pathname)) {
-    return { title: 'Доска состава', description: 'Назначение одобренных игроков на слоты состава.' };
+    return { title: 'Доска состава', description: 'Слоты, регистрации и назначение игроков на состав.' };
   }
 
   if (pathname === '/organizer/roster') {

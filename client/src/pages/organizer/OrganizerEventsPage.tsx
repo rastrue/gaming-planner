@@ -222,16 +222,6 @@ export default function OrganizerEventsPage() {
                   const editable = isEventEditable(event.status);
 
                   if (!editable) {
-                    if (event.status === 'COMPLETED') {
-                      return (
-                        <Link to={`/organizer/roster/${event.id}`}>
-                          <Button type="button" variant="secondary" size="sm">
-                            Посещаемость
-                          </Button>
-                        </Link>
-                      );
-                    }
-
                     return <TableActionPlaceholder />;
                   }
 
@@ -240,11 +230,6 @@ export default function OrganizerEventsPage() {
                       <Link to={`/organizer/events/${event.id}/edit`}>
                         <Button type="button" variant="secondary" size="sm">
                           Редактировать
-                        </Button>
-                      </Link>
-                      <Link to={`/organizer/roster/${event.id}`}>
-                        <Button type="button" variant="ghost" size="sm">
-                          Состав
                         </Button>
                       </Link>
                       {event.status === 'DRAFT' ? (

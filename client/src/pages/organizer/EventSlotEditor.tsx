@@ -20,9 +20,10 @@ function mapFieldErrors(errors?: { field: string; message: string }[]): Record<s
 
 export interface EventSlotEditorProps {
   eventId: number;
+  onSlotsChange?: () => void;
 }
 
-export default function EventSlotEditor({ eventId }: EventSlotEditorProps) {
+export default function EventSlotEditor({ eventId, onSlotsChange }: EventSlotEditorProps) {
   const [slots, setSlots] = useState<EventSlot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -103,11 +104,13 @@ export default function EventSlotEditor({ eventId }: EventSlotEditorProps) {
           .sort((a, b) => a.displayOrder - b.displayOrder);
         setSlots(nextSlots);
         resetForm(nextSlots);
+        onSlotsChange?.();
       } else {
         const created = await rosterService.createEventSlot(eventId, payload);
         const nextSlots = [...slots, created].sort((a, b) => a.displayOrder - b.displayOrder);
         setSlots(nextSlots);
         resetForm(nextSlots);
+        onSlotsChange?.();
       }
     } catch (error) {
       if (error instanceof ApiError) {
@@ -137,6 +140,7 @@ export default function EventSlotEditor({ eventId }: EventSlotEditorProps) {
         resetForm(nextSlots);
       }
       setDeleteTarget(null);
+      onSlotsChange?.();
     } catch (error) {
       if (error instanceof ApiError) {
         setFormError(error.message);
