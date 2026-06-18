@@ -57,11 +57,12 @@ const GAME_DEFINITIONS: Array<{ slug: string; title: string; genre: GameGenre; p
 
 const EVENT_STATUS_WEIGHTS: Array<{ status: EventStatus; weight: number }> = [
   { status: EventStatus.DRAFT, weight: 12 },
-  { status: EventStatus.OPEN, weight: 22 },
-  { status: EventStatus.FULL, weight: 10 },
-  { status: EventStatus.CLOSED, weight: 10 },
+  { status: EventStatus.REGISTRATION, weight: 18 },
+  { status: EventStatus.FULL, weight: 8 },
+  { status: EventStatus.WAITING, weight: 12 },
+  { status: EventStatus.STARTED, weight: 10 },
   { status: EventStatus.COMPLETED, weight: 28 },
-  { status: EventStatus.CANCELLED, weight: 18 },
+  { status: EventStatus.CANCELLED, weight: 12 },
 ];
 
 const EVENT_TITLE_PREFIXES = [
@@ -130,11 +131,13 @@ function statusDayOffset(status: EventStatus, index: number): number {
       return -((index % 45) + 3);
     case EventStatus.CANCELLED:
       return -((index % 20) + 1);
-    case EventStatus.CLOSED:
+    case EventStatus.STARTED:
+      return -((index % 8) + 1);
+    case EventStatus.WAITING:
       return (index % 5) + 1;
     case EventStatus.FULL:
       return (index % 12) + 2;
-    case EventStatus.OPEN:
+    case EventStatus.REGISTRATION:
       return (index % 30) + 3;
     case EventStatus.DRAFT:
     default:
@@ -345,7 +348,7 @@ async function main() {
 
       if (event.status === EventStatus.COMPLETED) {
         status = RegistrationStatus.APPROVED;
-      } else if (event.status === EventStatus.FULL || event.status === EventStatus.CLOSED) {
+      } else if (event.status === EventStatus.FULL || event.status === EventStatus.WAITING) {
         status = playerIndex < event.maxPlayers ? RegistrationStatus.APPROVED : RegistrationStatus.PENDING;
       } else {
         status = registrationStatuses[(event.id + playerIndex) % registrationStatuses.length]!;

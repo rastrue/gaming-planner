@@ -5,6 +5,7 @@ import {
   RegistrationStatus,
   UserRoleName,
 } from '@prisma/client';
+import { isRegistrationOpen } from '../lib/eventLifecycle.js';
 import { AppError } from '../lib/errors.js';
 import prisma from '../lib/prisma.js';
 import type { AuthenticatedUser } from '../middleware/authMiddleware.js';
@@ -62,10 +63,6 @@ export interface PaginatedRegistrations {
     total: number;
     totalPages: number;
   };
-}
-
-function isRegistrationOpen(event: { status: EventStatus; registrationDeadline: Date }): boolean {
-  return event.status === EventStatus.OPEN && event.registrationDeadline.getTime() >= Date.now();
 }
 
 async function getRegistrationByIdInternal(id: number): Promise<RegistrationRecord> {
@@ -173,6 +170,7 @@ export async function createRegistration(
       id: true,
       status: true,
       registrationDeadline: true,
+      scheduledStart: true,
     },
   });
 

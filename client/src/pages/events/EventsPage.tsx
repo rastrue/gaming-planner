@@ -30,14 +30,17 @@ function formatEventDate(value: string): string {
 
 function statusVariant(status: EventStatus) {
   switch (status) {
-    case 'OPEN':
+    case 'REGISTRATION':
       return 'success';
     case 'FULL':
       return 'warning';
+    case 'WAITING':
+      return 'default';
+    case 'STARTED':
+      return 'info';
     case 'COMPLETED':
       return 'info';
     case 'CANCELLED':
-    case 'CLOSED':
       return 'danger';
     default:
       return 'default';

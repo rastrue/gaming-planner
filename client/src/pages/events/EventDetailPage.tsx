@@ -30,6 +30,7 @@ import type {
   Registration,
   RegistrationStatus,
 } from '../../types/index';
+import { isRegistrationOpen } from '../../utils/eventRules';
 
 const dateLocale = 'ru-RU';
 
@@ -52,14 +53,17 @@ function formatMinutes(minute: number): string {
 
 function eventStatusVariant(status: EventStatus) {
   switch (status) {
-    case 'OPEN':
+    case 'REGISTRATION':
       return 'success';
     case 'FULL':
       return 'warning';
+    case 'WAITING':
+      return 'default';
+    case 'STARTED':
+      return 'info';
     case 'COMPLETED':
       return 'info';
     case 'CANCELLED':
-    case 'CLOSED':
       return 'danger';
     default:
       return 'default';
@@ -77,13 +81,6 @@ function registrationStatusVariant(status: RegistrationStatus) {
     default:
       return 'default';
   }
-}
-
-function isRegistrationOpen(event: Event): boolean {
-  return (
-    event.status === 'OPEN' &&
-    new Date(event.registrationDeadline).getTime() >= Date.now()
-  );
 }
 
 export default function EventDetailPage() {

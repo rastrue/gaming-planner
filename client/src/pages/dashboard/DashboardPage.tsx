@@ -28,16 +28,19 @@ function formatEventDate(value: string): string {
 
 function eventStatusVariant(status: EventStatus) {
   switch (status) {
-    case 'OPEN':
+    case 'REGISTRATION':
       return 'success';
     case 'DRAFT':
       return 'default';
     case 'FULL':
       return 'warning';
+    case 'WAITING':
+      return 'default';
+    case 'STARTED':
+      return 'info';
     case 'COMPLETED':
       return 'info';
     case 'CANCELLED':
-    case 'CLOSED':
       return 'danger';
     default:
       return 'default';
@@ -116,7 +119,7 @@ export default function OrganizerDashboard() {
   const stats = useMemo(
     () => ({
       totalEvents: myEvents.length,
-      openEvents: myEvents.filter((event) => event.status === 'OPEN').length,
+      openEvents: myEvents.filter((event) => event.status === 'REGISTRATION').length,
       pendingReviews: registrations.length,
       completedEvents: myEvents.filter((event) => event.status === 'COMPLETED').length,
     }),
@@ -169,7 +172,7 @@ export default function OrganizerDashboard() {
           <Card title="Управляемые события" description="События, которые вы организуете.">
             <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.totalEvents}</p>
           </Card>
-          <Card title="Открыты для регистрации" description="Сейчас принимают игроков.">
+          <Card title="Регистрация" description="События, которые сейчас принимают игроков.">
             <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{stats.openEvents}</p>
           </Card>
           <Card title="Ожидают проверки" description="Регистрации, ожидающие одобрения.">

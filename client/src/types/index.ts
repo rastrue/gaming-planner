@@ -10,7 +10,7 @@ export type GameGenre =
   | 'SPORTS'
   | 'OTHER';
 
-export type EventStatus = 'DRAFT' | 'OPEN' | 'FULL' | 'CLOSED' | 'COMPLETED' | 'CANCELLED';
+export type EventStatus = 'DRAFT' | 'REGISTRATION' | 'FULL' | 'WAITING' | 'STARTED' | 'COMPLETED' | 'CANCELLED';
 
 export type RegistrationStatus = 'PENDING' | 'APPROVED' | 'DECLINED' | 'CANCELLED';
 

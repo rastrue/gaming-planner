@@ -15,6 +15,7 @@ import { ApiError } from '../../services/apiClient';
 import { setRegistrations, upsertRegistration } from '../../store/registrationsSlice';
 import type { AppDispatch, RootState } from '../../store/store';
 import type { Registration, RegistrationStatus } from '../../types/index';
+import { isRegistrationOpen } from '../../utils/eventRules';
 
 const dateLocale = 'ru-RU';
 
@@ -44,8 +45,7 @@ function registrationStatusVariant(status: RegistrationStatus) {
 function canCancelRegistration(registration: Registration): boolean {
   return (
     ['PENDING', 'APPROVED'].includes(registration.status) &&
-    registration.event.status === 'OPEN' &&
-    new Date(registration.event.registrationDeadline).getTime() >= Date.now()
+    isRegistrationOpen(registration.event)
   );
 }
 

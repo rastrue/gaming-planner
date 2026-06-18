@@ -1,5 +1,11 @@
 import { EventStatus, Prisma, UserRoleName } from '@prisma/client';
 import { eventFitsAvailability } from '../lib/availabilityFit.js';
+import {
+  canCancelPublishedEvent,
+  canCompleteEventStatus,
+  canManuallyCloseRegistration,
+  resolveEventStatus,
+} from '../lib/eventLifecycle.js';
 import { AppError } from '../lib/errors.js';
 import prisma from '../lib/prisma.js';
 import type {
@@ -93,6 +99,55 @@ function buildEventOrderBy(
   return { [sort]: order };
 }
 
+async function syncEventLifecycle(event: EventRecord): Promise<EventRecord> {
+  const resolved = resolveEventStatus(event);
+
+  if (resolved === event.status) {
+    return event;
+  }
+
+  return prisma.event.update({
+    where: { id: event.id },
+    data: { status: resolved },
+    select: eventSelect,
+  });
+}
+
+async function syncEvents(events: EventRecord[]): Promise<EventRecord[]> {
+  return Promise.all(events.map((event) => syncEventLifecycle(event)));
+}
+
+function assertAllowedStatusTransition(current: EventRecord, next: EventStatus): void {
+  if (next === current.status) {
+    return;
+  }
+
+  if (next === EventStatus.REGISTRATION && current.status === EventStatus.DRAFT) {
+    return;
+  }
+
+  if (next === EventStatus.WAITING && canManuallyCloseRegistration(current.status)) {
+    return;
+  }
+
+  if (next === EventStatus.COMPLETED) {
+    assertCanCompleteEvent(current.scheduledStart);
+
+    if (!canCompleteEventStatus(current.status, current.scheduledStart)) {
+      throw new AppError(409, 'Завершить можно только событие в ожидании или уже начавшееся');
+    }
+
+    return;
+  }
+
+  if (next === EventStatus.CANCELLED) {
+    assertCanCancelEvent(current.status);
+    return;
+  }
+
+  throw new AppError(400, 'Недопустимый переход статуса события');
+}
+
 export async function listEvents(
   query: ListEventsQuery,
   availabilityUserId?: number,
@@ -127,7 +182,7 @@ export async function listEvents(
     const total = filtered.length;
     const totalPages = Math.max(1, Math.ceil(total / query.pageSize));
     const start = (query.page - 1) * query.pageSize;
-    const events = filtered.slice(start, start + query.pageSize);
+    const events = await syncEvents(filtered.slice(start, start + query.pageSize));
 
     return {
       events,
@@ -151,8 +206,10 @@ export async function listEvents(
     }),
   ]);
 
+  const syncedEvents = await syncEvents(events);
+
   return {
-    events,
+    events: syncedEvents,
     pagination: {
       page: query.page,
       pageSize: query.pageSize,
@@ -172,7 +229,7 @@ export async function getEventById(id: number): Promise<EventRecord> {
     throw new AppError(404, 'Событие не найдено');
   }
 
-  return event;
+  return syncEventLifecycle(event);
 }
 
 async function assertOrganizerOwnsEvent(eventId: number, organizerId: number): Promise<EventRecord> {
@@ -195,8 +252,8 @@ function assertCanCompleteEvent(scheduledStart: Date): void {
 }
 
 function assertCanCancelEvent(currentStatus: EventStatus): void {
-  if (currentStatus !== EventStatus.OPEN) {
-    throw new AppError(409, 'Отменить можно только открытое событие');
+  if (!canCancelPublishedEvent(currentStatus)) {
+    throw new AppError(409, 'Отменить можно только событие в регистрации или ожидании');
   }
 }
 
@@ -232,11 +289,16 @@ export async function updateEvent(
   organizerId: number,
 ): Promise<EventRecord> {
   const current = await assertOrganizerOwnsEvent(id, organizerId);
+  const syncedCurrent = await syncEventLifecycle(current);
 
-  assertEventIsEditable(current.status);
+  assertEventIsEditable(syncedCurrent.status);
+
+  if (input.status) {
+    assertAllowedStatusTransition(syncedCurrent, input.status);
+  }
 
   if (input.status === EventStatus.CANCELLED) {
-    assertCanCancelEvent(current.status);
+    assertCanCancelEvent(syncedCurrent.status);
   }
 
   if (input.gameId) {
@@ -248,10 +310,9 @@ export async function updateEvent(
   }
 
   if (input.scheduledStart || input.scheduledEnd || input.registrationDeadline) {
-    const current = await getEventById(id);
-    const scheduledStart = input.scheduledStart ?? current.scheduledStart;
-    const scheduledEnd = input.scheduledEnd ?? current.scheduledEnd;
-    const registrationDeadline = input.registrationDeadline ?? current.registrationDeadline;
+    const scheduledStart = input.scheduledStart ?? syncedCurrent.scheduledStart;
+    const scheduledEnd = input.scheduledEnd ?? syncedCurrent.scheduledEnd;
+    const registrationDeadline = input.registrationDeadline ?? syncedCurrent.registrationDeadline;
 
     if (scheduledEnd <= scheduledStart) {
       throw new AppError(400, 'Время окончания должно быть позже времени начала');
@@ -263,22 +324,24 @@ export async function updateEvent(
   }
 
   if (input.status === EventStatus.COMPLETED) {
-    const scheduledStart = input.scheduledStart ?? current.scheduledStart;
+    const scheduledStart = input.scheduledStart ?? syncedCurrent.scheduledStart;
     assertCanCompleteEvent(scheduledStart);
   }
 
-  return prisma.event.update({
+  const updated = await prisma.event.update({
     where: { id },
     data: input,
     select: eventSelect,
   });
+
+  return syncEventLifecycle(updated);
 }
 
 export async function deleteEvent(id: number, organizerId: number): Promise<void> {
   await assertOrganizerOwnsEvent(id, organizerId);
   throw new AppError(
     409,
-    'События нельзя удалять. Отмените открытое событие, чтобы сохранить историю.',
+    'События нельзя удалять. Отмените опубликованное событие, чтобы сохранить историю.',
   );
 }
 

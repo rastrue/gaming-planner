@@ -15,7 +15,7 @@ import { setEvents, upsertEvent } from '../../store/eventsSlice';
 import type { AppDispatch, RootState } from '../../store/store';
 import { formatEventStatus } from '../../i18n/labels';
 import type { Event, EventStatus } from '../../types/index';
-import { canCancelOpenEvent, isEventEditable } from '../../utils/eventRules';
+import { canCancelOpenEvent, canCompleteEventStatus, canManuallyCloseRegistration, isEventEditable } from '../../utils/eventRules';
 
 const PAGE_SIZE = 10;
 const dateLocale = 'ru-RU';
@@ -30,30 +30,25 @@ function formatEventDate(value: string): string {
   });
 }
 
-function hasEventStarted(event: Event): boolean {
-  return new Date(event.scheduledStart).getTime() <= Date.now();
-}
-
 function canCompleteEvent(event: Event): boolean {
-  return (
-    isEventEditable(event.status) &&
-    hasEventStarted(event) &&
-    (event.status === 'CLOSED' || event.status === 'OPEN' || event.status === 'FULL')
-  );
+  return canCompleteEventStatus(event.status, event.scheduledStart);
 }
 
 function eventStatusVariant(status: EventStatus) {
   switch (status) {
-    case 'OPEN':
+    case 'REGISTRATION':
       return 'success';
     case 'DRAFT':
       return 'default';
     case 'FULL':
       return 'warning';
+    case 'WAITING':
+      return 'default';
+    case 'STARTED':
+      return 'info';
     case 'COMPLETED':
       return 'info';
     case 'CANCELLED':
-    case 'CLOSED':
       return 'danger';
     default:
       return 'default';
@@ -237,20 +232,20 @@ export default function OrganizerEventsPage() {
                           type="button"
                           size="sm"
                           disabled={isBusy}
-                          onClick={() => void updateStatus(event, 'OPEN')}
+                          onClick={() => void updateStatus(event, 'REGISTRATION')}
                         >
                           Опубликовать
                         </Button>
                       ) : null}
-                      {event.status === 'OPEN' || event.status === 'FULL' ? (
+                      {canManuallyCloseRegistration(event.status) ? (
                         <Button
                           type="button"
                           variant="secondary"
                           size="sm"
                           disabled={isBusy}
-                          onClick={() => void updateStatus(event, 'CLOSED')}
+                          onClick={() => void updateStatus(event, 'WAITING')}
                         >
-                          Закрыть
+                          Закрыть регистрацию
                         </Button>
                       ) : null}
                       {canCompleteEvent(event) ? (

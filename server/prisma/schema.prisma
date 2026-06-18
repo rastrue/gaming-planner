@@ -25,9 +25,10 @@ enum GameGenre {
 
 enum EventStatus {
   DRAFT
-  OPEN
+  REGISTRATION
   FULL
-  CLOSED
+  WAITING
+  STARTED
   COMPLETED
   CANCELLED
 }

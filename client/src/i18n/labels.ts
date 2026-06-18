@@ -10,9 +10,10 @@ import type {
 
 export const eventStatusLabels: Record<EventStatus, string> = {
   DRAFT: 'Черновик',
-  OPEN: 'Открыто',
+  REGISTRATION: 'Регистрация',
   FULL: 'Заполнено',
-  CLOSED: 'Закрыто',
+  WAITING: 'Ожидание',
+  STARTED: 'Уже началось',
   COMPLETED: 'Завершено',
   CANCELLED: 'Отменено',
 };
