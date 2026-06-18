@@ -13,7 +13,6 @@ import MyRegistrationsPage from './pages/registrations/MyRegistrationsPage';
 import AvailabilityPage from './pages/availability/AvailabilityPage';
 import EventsPage from './pages/events/EventsPage';
 import EventDetailPage from './pages/events/EventDetailPage';
-import DashboardPage from './pages/dashboard/DashboardPage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import ReportsPage from './pages/reports/ReportsPage';
@@ -110,7 +109,6 @@ export default function App() {
             <Route path="/my-registrations" element={<MyRegistrationsPage />} />
 
             <Route element={<RoleRoute allowedRoles={['ORGANIZER']} />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/organizer/events" element={<OrganizerEventsPage />} />
               <Route path="/organizer/events/new" element={<EventFormPage />} />

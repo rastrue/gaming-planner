@@ -145,10 +145,7 @@ export default function OrganizerEventsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-slate-600 dark:text-slate-400">
-          Управляйте активными событиями. Завершённые и отменённые события сохраняются только для истории.
-        </p>
+      <div className="flex flex-wrap items-center gap-3">
         <Link to="/organizer/events/new">
           <Button>Создать событие</Button>
         </Link>

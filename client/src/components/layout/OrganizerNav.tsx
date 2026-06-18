@@ -1,9 +1,4 @@
-import {
-  CalendarClock,
-  ClipboardList,
-  LayoutDashboard,
-  Users,
-} from 'lucide-react';
+import { CalendarClock, ClipboardList, Users } from 'lucide-react';
 import SidebarNav, { type SidebarNavItem } from '../ui/SidebarNav';
 
 export interface OrganizerNavProps {
@@ -14,10 +9,6 @@ export interface OrganizerNavProps {
 }
 
 function isNavItemActive(currentPath: string, href: string): boolean {
-  if (href === '/dashboard') {
-    return currentPath === '/dashboard';
-  }
-
   return currentPath === href || currentPath.startsWith(`${href}/`);
 }
 
@@ -28,12 +19,6 @@ export default function OrganizerNav({
   className,
 }: OrganizerNavProps) {
   const items: SidebarNavItem[] = [
-    {
-      label: 'Дашборд',
-      href: '/dashboard',
-      icon: <LayoutDashboard className="h-4 w-4" />,
-      isActive: isNavItemActive(currentPath, '/dashboard'),
-    },
     {
       label: 'Управление событиями',
       href: '/organizer/events',

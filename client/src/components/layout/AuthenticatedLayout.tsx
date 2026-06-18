@@ -3,10 +3,6 @@ import { useAuth } from '../../hooks/useAuth';
 import AppShell from './AppShell';
 
 function getPageMeta(pathname: string): { title: string; description?: string } {
-  if (pathname === '/dashboard') {
-    return { title: 'Дашборд', description: 'Обзор и быстрые действия' };
-  }
-
   if (/^\/events\/\d+/.test(pathname)) {
     return { title: 'Детали события', description: 'Информация о событии, состав и действия по регистрации.' };
   }
@@ -36,7 +32,7 @@ function getPageMeta(pathname: string): { title: string; description?: string } 
   }
 
   if (pathname === '/organizer/events') {
-    return { title: 'Управление событиями', description: 'Рабочая область организатора для управления событиями.' };
+    return { title: 'Управление событиями' };
   }
 
   if (/^\/organizer\/roster\/\d+/.test(pathname)) {

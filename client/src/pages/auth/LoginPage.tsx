@@ -42,8 +42,7 @@ export default function LoginPage() {
 
       const from = locationState?.from;
       const defaultPath = getDefaultAuthenticatedPath(user.role.name);
-      const redirectPath =
-        !from || (from === '/dashboard' && user.role.name === 'PLAYER') ? defaultPath : from;
+      const redirectPath = from ?? defaultPath;
       navigate(redirectPath, { replace: true });
     } catch (error) {
       if (error instanceof ApiError) {

@@ -110,7 +110,7 @@ All seeded users share the password **`Password123!`**
 
 Log in with **username or email** on the `/login` page.
 
-After login, organizers land on `/dashboard`; players land on `/events`.
+After login, organizers land on `/organizer/events`; players land on `/events`.
 
 ---
 
@@ -165,8 +165,8 @@ Run from the **repository root**:
 
 QuestSync has two distinct roles — no separate admin account:
 
-- **Organizer** — dashboard, event management, roster boards, reports. Default route: `/dashboard`.
-- **Player** — event discovery, availability, registrations. Default route: `/events`. No dashboard or reports in navigation.
+- **Organizer** — event management, roster boards, reports. Default route: `/organizer/events`.
+- **Player** — event discovery, availability, registrations. Default route: `/events`. No reports in navigation.
 
 Navigation, landing routes, and permissions differ materially between roles. Roster slot assignment respects each slot's `requiredCount` on both client and server.
 
