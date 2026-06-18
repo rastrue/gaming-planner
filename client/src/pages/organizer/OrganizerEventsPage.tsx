@@ -225,6 +225,13 @@ export default function OrganizerEventsPage() {
 
                   return (
                     <div className="flex flex-wrap gap-2">
+                      {showRosterBoard ? (
+                        <Link to={`/organizer/events/${event.id}/roster`}>
+                          <Button type="button" size="sm">
+                            Состав
+                          </Button>
+                        </Link>
+                      ) : null}
                       {showCancel ? (
                         <Button
                           type="button"
@@ -235,6 +242,13 @@ export default function OrganizerEventsPage() {
                         >
                           Отменить
                         </Button>
+                      ) : null}
+                      {showAttendance ? (
+                        <Link to={`/organizer/events/${event.id}/roster`}>
+                          <Button type="button" size="sm" variant="secondary">
+                            Посещаемость
+                          </Button>
+                        </Link>
                       ) : null}
                       {showComplete ? (
                         <Button
@@ -251,20 +265,6 @@ export default function OrganizerEventsPage() {
                         <Link to={`/organizer/events/${event.id}/edit`}>
                           <Button type="button" variant="secondary" size="sm">
                             Редактировать
-                          </Button>
-                        </Link>
-                      ) : null}
-                      {showRosterBoard ? (
-                        <Link to={`/organizer/events/${event.id}/roster`}>
-                          <Button type="button" size="sm">
-                            Состав
-                          </Button>
-                        </Link>
-                      ) : null}
-                      {showAttendance ? (
-                        <Link to={`/organizer/events/${event.id}/roster`}>
-                          <Button type="button" size="sm" variant="secondary">
-                            Посещаемость
                           </Button>
                         </Link>
                       ) : null}
