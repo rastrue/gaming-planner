@@ -7,8 +7,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "db:generate": "node --env-file=../.env ../node_modules/prisma/build/index.js generate",
-    "db:migrate": "node --env-file=../.env ../node_modules/prisma/build/index.js migrate dev",
+    "db:generate": "node --env-file=.env ../node_modules/prisma/build/index.js generate",
+    "db:migrate": "node --env-file=.env ../node_modules/prisma/build/index.js migrate dev",
     "db:seed": "tsx prisma/seed.ts"
   },
   "prisma": {

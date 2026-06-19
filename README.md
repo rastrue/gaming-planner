@@ -58,13 +58,13 @@ npm install
 
 ### 2. Configure environment
 
-Copy the example env file to the **repo root**:
+Copy the example env file into the **server** workspace:
 
 ```bash
-cp .env.example .env
+cp server/.env.example server/.env
 ```
 
-Edit `.env` and set your PostgreSQL connection string:
+Edit `server/.env` and set your PostgreSQL connection string:
 
 ```env
 DATABASE_URL=postgresql://YOUR_LOGIN:YOUR_PASSWORD@localhost:5432/questsync
@@ -73,7 +73,7 @@ CLIENT_ORIGIN=http://localhost:5173
 JWT_SECRET=change-me-in-production
 ```
 
-Optional: add SMTP settings if you want to test **email delivery** on the Reports page. See `.env.example` for Gmail, Outlook, SendGrid, and other provider templates.
+Optional: add SMTP settings if you want to test **email delivery** on the Reports page. See `server/.env.example` for Gmail, Outlook, SendGrid, and other provider templates.
 
 ### 3. Prepare the database
 
@@ -131,13 +131,13 @@ gaming-planner/
 │   └── .env.development    # Dev API URL override
 ├── server/                 # Express API
 │   ├── prisma/             # Schema, migrations, seed
+│   ├── .env.example        # Server environment template (copy to .env)
 │   └── src/
 │       ├── controllers/
 │       ├── services/
 │       ├── routes/
 │       ├── validators/
 │       └── middleware/
-├── .env.example            # Environment template (copy to .env)
 └── package.json            # npm workspaces root
 ```
 
@@ -176,7 +176,7 @@ Navigation, landing routes, and permissions differ materially between roles. Ros
 
 **`DATABASE_URL` not found during migrate**
 
-Ensure `.env` exists at the **repo root** (not inside `server/`). The migrate scripts load `../.env` automatically.
+Ensure `server/.env` exists. The migrate scripts load it automatically from the server workspace.
 
 **`ERR_CONNECTION_REFUSED` on port 3001**
 
@@ -192,15 +192,15 @@ Expected — the app uses this to detect whether a session cookie exists.
 
 **Report email shows success but nothing arrives**
 
-Email delivery requires SMTP settings in the root `.env` file. Without `SMTP_HOST`, `SMTP_USER`, and `SMTP_PASS`, the API cannot send mail.
+Email delivery requires SMTP settings in `server/.env`. Without `SMTP_HOST`, `SMTP_USER`, and `SMTP_PASS`, the API cannot send mail.
 
-Restart the API server after changing `.env`. If delivery fails, check the report history **Failed reason** field for the SMTP error.
+Restart the API server after changing `server/.env`. If delivery fails, check the report history **Failed reason** field for the SMTP error.
 
 ### Gmail
 
 1. Enable 2-Step Verification on your Google account.
 2. Create an [App Password](https://myaccount.google.com/apppasswords) for QuestSync.
-3. Add to `.env`:
+3. Add to `server/.env`:
 
 ```env
 SMTP_HOST=smtp.gmail.com
@@ -212,7 +212,7 @@ SMTP_FROM=QuestSync <your.address@gmail.com>
 
 ### Other SMTP providers
 
-QuestSync uses standard SMTP — testers can plug in any provider they already have. Copy `.env.example` to `.env` and uncomment one block, or use this reference:
+QuestSync uses standard SMTP — testers can plug in any provider they already have. Copy `server/.env.example` to `server/.env` and uncomment one block, or use this reference:
 
 | Provider | `SMTP_HOST` | `SMTP_PORT` | Notes |
 | --- | --- | --- | --- |
@@ -223,7 +223,7 @@ QuestSync uses standard SMTP — testers can plug in any provider they already h
 | Mailgun | `smtp.mailgun.org` | `587` | Use SMTP credentials from Mailgun dashboard |
 | Custom / hosting | your host's SMTP host | `587` or `465` | Ask your host for host, port, and credentials |
 
-**For testers:** use your own credentials in a local `.env` file only. Do not commit `.env` or share SMTP passwords in issues or pull requests. Reports can be sent to **any recipient email** — only the outbound SMTP account is configured server-side.
+**For testers:** use your own credentials in a local `server/.env` file only. Do not commit `.env` or share SMTP passwords in issues or pull requests. Reports can be sent to **any recipient email** — only the outbound SMTP account is configured server-side.
 
 **Port 465:** if `587` is blocked on your network, try `465` instead. The API enables TLS automatically when port `465` is used.
 

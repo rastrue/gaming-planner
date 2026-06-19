@@ -31,14 +31,14 @@ function assertSmtpConfigured(): SmtpConfig {
   if (!config.host) {
     throw new AppError(
       503,
-      'Отправка email не настроена. Укажите SMTP_HOST, SMTP_USER и SMTP_PASS в корневом файле .env.',
+      'Отправка email не настроена. Укажите SMTP_HOST, SMTP_USER и SMTP_PASS в server/.env.',
     );
   }
 
   if (!config.user || !config.pass) {
     throw new AppError(
       503,
-      'SMTP-аутентификация не настроена. Укажите SMTP_USER и SMTP_PASS в корневом файле .env.',
+      'SMTP-аутентификация не настроена. Укажите SMTP_USER и SMTP_PASS в server/.env.',
     );
   }
 
