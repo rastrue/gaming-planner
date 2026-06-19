@@ -28,7 +28,7 @@ export default function OrganizerNav({
         /^\/organizer\/events\/\d+\/roster/.test(currentPath),
     },
     {
-      label: 'Отчёты и экспорт',
+      label: 'Отчеты и экспорт',
       href: '/reports',
       icon: <CalendarClock className="h-4 w-4" />,
       isActive: isNavItemActive(currentPath, '/reports'),

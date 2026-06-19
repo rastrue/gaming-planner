@@ -20,7 +20,7 @@ function getPageMeta(pathname: string): { title: string; description?: string } 
   }
 
   if (pathname === '/reports') {
-    return { title: 'Отчёты', description: 'Формирование, экспорт и отправка отчётов по участию.' };
+    return { title: 'Отчеты и экспорт' };
   }
 
   if (pathname === '/organizer/events/new') {

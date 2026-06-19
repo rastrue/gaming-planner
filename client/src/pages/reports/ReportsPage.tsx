@@ -44,7 +44,7 @@ export default function ReportsPage() {
 
       dispatch(setReports(data));
     } catch {
-      setLoadError('Не удалось загрузить историю отчётов.');
+      setLoadError('Не удалось загрузить историю отчетов.');
     } finally {
       setIsLoading(false);
     }
@@ -83,23 +83,18 @@ export default function ReportsPage() {
   if (isLoading && reports.length === 0) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner label="Загрузка отчётов" size="lg" />
+        <Spinner label="Загрузка отчетов" size="lg" />
       </div>
     );
   }
 
   if (loadError && reports.length === 0) {
-    return <EmptyState title="Отчёты недоступны" description={loadError} />;
+    return <EmptyState title="Отчеты недоступны" description={loadError} />;
   }
 
   return (
     <>
       <div className="space-y-6">
-      <p className="text-sm text-slate-600 dark:text-slate-400">
-        Формируйте отчёты о посещаемости событий или участии игроков, скачивайте их в формате PDF или DOCX
-        и отправляйте готовые отчёты по электронной почте.
-      </p>
-
       {actionError ? (
         <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
           {actionError}
@@ -108,7 +103,7 @@ export default function ReportsPage() {
 
       <ReportGeneratorForm
         onReportCreated={handleReportCreated}
-        onSuccess={(message, title = 'Отчёт готов') =>
+        onSuccess={(message, title = 'Отчет готов') =>
           showToast({ title, message, variant: 'success' })
         }
       />
@@ -124,7 +119,7 @@ export default function ReportsPage() {
         onReportDeleted={handleReportDeleted}
         onActionError={setActionError}
         onActionSuccess={(message) =>
-          showToast({ title: 'Отчёт отправлен', message, variant: 'success' })
+          showToast({ title: 'Отчет отправлен', message, variant: 'success' })
         }
       />
       </div>

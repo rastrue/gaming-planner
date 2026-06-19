@@ -99,7 +99,7 @@ export default function ReportHistoryTable({
       const download = await reportService.downloadReport(report.id);
       triggerBlobDownload(download.blob, download.fileName);
     } catch (error) {
-      const message = getActionErrorMessage(error, 'Не удалось скачать отчёт.');
+      const message = getActionErrorMessage(error, 'Не удалось скачать отчет.');
       if (message) {
         onActionError(message);
       }
@@ -122,13 +122,13 @@ export default function ReportHistoryTable({
       onReportUpdated(updated);
 
       if (updated.status === 'FAILED') {
-        onActionError(updated.failedReason ?? 'Не удалось отправить отчёт по email.');
+        onActionError(updated.failedReason ?? 'Не удалось отправить отчет по email.');
       } else {
         setEmailTarget(null);
-        onActionSuccess?.(`Отчёт отправлен на ${recipientEmail.trim()}.`);
+        onActionSuccess?.(`Отчет отправлен на ${recipientEmail.trim()}.`);
       }
     } catch (error) {
-      const message = getActionErrorMessage(error, 'Не удалось отправить отчёт по email.');
+      const message = getActionErrorMessage(error, 'Не удалось отправить отчет по email.');
       if (message) {
         onActionError(message);
       }
@@ -149,7 +149,7 @@ export default function ReportHistoryTable({
       onReportDeleted(deleteTarget.id);
       setDeleteTarget(null);
     } catch (error) {
-      const message = getActionErrorMessage(error, 'Не удалось удалить отчёт.');
+      const message = getActionErrorMessage(error, 'Не удалось удалить отчет.');
       if (message) {
         onActionError(message);
       }
@@ -160,23 +160,20 @@ export default function ReportHistoryTable({
 
   return (
     <>
-      <Card title="История отчётов" description="Ранее сформированные экспорты и статус доставки.">
+      <Card title="История отчетов">
         {totalReports === 0 ? (
-          <EmptyState
-            title="Отчётов пока нет"
-            description="Сформируйте отчёт о посещаемости события или участии игрока, чтобы увидеть его здесь."
-          />
+          <EmptyState title="Отчетов пока нет" />
         ) : (
           <>
             <DataTable<ReportRequest>
-              caption="Сформированные запросы отчётов"
+              caption="Сформированные запросы отчетов"
               data={reports}
               getRowKey={(report) => report.id}
               columns={[
                 {
                   key: 'kind',
-                  header: 'Отчёт',
-                  mobileLabel: 'Отчёт',
+                  header: 'Отчет',
+                  mobileLabel: 'Отчет',
                   render: (report) => (
                     <div>
                       <p className="font-medium text-slate-900 dark:text-slate-100">
@@ -273,7 +270,7 @@ export default function ReportHistoryTable({
 
       <ModalDialog
         open={Boolean(emailTarget)}
-        title="Отправить отчёт по email"
+        title="Отправить отчет по email"
         onClose={() => setEmailTarget(null)}
         footer={
           <>
@@ -307,7 +304,7 @@ export default function ReportHistoryTable({
 
       <ModalDialog
         open={Boolean(deleteTarget)}
-        title="Удалить отчёт"
+        title="Удалить отчет"
         onClose={() => setDeleteTarget(null)}
         footer={
           <>
@@ -315,13 +312,13 @@ export default function ReportHistoryTable({
               Отмена
             </Button>
             <Button type="button" variant="danger" disabled={isSubmitting} onClick={() => void handleDelete()}>
-              Удалить отчёт
+              Удалить отчет
             </Button>
           </>
         }
       >
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Удалить этот запрос отчёта и связанный с ним файл экспорта?
+          Удалить этот запрос отчета и связанный с ним файл экспорта?
         </p>
       </ModalDialog>
     </>

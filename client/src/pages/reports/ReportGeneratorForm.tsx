@@ -152,7 +152,7 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
         }
       } catch {
         if (active) {
-          setLoadError('Не удалось загрузить параметры формы отчёта.');
+          setLoadError('Не удалось загрузить параметры формы отчета.');
         }
       } finally {
         if (active) {
@@ -224,14 +224,14 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
         onReportCreated(emailed);
 
         if (emailed.status === 'FAILED') {
-          setFormError(emailed.failedReason ?? 'Отчёт сформирован, но отправка по email не удалась.');
+          setFormError(emailed.failedReason ?? 'Отчет сформирован, но отправка по email не удалась.');
           return;
         }
 
-        onSuccess?.(`Отчёт отправлен на ${recipientEmail.trim()}.`, 'Отчёт отправлен');
+        onSuccess?.(`Отчет отправлен на ${recipientEmail.trim()}.`, 'Отчет отправлен');
       }
     } catch (error) {
-      const message = getActionErrorMessage(error, 'Не удалось сформировать отчёт.');
+      const message = getActionErrorMessage(error, 'Не удалось сформировать отчет.');
       if (message) {
         setFormError(message);
         if (error instanceof ApiError) {
@@ -245,25 +245,25 @@ export default function ReportGeneratorForm({ onReportCreated, onSuccess }: Repo
 
   if (isLoadingOptions) {
     return (
-      <Card title="Формирование отчёта" description="Создание нового отчёта о посещаемости или участии.">
-        <p className="text-sm text-slate-600 dark:text-slate-400">Загрузка параметров отчёта...</p>
+      <Card title="Формирование отчета">
+        <p className="text-sm text-slate-600 dark:text-slate-400">Загрузка параметров отчета...</p>
       </Card>
     );
   }
 
   if (loadError) {
     return (
-      <Card title="Формирование отчёта" description="Создание нового отчёта о посещаемости или участии.">
+      <Card title="Формирование отчета">
         <p className="text-sm text-red-600 dark:text-red-400">{loadError}</p>
       </Card>
     );
   }
 
   return (
-    <Card title="Формирование отчёта" description="Создание нового отчёта о посещаемости или участии.">
+    <Card title="Формирование отчета">
       <form className="space-y-4" onSubmit={handleSubmit} noValidate>
         <SelectDropdown
-          label="Тип отчёта"
+          label="Тип отчета"
           name="reportKind"
           value={reportKind}
           onChange={(event) => setReportKind(event.target.value as ReportKind)}
