@@ -119,6 +119,9 @@ export default function EventsPage() {
     dispatch(resetEventsFilters());
   };
 
+  const isInitialLoading = isLoading && events.length === 0;
+  const isRefreshing = isLoading && events.length > 0;
+
   return (
     <div className="space-y-6">
       <EventFiltersPanel
@@ -129,11 +132,11 @@ export default function EventsPage() {
         onReset={handleResetFilters}
       />
 
-      {isLoading ? (
+      {isInitialLoading ? (
         <div className="flex justify-center py-16">
           <Spinner label="Загрузка событий" size="lg" />
         </div>
-      ) : loadError ? (
+      ) : loadError && events.length === 0 ? (
         <EmptyState title="События недоступны" description={loadError} />
       ) : events.length === 0 ? (
         <EmptyState
@@ -142,7 +145,14 @@ export default function EventsPage() {
         />
       ) : (
         <>
-          <DataTable<Event>
+          {loadError ? (
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+              {loadError}
+            </p>
+          ) : null}
+
+          <div className={isRefreshing ? 'pointer-events-none opacity-60' : undefined}>
+            <DataTable<Event>
             caption="Каталог событий"
             data={events}
             getRowKey={(event) => event.id}
@@ -197,6 +207,7 @@ export default function EventsPage() {
               },
             ]}
           />
+          </div>
 
           <Pagination
             page={pagination.page}

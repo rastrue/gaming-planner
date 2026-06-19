@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import type { MouseEvent } from 'react';
 import { cn, uiStyles } from '../../utils/cn';
 
 export interface PaginationProps {
@@ -34,6 +35,36 @@ function getPageNumbers(page: number, totalPages: number): Array<number | 'ellip
   return pages;
 }
 
+function preserveMainScroll(action: () => void) {
+  const scrollRoot = document.querySelector('main');
+  const scrollTop = scrollRoot?.scrollTop ?? window.scrollY;
+
+  const restore = () => {
+    if (scrollRoot) {
+      scrollRoot.scrollTop = scrollTop;
+    } else {
+      window.scrollTo(0, scrollTop);
+    }
+  };
+
+  action();
+
+  requestAnimationFrame(() => {
+    restore();
+    requestAnimationFrame(restore);
+  });
+}
+
+function handlePaginationClick(onPageChange: (page: number) => void, nextPage: number) {
+  preserveMainScroll(() => onPageChange(nextPage));
+}
+
+const paginationButtonHandlers = {
+  onMouseDown: (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+  },
+};
+
 export default function Pagination({ page, totalPages, onPageChange, className }: PaginationProps) {
   if (totalPages <= 1) {
     return null;
@@ -47,7 +78,8 @@ export default function Pagination({ page, totalPages, onPageChange, className }
         type="button"
         aria-label="Предыдущая страница"
         disabled={page <= 1}
-        onClick={() => onPageChange(page - 1)}
+        onClick={() => handlePaginationClick(onPageChange, page - 1)}
+        {...paginationButtonHandlers}
         className={cn(
           'inline-flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 active:bg-slate-200 dark:text-slate-100 dark:hover:bg-slate-800 dark:active:bg-slate-700',
           uiStyles.interactiveTransition,
@@ -71,7 +103,8 @@ export default function Pagination({ page, totalPages, onPageChange, className }
                 type="button"
                 aria-label={`Страница ${item}`}
                 aria-current={item === page ? 'page' : undefined}
-                onClick={() => onPageChange(item)}
+                onClick={() => handlePaginationClick(onPageChange, item)}
+                {...paginationButtonHandlers}
                 className={cn(
                   'min-h-10 min-w-10 cursor-pointer rounded-lg px-3 py-2 text-sm font-medium',
                   uiStyles.interactiveTransition,
@@ -92,7 +125,8 @@ export default function Pagination({ page, totalPages, onPageChange, className }
         type="button"
         aria-label="Следующая страница"
         disabled={page >= totalPages}
-        onClick={() => onPageChange(page + 1)}
+        onClick={() => handlePaginationClick(onPageChange, page + 1)}
+        {...paginationButtonHandlers}
         className={cn(
           'inline-flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 active:bg-slate-200 dark:text-slate-100 dark:hover:bg-slate-800 dark:active:bg-slate-700',
           uiStyles.interactiveTransition,

@@ -123,7 +123,7 @@ export default function MyRegistrationsPage() {
     );
   }
 
-  if (isLoading) {
+  if (isLoading && registrations.length === 0) {
     return (
       <div className="flex justify-center py-16">
         <Spinner label="Загрузка регистраций" size="lg" />
@@ -131,9 +131,11 @@ export default function MyRegistrationsPage() {
     );
   }
 
-  if (loadError) {
+  if (loadError && registrations.length === 0) {
     return <EmptyState title="Регистрации недоступны" description={loadError} />;
   }
+
+  const isRefreshing = isLoading && registrations.length > 0;
 
   return (
     <div className="space-y-6">
@@ -161,6 +163,12 @@ export default function MyRegistrationsPage() {
         </p>
       ) : null}
 
+      {loadError ? (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+          {loadError}
+        </p>
+      ) : null}
+
       {registrations.length === 0 ? (
         <EmptyState
           title="Регистраций пока нет"
@@ -173,7 +181,8 @@ export default function MyRegistrationsPage() {
         />
       ) : (
         <>
-          <DataTable<Registration>
+          <div className={isRefreshing ? 'pointer-events-none opacity-60' : undefined}>
+            <DataTable<Registration>
             caption="Мои регистрации на события"
             data={registrations}
             getRowKey={(registration) => registration.id}
@@ -246,6 +255,7 @@ export default function MyRegistrationsPage() {
               },
             ]}
           />
+          </div>
 
           <Pagination
             page={pagination.page}
