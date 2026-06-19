@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Button from '../../components/ui/Button';
-import CalendarWidget from '../../components/ui/CalendarWidget';
 import Card from '../../components/ui/Card';
 import EmptyState from '../../components/ui/EmptyState';
 import Spinner from '../../components/ui/Spinner';
+import TextInput from '../../components/ui/TextInput';
 import { useAuth } from '../../hooks/useAuth';
 import * as availabilityService from '../../services/availabilityService';
 import { ApiError } from '../../services/apiClient';
@@ -46,7 +46,6 @@ export default function AvailabilityPage() {
   const [loadError, setLoadError] = useState('');
   const [selectedDayOfWeek, setSelectedDayOfWeek] = useState<number | null>(null);
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
-  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
   const [editingWindow, setEditingWindow] = useState<AvailabilityWindow | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -174,11 +173,18 @@ export default function AvailabilityPage() {
           title="Еженедельный календарь"
           description="Выберите день, чтобы отфильтровать список доступности."
         >
-          <CalendarWidget
-            month={calendarMonth}
-            onMonthChange={setCalendarMonth}
-            activeDate={selectedDateKey}
-            onDateSelect={(dateKey) => {
+          <TextInput
+            label="День"
+            type="date"
+            value={selectedDateKey ?? ''}
+            onChange={(event) => {
+              const dateKey = event.target.value;
+              if (!dateKey) {
+                setSelectedDateKey(null);
+                setSelectedDayOfWeek(null);
+                return;
+              }
+
               setSelectedDateKey(dateKey);
               setSelectedDayOfWeek(dateKeyToDayOfWeek(dateKey));
             }}

@@ -1,6 +1,5 @@
 import { type FormEvent, useEffect, useState } from 'react';
 import Button from '../../components/ui/Button';
-import RangeSlider from '../../components/ui/RangeSlider';
 import SelectDropdown from '../../components/ui/SelectDropdown';
 import TextInput from '../../components/ui/TextInput';
 import type { AvailabilityWindow, CreateAvailabilityInput } from '../../types/index';
@@ -19,6 +18,15 @@ function formatMinutes(minute: number): string {
   const hours = Math.floor(minute / 60);
   const mins = minute % 60;
   return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+}
+
+function minutesToTimeValue(minute: number): string {
+  return formatMinutes(Math.min(minute, 1439));
+}
+
+function parseTimeValue(value: string): number {
+  const [hours, minutes] = value.split(':').map(Number);
+  return hours * 60 + minutes;
 }
 
 export interface AvailabilityFormValues {
@@ -88,23 +96,25 @@ export default function AvailabilityForm({
         options={weekdayOptions}
         error={fieldErrors.dayOfWeek}
       />
-      <RangeSlider
+      <TextInput
         label="Время начала"
-        min={0}
-        max={1439}
-        step={15}
-        value={startMinute}
-        onChange={setStartMinute}
-        formatValue={formatMinutes}
+        name="startMinute"
+        type="time"
+        step={900}
+        value={minutesToTimeValue(startMinute)}
+        onChange={(event) => setStartMinute(parseTimeValue(event.target.value))}
+        error={fieldErrors.startMinute}
+        required
       />
-      <RangeSlider
+      <TextInput
         label="Время окончания"
-        min={1}
-        max={1440}
-        step={15}
-        value={endMinute}
-        onChange={setEndMinute}
-        formatValue={formatMinutes}
+        name="endMinute"
+        type="time"
+        step={900}
+        value={minutesToTimeValue(endMinute)}
+        onChange={(event) => setEndMinute(parseTimeValue(event.target.value))}
+        error={fieldErrors.endMinute}
+        required
       />
       <TextInput
         label="Часовой пояс"
