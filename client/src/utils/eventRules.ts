@@ -35,11 +35,41 @@ export function isRegistrationAcceptingStatus(status: EventStatus): boolean {
   return status === 'REGISTRATION';
 }
 
+export function resolveEventStatus(
+  event: { status: EventStatus; registrationDeadline: string; scheduledStart: string },
+  now = Date.now(),
+): EventStatus {
+  if (isTerminalEventStatus(event.status)) {
+    return event.status;
+  }
+
+  const startTime = new Date(event.scheduledStart).getTime();
+  const deadlineTime = new Date(event.registrationDeadline).getTime();
+
+  if (startTime <= now) {
+    return 'STARTED';
+  }
+
+  if (event.status === 'FULL') {
+    return deadlineTime < now ? 'WAITING' : 'FULL';
+  }
+
+  if (event.status === 'WAITING' || deadlineTime < now) {
+    return 'WAITING';
+  }
+
+  return 'REGISTRATION';
+}
+
+export function canPlayerCancelRegistration(event: { status: EventStatus }): boolean {
+  return event.status === 'REGISTRATION' || event.status === 'FULL';
+}
+
 export function isRegistrationOpen(
   event: { status: EventStatus; registrationDeadline: string; scheduledStart: string },
 ): boolean {
   return (
-    isRegistrationAcceptingStatus(event.status) &&
+    resolveEventStatus(event) === 'REGISTRATION' &&
     new Date(event.registrationDeadline).getTime() >= Date.now() &&
     !hasEventStarted(event.scheduledStart)
   );

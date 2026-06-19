@@ -15,7 +15,7 @@ import { ApiError } from '../../services/apiClient';
 import { setRegistrations, upsertRegistration } from '../../store/registrationsSlice';
 import type { AppDispatch, RootState } from '../../store/store';
 import type { Registration, RegistrationStatus } from '../../types/index';
-import { isRegistrationOpen } from '../../utils/eventRules';
+import { canPlayerCancelRegistration } from '../../utils/eventRules';
 
 const dateLocale = 'ru-RU';
 
@@ -45,7 +45,7 @@ function registrationStatusVariant(status: RegistrationStatus) {
 function canCancelRegistration(registration: Registration): boolean {
   return (
     ['PENDING', 'APPROVED'].includes(registration.status) &&
-    isRegistrationOpen(registration.event)
+    canPlayerCancelRegistration(registration.event)
   );
 }
 
@@ -225,9 +225,13 @@ export default function MyRegistrationsPage() {
               {
                 key: 'actions',
                 header: 'Действия',
-                hideOnMobile: true,
-                render: (registration) =>
-                  canCancelRegistration(registration) ? (
+                mobileLabel: 'Действия',
+                render: (registration) => {
+                  if (!canCancelRegistration(registration)) {
+                    return null;
+                  }
+
+                  return (
                     <Button
                       type="button"
                       variant="danger"
@@ -237,9 +241,8 @@ export default function MyRegistrationsPage() {
                     >
                       Отменить
                     </Button>
-                  ) : (
-                    <span className="text-sm text-slate-500 dark:text-slate-400">—</span>
-                  ),
+                  );
+                },
               },
             ]}
           />

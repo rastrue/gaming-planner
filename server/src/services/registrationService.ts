@@ -5,7 +5,7 @@ import {
   RegistrationStatus,
   UserRoleName,
 } from '@prisma/client';
-import { isRegistrationOpen } from '../lib/eventLifecycle.js';
+import { isRegistrationOpen, canPlayerCancelRegistration, resolveEventStatus } from '../lib/eventLifecycle.js';
 import { AppError } from '../lib/errors.js';
 import prisma from '../lib/prisma.js';
 import type { AuthenticatedUser } from '../middleware/authMiddleware.js';
@@ -65,6 +65,22 @@ export interface PaginatedRegistrations {
   };
 }
 
+async function syncRegistrationEvent(
+  event: RegistrationRecord['event'],
+): Promise<RegistrationRecord['event']> {
+  const resolved = resolveEventStatus(event);
+
+  if (resolved === event.status) {
+    return event;
+  }
+
+  return prisma.event.update({
+    where: { id: event.id },
+    data: { status: resolved },
+    select: registrationSelect.event.select,
+  });
+}
+
 async function getRegistrationByIdInternal(id: number): Promise<RegistrationRecord> {
   const registration = await prisma.registration.findUnique({
     where: { id },
@@ -75,7 +91,10 @@ async function getRegistrationByIdInternal(id: number): Promise<RegistrationReco
     throw new AppError(404, 'Регистрация не найдена');
   }
 
-  return registration;
+  return {
+    ...registration,
+    event: await syncRegistrationEvent(registration.event),
+  };
 }
 
 function assertCanViewRegistration(registration: RegistrationRecord, user: AuthenticatedUser): void {
@@ -137,7 +156,12 @@ export async function listRegistrations(
   ]);
 
   return {
-    registrations,
+    registrations: await Promise.all(
+      registrations.map(async (registration) => ({
+        ...registration,
+        event: await syncRegistrationEvent(registration.event),
+      })),
+    ),
     pagination: {
       page: query.page,
       pageSize: query.pageSize,
@@ -264,8 +288,10 @@ async function applyPlayerUpdate(
     throw new AppError(409, 'Эту регистрацию нельзя отменить');
   }
 
-  if (!isRegistrationOpen(registration.event)) {
-    throw new AppError(409, 'Регистрация на это событие закрыта');
+  const event = await syncRegistrationEvent(registration.event);
+
+  if (!canPlayerCancelRegistration(event)) {
+    throw new AppError(409, 'Отменить участие можно только на этапе регистрации, до статуса "Ожидание"');
   }
 
   return {

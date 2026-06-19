@@ -30,7 +30,7 @@ import type {
   Registration,
   RegistrationStatus,
 } from '../../types/index';
-import { isRegistrationOpen } from '../../utils/eventRules';
+import { canPlayerCancelRegistration, isRegistrationOpen } from '../../utils/eventRules';
 
 const dateLocale = 'ru-RU';
 
@@ -182,7 +182,7 @@ export default function EventDetailPage() {
     registration &&
     ['PENDING', 'APPROVED'].includes(registration.status) &&
     event &&
-    isRegistrationOpen(event);
+    canPlayerCancelRegistration(event);
 
   const roleOptions = slots.map((slot) => ({
     value: slot.roleName,

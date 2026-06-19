@@ -44,6 +44,10 @@ export function isRegistrationOpen(event: EventLifecycleInput, now = Date.now())
   );
 }
 
+export function canPlayerCancelRegistration(event: Pick<EventLifecycleInput, 'status'>): boolean {
+  return event.status === EventStatus.REGISTRATION || event.status === EventStatus.FULL;
+}
+
 export function canCancelPublishedEvent(status: EventStatus): boolean {
   return status === EventStatus.REGISTRATION || status === EventStatus.WAITING;
 }
