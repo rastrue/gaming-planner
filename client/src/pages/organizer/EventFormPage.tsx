@@ -239,35 +239,15 @@ export default function EventFormPage() {
 
   return (
     <div className="space-y-6">
-      {isEditMode ? (
-        <div className="flex flex-wrap items-center gap-3">
-          <Link to="/organizer/events">
-            <Button type="button" variant="secondary">
-              Назад к событиям
-            </Button>
-          </Link>
-        </div>
-      ) : (
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            Создайте новое событие с расписанием и параметрами регистрации.
-          </p>
-          <Link to="/organizer/events">
-            <Button type="button" variant="secondary">
-              Назад к событиям
-            </Button>
-          </Link>
-        </div>
-      )}
+      <div className="flex flex-wrap items-center gap-3">
+        <Link to="/organizer/events">
+          <Button type="button" variant="secondary">
+            Назад к событиям
+          </Button>
+        </Link>
+      </div>
 
-      <Card
-        title={isEditMode ? undefined : 'Новое событие'}
-        description={
-          isEditMode
-            ? undefined
-            : 'Укажите игру, расписание и вместимость. Регистрация закрывается автоматически за час до начала.'
-        }
-      >
+      <Card>
         <form className="space-y-4" onSubmit={handleSubmit} noValidate>
           <SelectDropdown
             label="Игра"

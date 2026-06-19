@@ -24,7 +24,7 @@ function getPageMeta(pathname: string): { title: string; description?: string } 
   }
 
   if (pathname === '/organizer/events/new') {
-    return { title: 'Создание события', description: 'Публикация нового многопользовательского события.' };
+    return { title: 'Создание события' };
   }
 
   if (/^\/organizer\/events\/\d+\/edit/.test(pathname)) {
