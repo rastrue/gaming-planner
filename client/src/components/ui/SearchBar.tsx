@@ -49,7 +49,10 @@ export default function SearchBar({
         <Search aria-hidden="true" className="h-4 w-4 shrink-0 text-slate-400" />
         <input
           id={inputId}
-          type="search"
+          type="text"
+          role="searchbox"
+          inputMode="search"
+          autoComplete="off"
           value={currentValue}
           placeholder={placeholder}
           disabled={disabled}
