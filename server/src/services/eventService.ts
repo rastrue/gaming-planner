@@ -70,7 +70,7 @@ function buildEventWhere(query: ListEventsQuery): Prisma.EventWhereInput {
   if (query.search) {
     where.OR = [
       { title: { contains: query.search, mode: 'insensitive' } },
-      { description: { contains: query.search, mode: 'insensitive' } },
+      { game: { title: { contains: query.search, mode: 'insensitive' } } },
     ];
   }
 

@@ -61,7 +61,7 @@ export default function EventFiltersPanel({
 
       <SearchBar
         label="Поиск событий"
-        placeholder="Поиск по названию или описанию..."
+        placeholder="Поиск по названию события или игры..."
         value={filters.search}
         onChange={(value) => onFiltersChange({ search: value, page: 1 })}
         onReset={() => onFiltersChange({ search: '', page: 1 })}
