@@ -1,8 +1,9 @@
-import { type FormEvent, useEffect, useState } from 'react';
+import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import Button from '../../components/ui/Button';
 import SelectDropdown from '../../components/ui/SelectDropdown';
 import TextInput from '../../components/ui/TextInput';
 import type { AvailabilityWindow, CreateAvailabilityInput } from '../../types/index';
+import { buildTimezoneOptions, getDefaultTimezone } from '../../utils/timezones';
 
 const weekdayOptions = [
   { value: '0', label: 'Воскресенье' },
@@ -45,10 +46,7 @@ export interface AvailabilityFormProps {
   fieldErrors?: Record<string, string>;
 }
 
-const defaultTimezone =
-  typeof Intl !== 'undefined'
-    ? Intl.DateTimeFormat().resolvedOptions().timeZone
-    : 'UTC';
+const defaultTimezone = getDefaultTimezone();
 
 export default function AvailabilityForm({
   initialValues,
@@ -63,6 +61,10 @@ export default function AvailabilityForm({
   const [endMinute, setEndMinute] = useState(initialValues?.endMinute ?? 22 * 60);
   const [timezone, setTimezone] = useState(initialValues?.timezone ?? defaultTimezone);
   const [localError, setLocalError] = useState('');
+  const timezoneOptions = useMemo(
+    () => buildTimezoneOptions(initialValues?.timezone ? [initialValues.timezone] : []),
+    [initialValues?.timezone],
+  );
 
   useEffect(() => {
     if (selectedDayOfWeek !== null && selectedDayOfWeek !== undefined && !initialValues) {
@@ -116,10 +118,12 @@ export default function AvailabilityForm({
         error={fieldErrors.endMinute}
         required
       />
-      <TextInput
+      <SelectDropdown
         label="Часовой пояс"
+        name="timezone"
         value={timezone}
         onChange={(event) => setTimezone(event.target.value)}
+        options={timezoneOptions}
         error={fieldErrors.timezone}
         required
       />
