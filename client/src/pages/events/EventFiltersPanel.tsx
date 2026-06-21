@@ -64,7 +64,6 @@ export default function EventFiltersPanel({
         placeholder="Поиск по названию или описанию..."
         value={filters.search}
         onChange={(value) => onFiltersChange({ search: value, page: 1 })}
-        onSearch={(value) => onFiltersChange({ search: value, page: 1 })}
         onReset={() => onFiltersChange({ search: '', page: 1 })}
       />
 

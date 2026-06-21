@@ -1,5 +1,5 @@
 import { Search, X } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
+import { useState } from 'react';
 import IconButton from './IconButton';
 import { cn, uiStyles } from '../../utils/cn';
 
@@ -9,7 +9,6 @@ export interface SearchBarProps {
   defaultValue?: string;
   value?: string;
   onChange?: (value: string) => void;
-  onSearch?: (value: string) => void;
   onReset?: () => void;
   disabled?: boolean;
   className?: string;
@@ -21,7 +20,6 @@ export default function SearchBar({
   defaultValue = '',
   value,
   onChange,
-  onSearch,
   onReset,
   disabled = false,
   className,
@@ -37,19 +35,13 @@ export default function SearchBar({
     onChange?.(nextValue);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    onSearch?.(currentValue.trim());
-  };
-
   const handleReset = () => {
     updateValue('');
     onReset?.();
-    onSearch?.('');
   };
 
   return (
-    <form onSubmit={handleSubmit} className={cn('space-y-1', className)} role="search">
+    <div className={cn('space-y-1', className)} role="search">
       <label htmlFor={inputId} className="sr-only">
         {label}
       </label>
@@ -78,19 +70,7 @@ export default function SearchBar({
             <X className="h-4 w-4" />
           </IconButton>
         ) : null}
-        <button
-          type="submit"
-          disabled={disabled}
-          className={cn(
-            'cursor-pointer rounded-md bg-primary-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-primary-700 active:bg-primary-800',
-            uiStyles.interactiveTransition,
-            uiStyles.focusRing,
-            uiStyles.disabled,
-          )}
-        >
-          Найти
-        </button>
       </div>
-    </form>
+    </div>
   );
 }
