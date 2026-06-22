@@ -74,7 +74,7 @@ export default function AppShell({
   );
 
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-950">
+    <div className="flex h-dvh flex-col overflow-hidden bg-slate-50 dark:bg-slate-950">
       <header className="z-30 shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
         <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-6">
           <div className="flex min-w-0 items-center gap-3">

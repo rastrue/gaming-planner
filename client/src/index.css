@@ -5,11 +5,10 @@
 @layer base {
   html {
     height: 100%;
-    overflow: hidden;
   }
 
   body {
-    @apply h-full overflow-hidden bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+    @apply h-full overflow-x-hidden bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
   }
 
   #root {

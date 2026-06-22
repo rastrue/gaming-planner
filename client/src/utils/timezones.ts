@@ -63,20 +63,35 @@ export function getDefaultTimezone(): string {
   return 'UTC';
 }
 
+const timezoneOptionsCache = new Map<string, SelectOption[]>();
+
 export function buildTimezoneOptions(additionalTimezones: string[] = []): SelectOption[] {
+  const cacheKey = [...new Set(additionalTimezones)].sort().join('\0') || '__default__';
+  const cached = timezoneOptionsCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const zones = new Set([...getSupportedTimezones(), ...additionalTimezones]);
+  const entries = [...zones].map((zone) => ({
+    zone,
+    offset: getUtcOffsetMinutes(zone),
+    label: formatTimezoneLabel(zone),
+  }));
 
-  return [...zones]
-    .sort((left, right) => {
-      const offsetDiff = getUtcOffsetMinutes(left) - getUtcOffsetMinutes(right);
-      if (offsetDiff !== 0) {
-        return offsetDiff;
-      }
+  entries.sort((left, right) => {
+    if (left.offset !== right.offset) {
+      return left.offset - right.offset;
+    }
 
-      return left.localeCompare(right);
-    })
-    .map((value) => ({
-      value,
-      label: formatTimezoneLabel(value),
-    }));
+    return left.zone.localeCompare(right.zone);
+  });
+
+  const options = entries.map(({ zone, label }) => ({
+    value: zone,
+    label,
+  }));
+
+  timezoneOptionsCache.set(cacheKey, options);
+  return options;
 }

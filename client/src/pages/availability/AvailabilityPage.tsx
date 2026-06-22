@@ -154,126 +154,137 @@ export default function AvailabilityPage() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-16">
-        <Spinner label="Загрузка доступности" size="lg" />
-      </div>
-    );
-  }
+  const isInitialLoading = isLoading && windows.length === 0;
 
-  if (loadError) {
+  if (loadError && windows.length === 0) {
     return <EmptyState title="Доступность недоступна" description={loadError} />;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-6 xl:grid-cols-2">
-        <Card
-          title="Еженедельный календарь"
-          description="Выберите день, чтобы отфильтровать список доступности."
-        >
-          <TextInput
-            label="День"
-            type="date"
-            value={selectedDateKey ?? ''}
-            onChange={(event) => {
-              const dateKey = event.target.value;
-              if (!dateKey) {
-                setSelectedDateKey(null);
-                setSelectedDayOfWeek(null);
-                return;
-              }
-
-              setSelectedDateKey(dateKey);
-              setSelectedDayOfWeek(dateKeyToDayOfWeek(dateKey));
-            }}
-          />
-          {selectedDayOfWeek !== null ? (
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Фильтр: {weekdayLabels[selectedDayOfWeek]}
-              </p>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSelectedDayOfWeek(null);
-                  setSelectedDateKey(null);
-                }}
-              >
-                Сбросить фильтр
-              </Button>
-            </div>
-          ) : null}
-        </Card>
-
-        <Card
-          title={editingWindow ? 'Редактировать окно доступности' : 'Добавить окно доступности'}
-          description="Укажите, когда вы обычно свободны для игры."
-        >
-          <AvailabilityForm
-            initialValues={editingWindow}
-            selectedDayOfWeek={selectedDayOfWeek}
-            onSubmit={handleCreateOrUpdate}
-            onCancel={editingWindow ? () => setEditingWindow(null) : undefined}
-            isSubmitting={isSubmitting}
-            fieldErrors={fieldErrors}
-          />
-          {formError ? (
-            <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
-              {formError}
-            </p>
-          ) : null}
-        </Card>
-      </div>
-
-      <Card title="Ваши окна доступности" description="Сохранённые еженедельные временные интервалы.">
-        {filteredWindows.length === 0 ? (
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            Окон доступности пока нет. Добавьте одно с помощью формы выше.
+    <div className={isSubmitting ? 'pointer-events-none opacity-60' : undefined}>
+      <div className="space-y-6">
+        {loadError ? (
+          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+            {loadError}
           </p>
+        ) : null}
+
+        {isInitialLoading ? (
+          <div className="flex justify-center py-16">
+            <Spinner label="Загрузка доступности" size="lg" />
+          </div>
         ) : (
-          <ul className="space-y-3">
-            {filteredWindows.map((window) => (
-              <li
-                key={window.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-800"
+          <>
+            <div className="grid gap-6 xl:grid-cols-2">
+              <Card
+                title="Еженедельный календарь"
+                description="Выберите день, чтобы отфильтровать список доступности."
               >
-                <div>
-                  <p className="font-medium text-slate-900 dark:text-slate-100">
-                    {weekdayLabels[window.dayOfWeek]}
+                <TextInput
+                  label="День"
+                  type="date"
+                  value={selectedDateKey ?? ''}
+                  onChange={(event) => {
+                    const dateKey = event.target.value;
+                    if (!dateKey) {
+                      setSelectedDateKey(null);
+                      setSelectedDayOfWeek(null);
+                      return;
+                    }
+
+                    setSelectedDateKey(dateKey);
+                    setSelectedDayOfWeek(dateKeyToDayOfWeek(dateKey));
+                  }}
+                />
+                {selectedDayOfWeek !== null ? (
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      Фильтр: {weekdayLabels[selectedDayOfWeek]}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedDayOfWeek(null);
+                        setSelectedDateKey(null);
+                      }}
+                    >
+                      Сбросить фильтр
+                    </Button>
+                  </div>
+                ) : null}
+              </Card>
+
+              <Card
+                title={editingWindow ? 'Редактировать окно доступности' : 'Добавить окно доступности'}
+                description="Укажите, когда вы обычно свободны для игры."
+              >
+                <AvailabilityForm
+                  key={editingWindow?.id ?? 'create'}
+                  initialValues={editingWindow}
+                  selectedDayOfWeek={selectedDayOfWeek}
+                  onSubmit={handleCreateOrUpdate}
+                  onCancel={editingWindow ? () => setEditingWindow(null) : undefined}
+                  isSubmitting={isSubmitting}
+                  fieldErrors={fieldErrors}
+                />
+                {formError ? (
+                  <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+                    {formError}
                   </p>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    {formatMinutes(window.startMinute)}–{formatMinutes(window.endMinute)} · {window.timezone}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    disabled={isSubmitting}
-                    onClick={() => setEditingWindow(window)}
-                  >
-                    Редактировать
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="danger"
-                    size="sm"
-                    disabled={isSubmitting}
-                    onClick={() => void handleDelete(window)}
-                  >
-                    Удалить
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
+                ) : null}
+              </Card>
+            </div>
+
+            <Card title="Ваши окна доступности" description="Сохранённые еженедельные временные интервалы.">
+              {filteredWindows.length === 0 ? (
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  Окон доступности пока нет. Добавьте одно с помощью формы выше.
+                </p>
+              ) : (
+                <ul className="space-y-3">
+                  {filteredWindows.map((window) => (
+                    <li
+                      key={window.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 px-3 py-2 dark:border-slate-800"
+                    >
+                      <div>
+                        <p className="font-medium text-slate-900 dark:text-slate-100">
+                          {weekdayLabels[window.dayOfWeek]}
+                        </p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          {formatMinutes(window.startMinute)}–{formatMinutes(window.endMinute)} · {window.timezone}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          disabled={isSubmitting}
+                          onClick={() => setEditingWindow(window)}
+                        >
+                          Редактировать
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="danger"
+                          size="sm"
+                          disabled={isSubmitting}
+                          onClick={() => void handleDelete(window)}
+                        >
+                          Удалить
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          </>
         )}
-      </Card>
+      </div>
     </div>
   );
 }
