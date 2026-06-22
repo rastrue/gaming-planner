@@ -12,7 +12,7 @@ export const eventStatusLabels: Record<EventStatus, string> = {
   REGISTRATION: 'Регистрация',
   FULL: 'Заполнено',
   WAITING: 'Ожидание',
-  STARTED: 'Уже началось',
+  STARTED: 'Началось',
   COMPLETED: 'Завершено',
   CANCELLED: 'Отменено',
 };
