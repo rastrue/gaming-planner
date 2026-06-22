@@ -8,7 +8,7 @@ function getPageMeta(pathname: string): { title: string; description?: string } 
   }
 
   if (pathname === '/events') {
-    return { title: 'События', description: 'Просмотр предстоящих игровых сессий.' };
+    return { title: 'События' };
   }
 
   if (pathname === '/availability') {
