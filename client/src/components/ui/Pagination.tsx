@@ -35,28 +35,19 @@ function getPageNumbers(page: number, totalPages: number): Array<number | 'ellip
   return pages;
 }
 
-function preserveMainScroll(action: () => void) {
+function scrollMainToTop() {
   const scrollRoot = document.querySelector('main');
-  const scrollTop = scrollRoot?.scrollTop ?? window.scrollY;
+  if (scrollRoot) {
+    scrollRoot.scrollTop = 0;
+    return;
+  }
 
-  const restore = () => {
-    if (scrollRoot) {
-      scrollRoot.scrollTop = scrollTop;
-    } else {
-      window.scrollTo(0, scrollTop);
-    }
-  };
-
-  action();
-
-  requestAnimationFrame(() => {
-    restore();
-    requestAnimationFrame(restore);
-  });
+  window.scrollTo(0, 0);
 }
 
 function handlePaginationClick(onPageChange: (page: number) => void, nextPage: number) {
-  preserveMainScroll(() => onPageChange(nextPage));
+  onPageChange(nextPage);
+  requestAnimationFrame(scrollMainToTop);
 }
 
 const paginationButtonHandlers = {

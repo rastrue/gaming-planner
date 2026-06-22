@@ -4,10 +4,15 @@
 
 @layer base {
   html {
-    @apply scroll-smooth;
+    height: 100%;
+    overflow: hidden;
   }
 
   body {
-    @apply min-h-screen overflow-x-hidden bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+    @apply h-full overflow-hidden bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+  }
+
+  #root {
+    height: 100%;
   }
 }

@@ -74,7 +74,7 @@ export default function AppShell({
   );
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-slate-50 dark:bg-slate-950">
+    <div className="fixed inset-0 flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-950">
       <header className="z-30 shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
         <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-6">
           <div className="flex min-w-0 items-center gap-3">
@@ -144,14 +144,16 @@ export default function AppShell({
           </div>
         ) : null}
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <PageHeader
             className="shrink-0"
             title={title}
             description={description}
             actions={headerActions}
           />
-          <main className="min-w-0 flex-1 overflow-y-auto px-4 py-6 md:px-6">{children}</main>
+          <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-y-contain px-4 py-6 md:px-6">
+            {children}
+          </main>
         </div>
       </div>
 
