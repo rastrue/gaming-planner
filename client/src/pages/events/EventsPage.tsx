@@ -163,7 +163,12 @@ export default function EventsPage() {
                 mobileLabel: 'Событие',
                 render: (event) => (
                   <div>
-                    <p className="font-medium text-slate-900 dark:text-slate-100">{event.title}</p>
+                    <Link
+                      to={`/events/${event.id}`}
+                      className="font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400"
+                    >
+                      {event.title}
+                    </Link>
                     <p className="text-xs text-slate-500 dark:text-slate-400">{event.serverRegion}</p>
                   </div>
                 ),
@@ -191,19 +196,6 @@ export default function EventsPage() {
                 hideOnMobile: true,
                 render: (event) =>
                   `${event._count.registrations} / ${event.maxPlayers}`,
-              },
-              {
-                key: 'actions',
-                header: 'Действия',
-                hideOnMobile: true,
-                render: (event) => (
-                  <Link
-                    to={`/events/${event.id}`}
-                    className="cursor-pointer font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400"
-                  >
-                    Подробнее
-                  </Link>
-                ),
               },
             ]}
           />
