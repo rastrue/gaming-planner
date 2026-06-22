@@ -10,7 +10,6 @@ import { toggleThemeMode } from '../../store/themeSlice';
 import type { UserRoleName } from '../../types/index';
 import Button from '../ui/Button';
 import IconButton from '../ui/IconButton';
-import type { BreadcrumbItem } from '../ui/Breadcrumbs';
 import MobileNavToggle from './MobileNavToggle';
 import OrganizerNav from './OrganizerNav';
 import PageHeader from './PageHeader';
@@ -23,7 +22,6 @@ export interface AppShellProps {
   currentPath: string;
   title: string;
   description?: string;
-  breadcrumbs?: BreadcrumbItem[];
   headerActions?: ReactNode;
   children: ReactNode;
   userDisplayName?: string;
@@ -34,7 +32,6 @@ export default function AppShell({
   currentPath,
   title,
   description,
-  breadcrumbs,
   headerActions,
   children,
   userDisplayName,
@@ -152,7 +149,6 @@ export default function AppShell({
             className="shrink-0"
             title={title}
             description={description}
-            breadcrumbs={breadcrumbs}
             actions={headerActions}
           />
           <main className="min-w-0 flex-1 overflow-y-auto px-4 py-6 md:px-6">{children}</main>
