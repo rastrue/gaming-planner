@@ -4,7 +4,7 @@ import AppShell from './AppShell';
 
 function getPageMeta(pathname: string): { title: string; description?: string } {
   if (/^\/events\/\d+/.test(pathname)) {
-    return { title: 'Детали события', description: 'Информация о событии, состав и действия по регистрации.' };
+    return { title: 'Детали события' };
   }
 
   if (pathname === '/events') {
