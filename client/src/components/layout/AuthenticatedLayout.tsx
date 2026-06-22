@@ -12,7 +12,7 @@ function getPageMeta(pathname: string): { title: string; description?: string } 
   }
 
   if (pathname === '/availability') {
-    return { title: 'Планировщик доступности', description: 'Управление еженедельными окнами доступности.' };
+    return { title: 'Планировщик доступности' };
   }
 
   if (pathname === '/my-registrations') {
