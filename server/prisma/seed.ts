@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import {
   AttendanceStatus,
   DeliveryChannel,
+  Event,
   EventStatus,
   GameGenre,
   PrismaClient,
@@ -261,7 +262,7 @@ async function main() {
   );
 
   const eventCount = 72;
-  const events = [];
+  const events: Event[] = [];
 
   for (let index = 0; index < eventCount; index += 1) {
     const game = games[index % games.length]!;
@@ -296,7 +297,7 @@ async function main() {
   for (const event of events) {
     const game = games.find((item) => item.id === event.gameId)!;
     const roleNames = ROLE_TEMPLATES[game.genre].slice(0, 2 + (event.id % 3));
-    const createdSlots = [];
+    const createdSlots: Array<{ id: number; roleName: string; requiredCount: number }> = [];
 
     for (let order = 0; order < roleNames.length; order += 1) {
       const slot = await prisma.eventSlot.create({
@@ -351,7 +352,7 @@ async function main() {
         }
       }
 
-      let attendanceStatus = AttendanceStatus.NOT_MARKED;
+      let attendanceStatus: AttendanceStatus = AttendanceStatus.NOT_MARKED;
       if (event.status === EventStatus.COMPLETED && status === RegistrationStatus.APPROVED) {
         attendanceStatus =
           (event.id + playerIndex) % 5 === 0 ? AttendanceStatus.ABSENT : AttendanceStatus.PRESENT;
