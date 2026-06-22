@@ -1,4 +1,4 @@
-import { EventStatus, Prisma, UserRoleName } from '@prisma/client';
+import { EventStatus, Prisma, RegistrationStatus, UserRoleName } from '@prisma/client';
 import { eventFitsAvailability } from '../lib/availabilityFit.js';
 import {
   canCancelPublishedEvent,
@@ -52,7 +52,18 @@ const eventSelect = {
   },
 } as const;
 
-export type EventRecord = Prisma.EventGetPayload<{ select: typeof eventSelect }>;
+export type EventRecord = Prisma.EventGetPayload<{ select: typeof eventSelect }> & {
+  _count: {
+    registrations: number;
+    activeRegistrations: number;
+    slots: number;
+  };
+};
+
+interface RegistrationCounts {
+  approved: number;
+  active: number;
+}
 
 export interface PaginatedEvents {
   events: EventRecord[];
@@ -99,22 +110,127 @@ function buildEventOrderBy(
   return { [sort]: order };
 }
 
-async function syncEventLifecycle(event: EventRecord): Promise<EventRecord> {
-  const resolved = resolveEventStatus(event);
+async function loadRegistrationCounts(eventIds: number[]): Promise<Map<number, RegistrationCounts>> {
+  const counts = new Map<number, RegistrationCounts>();
 
-  if (resolved === event.status) {
-    return event;
+  for (const eventId of eventIds) {
+    counts.set(eventId, { approved: 0, active: 0 });
   }
 
-  return prisma.event.update({
+  if (eventIds.length === 0) {
+    return counts;
+  }
+
+  const [approvedGroups, activeGroups] = await Promise.all([
+    prisma.registration.groupBy({
+      by: ['eventId'],
+      where: {
+        eventId: { in: eventIds },
+        status: RegistrationStatus.APPROVED,
+      },
+      _count: { _all: true },
+    }),
+    prisma.registration.groupBy({
+      by: ['eventId'],
+      where: {
+        eventId: { in: eventIds },
+        status: { in: [RegistrationStatus.PENDING, RegistrationStatus.APPROVED] },
+      },
+      _count: { _all: true },
+    }),
+  ]);
+
+  for (const group of approvedGroups) {
+    counts.get(group.eventId)!.approved = group._count._all;
+  }
+
+  for (const group of activeGroups) {
+    counts.get(group.eventId)!.active = group._count._all;
+  }
+
+  return counts;
+}
+
+function applyRegistrationCounts(
+  event: Prisma.EventGetPayload<{ select: typeof eventSelect }>,
+  registrationCounts: RegistrationCounts,
+): EventRecord {
+  return {
+    ...event,
+    _count: {
+      slots: event._count.slots,
+      registrations: registrationCounts.approved,
+      activeRegistrations: registrationCounts.active,
+    },
+  };
+}
+
+async function syncEventLifecycle(
+  event: EventRecord,
+  approvedRegistrationCount = event._count.registrations,
+): Promise<EventRecord> {
+  const resolved = resolveEventStatus({
+    status: event.status,
+    registrationDeadline: event.registrationDeadline,
+    scheduledStart: event.scheduledStart,
+    maxPlayers: event.maxPlayers,
+    approvedRegistrationCount,
+  });
+
+  const registrationCounts = {
+    approved: approvedRegistrationCount,
+    active: event._count.activeRegistrations,
+  };
+
+  if (resolved === event.status) {
+    return {
+      ...event,
+      _count: {
+        ...event._count,
+        registrations: registrationCounts.approved,
+      },
+    };
+  }
+
+  const updated = await prisma.event.update({
     where: { id: event.id },
     data: { status: resolved },
     select: eventSelect,
   });
+
+  return applyRegistrationCounts(updated, registrationCounts);
 }
 
-async function syncEvents(events: EventRecord[]): Promise<EventRecord[]> {
-  return Promise.all(events.map((event) => syncEventLifecycle(event)));
+async function syncEvents(
+  events: Prisma.EventGetPayload<{ select: typeof eventSelect }>[],
+): Promise<EventRecord[]> {
+  const countsMap = await loadRegistrationCounts(events.map((event) => event.id));
+
+  return Promise.all(
+    events.map(async (event) => {
+      const registrationCounts = countsMap.get(event.id) ?? { approved: 0, active: 0 };
+      const enriched = applyRegistrationCounts(event, registrationCounts);
+      return syncEventLifecycle(enriched, registrationCounts.approved);
+    }),
+  );
+}
+
+export async function syncEventStatusForEvent(eventId: number): Promise<void> {
+  const event = await prisma.event.findUnique({
+    where: { id: eventId },
+    select: eventSelect,
+  });
+
+  if (!event) {
+    return;
+  }
+
+  const registrationCounts = (await loadRegistrationCounts([eventId])).get(eventId) ?? {
+    approved: 0,
+    active: 0,
+  };
+
+  await syncEventLifecycle(applyRegistrationCounts(event, registrationCounts), registrationCounts.approved);
 }
 
 function assertAllowedStatusTransition(current: EventRecord, next: EventStatus): void {
@@ -221,7 +337,12 @@ export async function getEventById(id: number): Promise<EventRecord> {
     throw new AppError(404, 'Событие не найдено');
   }
 
-  return syncEventLifecycle(event);
+  const registrationCounts = (await loadRegistrationCounts([id])).get(id) ?? {
+    approved: 0,
+    active: 0,
+  };
+
+  return syncEventLifecycle(applyRegistrationCounts(event, registrationCounts), registrationCounts.approved);
 }
 
 async function assertOrganizerOwnsEvent(eventId: number, organizerId: number): Promise<EventRecord> {
@@ -256,7 +377,7 @@ function assertEventIsEditable(status: EventStatus): void {
 }
 
 function assertEventDetailsEditable(event: EventRecord): void {
-  if (event.status !== EventStatus.REGISTRATION || event._count.registrations > 0) {
+  if (event.status !== EventStatus.REGISTRATION || event._count.activeRegistrations > 0) {
     throw new AppError(
       409,
       'Редактировать можно только события в статусе «Регистрация» без зарегистрированных игроков',
@@ -284,7 +405,8 @@ export async function createEvent(
     select: eventSelect,
   });
 
-  return syncEventLifecycle(created);
+  const registrationCounts = { approved: 0, active: 0 };
+  return syncEventLifecycle(applyRegistrationCounts(created, registrationCounts), 0);
 }
 
 export async function updateEvent(
@@ -346,7 +468,12 @@ export async function updateEvent(
     select: eventSelect,
   });
 
-  return syncEventLifecycle(updated);
+  const registrationCounts = (await loadRegistrationCounts([id])).get(id) ?? {
+    approved: 0,
+    active: 0,
+  };
+
+  return syncEventLifecycle(applyRegistrationCounts(updated, registrationCounts), registrationCounts.approved);
 }
 
 export async function deleteEvent(id: number, organizerId: number): Promise<void> {

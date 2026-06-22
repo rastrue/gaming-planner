@@ -11,6 +11,7 @@ import {
   ReportStatus,
   UserRoleName,
 } from '@prisma/client';
+import { resolveEventStatus } from '../src/lib/eventLifecycle.js';
 import dotenv from 'dotenv';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -56,8 +57,7 @@ const GAME_DEFINITIONS: Array<{ slug: string; title: string; genre: GameGenre; p
 ];
 
 const EVENT_STATUS_WEIGHTS: Array<{ status: EventStatus; weight: number }> = [
-  { status: EventStatus.REGISTRATION, weight: 30 },
-  { status: EventStatus.FULL, weight: 8 },
+  { status: EventStatus.REGISTRATION, weight: 38 },
   { status: EventStatus.WAITING, weight: 12 },
   { status: EventStatus.STARTED, weight: 10 },
   { status: EventStatus.COMPLETED, weight: 28 },
@@ -132,8 +132,6 @@ function statusDayOffset(status: EventStatus, index: number): number {
       return -((index % 8) + 1);
     case EventStatus.WAITING:
       return (index % 5) + 1;
-    case EventStatus.FULL:
-      return (index % 12) + 2;
     case EventStatus.REGISTRATION:
       return (index % 30) + 3;
     default:
@@ -330,25 +328,25 @@ async function main() {
     }
 
     const slots = slotsByEventId.get(event.id) ?? [];
-    const participantCount =
-      event.status === EventStatus.COMPLETED || event.status === EventStatus.FULL
-        ? Math.min(event.maxPlayers, 4 + (event.id % 5))
-        : 2 + (event.id % 4);
+    const targetApproved =
+      event.status === EventStatus.COMPLETED
+        ? Math.min(event.maxPlayers, 3 + (event.id % 4))
+        : event.status === EventStatus.REGISTRATION && event.id % 9 === 0
+          ? event.maxPlayers
+          : 1 + (event.id % 4);
 
-    const eventPlayers = pickMany(players, Math.min(participantCount, players.length));
+    const eventPlayers = pickMany(players, Math.min(targetApproved, players.length));
 
     for (let playerIndex = 0; playerIndex < eventPlayers.length; playerIndex += 1) {
       const player = eventPlayers[playerIndex]!;
       const slot = slots[playerIndex % Math.max(slots.length, 1)];
       let status: RegistrationStatus;
 
-      if (event.status === EventStatus.COMPLETED) {
+      if (event.status === EventStatus.COMPLETED || playerIndex < targetApproved) {
         status = RegistrationStatus.APPROVED;
-      } else if (event.status === EventStatus.FULL || event.status === EventStatus.WAITING) {
-        status = playerIndex < event.maxPlayers ? RegistrationStatus.APPROVED : RegistrationStatus.PENDING;
       } else {
         status = registrationStatuses[(event.id + playerIndex) % registrationStatuses.length]!;
-        if (status === RegistrationStatus.APPROVED && playerIndex >= event.maxPlayers) {
+        if (status === RegistrationStatus.APPROVED) {
           status = RegistrationStatus.PENDING;
         }
       }
@@ -371,6 +369,34 @@ async function main() {
       });
 
       registrationCount += 1;
+    }
+  }
+
+  for (const event of events) {
+    if (event.status === EventStatus.CANCELLED || event.status === EventStatus.COMPLETED) {
+      continue;
+    }
+
+    const approvedRegistrationCount = await prisma.registration.count({
+      where: {
+        eventId: event.id,
+        status: RegistrationStatus.APPROVED,
+      },
+    });
+
+    const resolvedStatus = resolveEventStatus({
+      status: event.status,
+      registrationDeadline: event.registrationDeadline,
+      scheduledStart: event.scheduledStart,
+      maxPlayers: event.maxPlayers,
+      approvedRegistrationCount,
+    });
+
+    if (resolvedStatus !== event.status) {
+      await prisma.event.update({
+        where: { id: event.id },
+        data: { status: resolvedStatus },
+      });
     }
   }
 

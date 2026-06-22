@@ -4,6 +4,8 @@ export interface EventLifecycleInput {
   status: EventStatus;
   registrationDeadline: Date;
   scheduledStart: Date;
+  maxPlayers: number;
+  approvedRegistrationCount: number;
 }
 
 const TERMINAL_STATUSES = new Set<EventStatus>([EventStatus.COMPLETED, EventStatus.CANCELLED]);
@@ -26,12 +28,12 @@ export function resolveEventStatus(event: EventLifecycleInput, now = Date.now())
     return EventStatus.STARTED;
   }
 
-  if (event.status === EventStatus.FULL) {
-    return deadlineTime < now ? EventStatus.WAITING : EventStatus.FULL;
-  }
-
   if (event.status === EventStatus.WAITING || deadlineTime < now) {
     return EventStatus.WAITING;
+  }
+
+  if (event.approvedRegistrationCount >= event.maxPlayers) {
+    return EventStatus.FULL;
   }
 
   return EventStatus.REGISTRATION;

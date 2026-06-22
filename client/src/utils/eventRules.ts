@@ -10,9 +10,9 @@ export function isEventEditable(status: EventStatus): boolean {
 
 export function canEditEventDetails(event: {
   status: EventStatus;
-  _count: { registrations: number };
+  _count: { activeRegistrations: number };
 }): boolean {
-  return event.status === 'REGISTRATION' && event._count.registrations === 0;
+  return event.status === 'REGISTRATION' && event._count.activeRegistrations === 0;
 }
 
 export function canCancelOpenEvent(status: EventStatus): boolean {
@@ -36,7 +36,13 @@ export function isRegistrationAcceptingStatus(status: EventStatus): boolean {
 }
 
 export function resolveEventStatus(
-  event: { status: EventStatus; registrationDeadline: string; scheduledStart: string },
+  event: {
+    status: EventStatus;
+    registrationDeadline: string;
+    scheduledStart: string;
+    maxPlayers: number;
+    _count?: { registrations: number };
+  },
   now = Date.now(),
 ): EventStatus {
   if (isTerminalEventStatus(event.status)) {
@@ -50,12 +56,14 @@ export function resolveEventStatus(
     return 'STARTED';
   }
 
-  if (event.status === 'FULL') {
-    return deadlineTime < now ? 'WAITING' : 'FULL';
-  }
-
   if (event.status === 'WAITING' || deadlineTime < now) {
     return 'WAITING';
+  }
+
+  const approvedRegistrationCount = event._count?.registrations ?? 0;
+
+  if (approvedRegistrationCount >= event.maxPlayers) {
+    return 'FULL';
   }
 
   return 'REGISTRATION';
@@ -66,7 +74,13 @@ export function canPlayerCancelRegistration(event: { status: EventStatus }): boo
 }
 
 export function isRegistrationOpen(
-  event: { status: EventStatus; registrationDeadline: string; scheduledStart: string },
+  event: {
+    status: EventStatus;
+    registrationDeadline: string;
+    scheduledStart: string;
+    maxPlayers: number;
+    _count?: { registrations: number };
+  },
 ): boolean {
   return (
     resolveEventStatus(event) === 'REGISTRATION' &&

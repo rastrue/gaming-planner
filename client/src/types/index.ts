@@ -84,6 +84,7 @@ export interface Event {
   organizer: EventOrganizerSummary;
   _count: {
     registrations: number;
+    activeRegistrations: number;
     slots: number;
   };
 }

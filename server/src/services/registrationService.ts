@@ -5,9 +5,10 @@ import {
   RegistrationStatus,
   UserRoleName,
 } from '@prisma/client';
-import { isRegistrationOpen, canPlayerCancelRegistration, resolveEventStatus } from '../lib/eventLifecycle.js';
+import { isRegistrationOpen, canPlayerCancelRegistration } from '../lib/eventLifecycle.js';
 import { AppError } from '../lib/errors.js';
 import prisma from '../lib/prisma.js';
+import { syncEventStatusForEvent } from './eventService.js';
 import type { AuthenticatedUser } from '../middleware/authMiddleware.js';
 import type {
   CreateRegistrationInput,
@@ -68,17 +69,18 @@ export interface PaginatedRegistrations {
 async function syncRegistrationEvent(
   event: RegistrationRecord['event'],
 ): Promise<RegistrationRecord['event']> {
-  const resolved = resolveEventStatus(event);
+  await syncEventStatusForEvent(event.id);
 
-  if (resolved === event.status) {
-    return event;
-  }
-
-  return prisma.event.update({
+  const refreshed = await prisma.event.findUnique({
     where: { id: event.id },
-    data: { status: resolved },
     select: registrationSelect.event.select,
   });
+
+  if (!refreshed) {
+    throw new AppError(404, 'Событие не найдено');
+  }
+
+  return refreshed;
 }
 
 async function getRegistrationByIdInternal(id: number): Promise<RegistrationRecord> {
@@ -195,6 +197,7 @@ export async function createRegistration(
       status: true,
       registrationDeadline: true,
       scheduledStart: true,
+      maxPlayers: true,
     },
   });
 
@@ -202,7 +205,14 @@ export async function createRegistration(
     throw new AppError(404, 'Событие не найдено');
   }
 
-  if (!isRegistrationOpen(event)) {
+  const approvedRegistrationCount = await prisma.registration.count({
+    where: {
+      eventId: input.eventId,
+      status: RegistrationStatus.APPROVED,
+    },
+  });
+
+  if (!isRegistrationOpen({ ...event, approvedRegistrationCount })) {
     throw new AppError(409, 'Регистрация на это событие не открыта');
   }
 
@@ -343,6 +353,28 @@ async function applyOrganizerUpdate(
       throw new AppError(409, 'Отменённые регистрации нельзя изменить');
     }
 
+    if (
+      input.status === RegistrationStatus.APPROVED &&
+      registration.status !== RegistrationStatus.APPROVED
+    ) {
+      const [approvedCount, eventCapacity] = await Promise.all([
+        prisma.registration.count({
+          where: {
+            eventId: registration.eventId,
+            status: RegistrationStatus.APPROVED,
+          },
+        }),
+        prisma.event.findUnique({
+          where: { id: registration.eventId },
+          select: { maxPlayers: true },
+        }),
+      ]);
+
+      if (eventCapacity && approvedCount >= eventCapacity.maxPlayers) {
+        throw new AppError(409, 'Все места на это событие уже заняты');
+      }
+    }
+
     data.status = input.status;
 
     if (input.status !== RegistrationStatus.APPROVED) {
@@ -426,11 +458,23 @@ export async function updateRegistration(
       ? await applyPlayerUpdate(registration, input, user.id)
       : await applyOrganizerUpdate(registration, input, user.id);
 
-  return prisma.registration.update({
+  const updated = await prisma.registration.update({
     where: { id },
     data,
     select: registrationSelect,
   });
+
+  await syncEventStatusForEvent(updated.eventId);
+
+  const syncedEvent = await prisma.event.findUnique({
+    where: { id: updated.eventId },
+    select: registrationSelect.event.select,
+  });
+
+  return {
+    ...updated,
+    event: syncedEvent ?? updated.event,
+  };
 }
 
 export async function deleteRegistration(id: number, user: AuthenticatedUser): Promise<void> {
