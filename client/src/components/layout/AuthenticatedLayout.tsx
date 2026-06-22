@@ -16,7 +16,7 @@ function getPageMeta(pathname: string): { title: string; description?: string } 
   }
 
   if (pathname === '/my-registrations') {
-    return { title: 'Мои регистрации', description: 'История регистраций и их статусы.' };
+    return { title: 'Мои регистрации' };
   }
 
   if (pathname === '/reports') {
