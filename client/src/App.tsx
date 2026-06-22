@@ -69,10 +69,14 @@ export default function App() {
     let active = true;
 
     void authService
-      .getCurrentUser()
+      .probeSession()
       .then((user) => {
         if (active) {
-          dispatch(setCurrentUser(user));
+          if (user) {
+            dispatch(setCurrentUser(user));
+          } else {
+            dispatch(clearCurrentUser());
+          }
         }
       })
       .catch(() => {

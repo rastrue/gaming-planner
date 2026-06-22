@@ -49,10 +49,9 @@ export async function resetApplicationSettingsAndRestoreSession(
 ): Promise<void> {
   resetApplicationSettings(dispatch);
 
-  try {
-    const user = await authService.getCurrentUser();
+  const user = await authService.probeSession();
+
+  if (user) {
     dispatch(setCurrentUser(user));
-  } catch {
-    // Session cookie may have expired; ProtectedRoute will handle redirect.
   }
 }

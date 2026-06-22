@@ -23,8 +23,14 @@ export function useAuth() {
 
   const refreshUser = useCallback(async () => {
     try {
-      const user = await authService.getCurrentUser();
-      dispatch(setCurrentUser(user));
+      const user = await authService.probeSession();
+
+      if (user) {
+        dispatch(setCurrentUser(user));
+      } else {
+        dispatch(clearCurrentUser());
+      }
+
       return user;
     } catch {
       dispatch(clearCurrentUser());

@@ -20,21 +20,18 @@ export async function login(input: LoginInput): Promise<PublicUser> {
 }
 
 export async function getCurrentUser(): Promise<PublicUser> {
-  const data = await apiRequest<{ user: PublicUser }>('/auth/me');
-  return data.user;
+  const user = await probeSession();
+
+  if (!user) {
+    throw new ApiError(401, 'Требуется авторизация');
+  }
+
+  return user;
 }
 
-/** Treats 401 as an absent session; rethrows other API failures. */
 export async function probeSession(): Promise<PublicUser | null> {
-  try {
-    return await getCurrentUser();
-  } catch (error) {
-    if (error instanceof ApiError && error.statusCode === 401) {
-      return null;
-    }
-
-    throw error;
-  }
+  const data = await apiRequest<{ user: PublicUser | null }>('/auth/me');
+  return data.user;
 }
 
 export async function logout(): Promise<void> {

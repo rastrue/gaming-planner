@@ -7,12 +7,22 @@ export const eventIdParamsSchema = z.object({
 
 const sortFields = ['scheduledStart', 'title', 'createdAt', 'status'] as const;
 
+const optionalEventStatusQuery = z.preprocess(
+  (value) => {
+    if (value === undefined || value === null || value === '') {
+      return undefined;
+    }
+
+    const parsed = z.nativeEnum(EventStatus).safeParse(value);
+    return parsed.success ? parsed.data : undefined;
+  },
+  z.nativeEnum(EventStatus).optional(),
+);
+
 export const listEventsQuerySchema = z.object({
   search: z.string().trim().optional(),
   gameId: z.coerce.number().int().positive('Идентификатор игры должен быть положительным числом').optional(),
-  status: z.nativeEnum(EventStatus, {
-    errorMap: () => ({ message: 'Недопустимый статус события' }),
-  }).optional(),
+  status: optionalEventStatusQuery,
   startDate: z.coerce.date({ invalid_type_error: 'Некорректная дата начала' }).optional(),
   endDate: z.coerce.date({ invalid_type_error: 'Некорректная дата окончания' }).optional(),
   sort: z.enum(sortFields, {

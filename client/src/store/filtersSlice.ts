@@ -32,13 +32,29 @@ const defaultEventsFilters: EventsFilterState = {
   availabilityFit: false,
 };
 
+const VALID_EVENT_STATUSES = new Set<EventStatus>([
+  'REGISTRATION',
+  'FULL',
+  'WAITING',
+  'STARTED',
+  'COMPLETED',
+  'CANCELLED',
+]);
+
+function normalizeEventsFilters(partial?: Partial<EventsFilterState>): EventsFilterState {
+  const merged = { ...defaultEventsFilters, ...partial };
+
+  return {
+    ...merged,
+    status:
+      merged.status && VALID_EVENT_STATUSES.has(merged.status) ? merged.status : null,
+  };
+}
+
 const persistedFilters = readStorage<FiltersState>(storageKeys.filters);
 
 const initialState: FiltersState = {
-  events: {
-    ...defaultEventsFilters,
-    ...persistedFilters?.events,
-  },
+  events: normalizeEventsFilters(persistedFilters?.events),
 };
 
 const filtersSlice = createSlice({
@@ -52,7 +68,7 @@ const filtersSlice = createSlice({
       state.events = defaultEventsFilters;
     },
     hydrateFiltersState(state, action: PayloadAction<FiltersState>) {
-      state.events = { ...defaultEventsFilters, ...action.payload.events };
+      state.events = normalizeEventsFilters(action.payload.events);
     },
     resetFiltersState() {
       return { events: defaultEventsFilters };

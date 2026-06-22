@@ -186,9 +186,9 @@ The API is not running. Start it with `npm run dev` or `npm run dev -w server`.
 
 Stop existing Node processes on those ports, then run `npm run dev` again.
 
-**401 on `/api/auth/me` when logged out**
+**`/api/auth/me` returns `{ user: null }` when logged out**
 
-Expected — the app uses this to detect whether a session cookie exists.
+Expected — the app uses this to detect whether a session cookie exists without treating it as an error.
 
 **Report email shows success but nothing arrives**
 
