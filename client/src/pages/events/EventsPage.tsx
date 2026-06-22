@@ -191,6 +191,11 @@ export default function EventsPage() {
                 render: (event) => formatEventDate(event.scheduledStart),
               },
               {
+                key: 'scheduledEnd',
+                header: 'Конец',
+                render: (event) => formatEventDate(event.scheduledEnd),
+              },
+              {
                 key: 'registrations',
                 header: 'Игроки',
                 hideOnMobile: true,
