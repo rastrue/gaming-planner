@@ -44,7 +44,7 @@ export default function ReportsPage() {
 
       dispatch(setReports(data));
     } catch {
-      setLoadError('Не удалось загрузить историю отчетов.');
+      setLoadError('Unable to load report history.');
     } finally {
       setIsLoading(false);
     }
@@ -83,13 +83,13 @@ export default function ReportsPage() {
   if (isLoading && reports.length === 0) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner label="Загрузка отчетов" size="lg" />
+        <Spinner label="Loading reports" size="lg" />
       </div>
     );
   }
 
   if (loadError && reports.length === 0) {
-    return <EmptyState title="Отчеты недоступны" description={loadError} />;
+    return <EmptyState title="Reports unavailable" description={loadError} />;
   }
 
   return (
@@ -103,7 +103,7 @@ export default function ReportsPage() {
 
       <ReportGeneratorForm
         onReportCreated={handleReportCreated}
-        onSuccess={(message, title = 'Отчет готов') =>
+        onSuccess={(message, title = 'Report ready') =>
           showToast({ title, message, variant: 'success' })
         }
       />
@@ -119,7 +119,7 @@ export default function ReportsPage() {
         onReportDeleted={handleReportDeleted}
         onActionError={setActionError}
         onActionSuccess={(message) =>
-          showToast({ title: 'Отчет отправлен', message, variant: 'success' })
+          showToast({ title: 'Report sent', message, variant: 'success' })
         }
       />
       </div>

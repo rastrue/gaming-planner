@@ -30,7 +30,7 @@ async function getAvailabilityByIdInternal(id: number): Promise<AvailabilityWind
   });
 
   if (!window) {
-    throw new AppError(404, 'Окно доступности не найдено');
+    throw new AppError(404, 'Availability window not found');
   }
 
   return window;
@@ -38,13 +38,13 @@ async function getAvailabilityByIdInternal(id: number): Promise<AvailabilityWind
 
 function assertOwnAvailability(window: AvailabilityWindowRecord, userId: number): void {
   if (window.userId !== userId) {
-    throw new AppError(403, 'Вы можете управлять только своими окнами доступности');
+    throw new AppError(403, 'You can only manage your own availability windows');
   }
 }
 
 function validateMinuteRange(startMinute: number, endMinute: number): void {
   if (endMinute <= startMinute) {
-    throw new AppError(400, 'Минута окончания должна быть позже минуты начала');
+    throw new AppError(400, 'End minute must be after start minute');
   }
 }
 

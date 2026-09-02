@@ -11,12 +11,12 @@ import * as eventService from '../../services/eventService';
 import * as gameService from '../../services/gameService';
 import { resetEventsFilters, setEventsFilters, type EventsFilterState } from '../../store/filtersSlice';
 import { setEvents } from '../../store/eventsSlice';
-import { formatEventStatus } from '../../i18n/labels';
+import { formatEventStatus } from '../../utils/labels';
 import type { AppDispatch, RootState } from '../../store/store';
 import type { Event, EventStatus, ListEventsQuery } from '../../types/index';
 import EventFiltersPanel from './EventFiltersPanel';
 
-const dateLocale = 'ru-RU';
+const dateLocale = 'en-US';
 
 function formatEventDate(value: string): string {
   return new Date(value).toLocaleString(dateLocale, {
@@ -101,7 +101,7 @@ export default function EventsPage() {
       const data = await eventService.getEvents(buildQuery(filters));
       dispatch(setEvents(data));
     } catch {
-      setLoadError('Не удалось загрузить события. Измените фильтры и попробуйте снова.');
+      setLoadError('Unable to load events. Adjust filters and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -134,14 +134,14 @@ export default function EventsPage() {
 
       {isInitialLoading ? (
         <div className="flex justify-center py-16">
-          <Spinner label="Загрузка событий" size="lg" />
+          <Spinner label="Loading events" size="lg" />
         </div>
       ) : loadError && events.length === 0 ? (
-        <EmptyState title="События недоступны" description={loadError} />
+        <EmptyState title="Events unavailable" description={loadError} />
       ) : events.length === 0 ? (
         <EmptyState
-          title="События не найдены"
-          description="Попробуйте изменить поисковый запрос или фильтры."
+          title="No events found"
+          description="Try changing your search query or filters."
         />
       ) : (
         <>
@@ -153,14 +153,14 @@ export default function EventsPage() {
 
           <div className={isRefreshing ? 'pointer-events-none opacity-60' : undefined}>
             <DataTable<Event>
-            caption="Каталог событий"
+            caption="Event catalog"
             data={events}
             getRowKey={(event) => event.id}
             columns={[
               {
                 key: 'title',
-                header: 'Событие',
-                mobileLabel: 'Событие',
+                header: 'Event',
+                mobileLabel: 'Event',
                 render: (event) => (
                   <div>
                     <Link
@@ -175,29 +175,29 @@ export default function EventsPage() {
               },
               {
                 key: 'game',
-                header: 'Игра',
+                header: 'Game',
                 render: (event) => event.game.title,
               },
               {
                 key: 'status',
-                header: 'Статус',
+                header: 'Status',
                 render: (event) => (
                   <Badge variant={statusVariant(event.status)}>{formatEventStatus(event.status)}</Badge>
                 ),
               },
               {
                 key: 'scheduledStart',
-                header: 'Начало',
+                header: 'Start',
                 render: (event) => formatEventDate(event.scheduledStart),
               },
               {
                 key: 'scheduledEnd',
-                header: 'Конец',
+                header: 'End',
                 render: (event) => formatEventDate(event.scheduledEnd),
               },
               {
                 key: 'registrations',
-                header: 'Игроки',
+                header: 'Players',
                 hideOnMobile: true,
                 render: (event) =>
                   `${event._count.registrations} / ${event.maxPlayers}`,

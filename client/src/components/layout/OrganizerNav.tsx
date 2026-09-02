@@ -20,7 +20,7 @@ export default function OrganizerNav({
 }: OrganizerNavProps) {
   const items: SidebarNavItem[] = [
     {
-      label: 'Управление событиями',
+      label: 'Event management',
       href: '/organizer/events',
       icon: <ClipboardList className="h-4 w-4" />,
       isActive:
@@ -28,7 +28,7 @@ export default function OrganizerNav({
         /^\/organizer\/events\/\d+\/roster/.test(currentPath),
     },
     {
-      label: 'Отчеты и экспорт',
+      label: 'Reports & export',
       href: '/reports',
       icon: <CalendarClock className="h-4 w-4" />,
       isActive: isNavItemActive(currentPath, '/reports'),
@@ -38,7 +38,7 @@ export default function OrganizerNav({
   return (
     <SidebarNav
       items={items}
-      ariaLabel="Навигация организатора"
+      ariaLabel="Organizer navigation"
       collapsed={collapsed}
       onToggleCollapse={onToggleCollapse}
       className={className}

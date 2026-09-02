@@ -29,7 +29,7 @@ function GuestRoute({ isBootstrapped }: { isBootstrapped: boolean }) {
   if (!isBootstrapped) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-slate-600 dark:text-slate-400">Загрузка...</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">Loading...</p>
       </main>
     );
   }
@@ -47,7 +47,7 @@ function HomeRedirect({ isBootstrapped }: { isBootstrapped: boolean }) {
   if (!isBootstrapped) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <p className="text-sm text-slate-600 dark:text-slate-400">Загрузка...</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">Loading...</p>
       </main>
     );
   }

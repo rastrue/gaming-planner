@@ -24,19 +24,19 @@ export default function PlayerNav({
 }: PlayerNavProps) {
   const items: SidebarNavItem[] = [
     {
-      label: 'События',
+      label: 'Events',
       href: '/events',
       icon: <Compass className="h-4 w-4" />,
       isActive: isNavItemActive(currentPath, '/events'),
     },
     {
-      label: 'Планировщик доступности',
+      label: 'Availability planner',
       href: '/availability',
       icon: <CalendarRange className="h-4 w-4" />,
       isActive: isNavItemActive(currentPath, '/availability'),
     },
     {
-      label: 'Мои регистрации',
+      label: 'My registrations',
       href: '/my-registrations',
       icon: <ScrollText className="h-4 w-4" />,
       isActive: isNavItemActive(currentPath, '/my-registrations'),
@@ -46,7 +46,7 @@ export default function PlayerNav({
   return (
     <SidebarNav
       items={items}
-      ariaLabel="Навигация игрока"
+      ariaLabel="Player navigation"
       collapsed={collapsed}
       onToggleCollapse={onToggleCollapse}
       className={className}

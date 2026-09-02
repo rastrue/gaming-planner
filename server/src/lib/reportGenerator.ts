@@ -30,7 +30,7 @@ function resolveAutoTable(module: unknown): AutoTableFn {
     return nestedDefault as AutoTableFn;
   }
 
-  throw new Error('Экспорт jspdf-autotable недоступен');
+  throw new Error('jspdf-autotable export is unavailable');
 }
 
 const autoTable = resolveAutoTable(autoTableModule);
@@ -120,7 +120,7 @@ export async function loadEventAttendanceData(eventId: number): Promise<EventAtt
   });
 
   if (!event) {
-    throw new Error('Событие не найдено');
+    throw new Error('Event not found');
   }
 
   const approved = event.registrations.filter((r) => r.status === RegistrationStatus.APPROVED);
@@ -195,7 +195,7 @@ export async function loadPlayerParticipationData(
   });
 
   if (!user) {
-    throw new Error('Игрок не найден');
+    throw new Error('Player not found');
   }
 
   const approved = user.registrations.filter((r) => r.status === RegistrationStatus.APPROVED);

@@ -16,9 +16,13 @@ const FALLBACK_TIMEZONES = [
 ];
 
 function getSupportedTimezones(): string[] {
-  if (typeof Intl !== 'undefined' && 'supportedValuesOf' in Intl) {
+  const intlWithSupportedValues = Intl as typeof Intl & {
+    supportedValuesOf?: (key: string) => string[];
+  };
+
+  if (typeof intlWithSupportedValues.supportedValuesOf === 'function') {
     try {
-      return Intl.supportedValuesOf('timeZone');
+      return intlWithSupportedValues.supportedValuesOf('timeZone');
     } catch {
       return FALLBACK_TIMEZONES;
     }
@@ -39,7 +43,7 @@ function getUtcOffsetMinutes(timeZone: string, date = new Date()): number {
 
 function formatTimezoneOffset(timeZone: string, date = new Date()): string {
   try {
-    const parts = new Intl.DateTimeFormat('ru-RU', {
+    const parts = new Intl.DateTimeFormat('en-US', {
       timeZone,
       timeZoneName: 'shortOffset',
     }).formatToParts(date);

@@ -93,7 +93,7 @@ export default function AppShell({
               </span>
             ) : null}
             <IconButton
-              label={themeMode === 'dark' ? 'Переключить на светлую тему' : 'Переключить на тёмную тему'}
+              label={themeMode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
               size="sm"
               onClick={() => dispatch(toggleThemeMode())}
             >
@@ -102,8 +102,8 @@ export default function AppShell({
             <ResetAppSettingsControl
               onSuccess={() =>
                 showToast({
-                  title: 'Настройки сброшены',
-                  message: 'Предпочтения QuestSync восстановлены по умолчанию.',
+                  title: 'Settings reset',
+                  message: 'QuestSync preferences have been restored to defaults.',
                   variant: 'success',
                 })
               }
@@ -114,10 +114,10 @@ export default function AppShell({
               className="gap-2"
               onClick={() => void handleLogout()}
               disabled={isLoggingOut}
-              aria-label="Выйти"
+              aria-label="Log out"
             >
               <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">{isLoggingOut ? 'Выход…' : 'Выйти'}</span>
+              <span className="hidden sm:inline">{isLoggingOut ? 'Logging out…' : 'Log out'}</span>
             </Button>
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function AppShell({
           <div className="fixed inset-0 z-40 md:hidden">
             <button
               type="button"
-              aria-label="Закрыть меню навигации"
+              aria-label="Close navigation menu"
               className="absolute inset-0 cursor-pointer bg-slate-950/50"
               onClick={() => setMobileNavOpen(false)}
             />

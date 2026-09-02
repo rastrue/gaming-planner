@@ -9,7 +9,7 @@ import type {
 
 function requireUser(req: Request) {
   if (!req.user) {
-    throw new AppError(401, 'Требуется авторизация');
+    throw new AppError(401, 'Authentication required');
   }
 
   return req.user;

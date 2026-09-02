@@ -15,17 +15,8 @@ import {
 } from '../../store/availabilitySlice';
 import type { AppDispatch, RootState } from '../../store/store';
 import type { AvailabilityWindow } from '../../types/index';
+import { weekdayLabelsLong } from '../../utils/labels';
 import AvailabilityForm from './AvailabilityForm';
-
-const weekdayLabels = [
-  'Воскресенье',
-  'Понедельник',
-  'Вторник',
-  'Среда',
-  'Четверг',
-  'Пятница',
-  'Суббота',
-];
 
 function formatMinutes(minute: number): string {
   const hours = Math.floor(minute / 60);
@@ -70,7 +61,7 @@ export default function AvailabilityPage() {
         }
       } catch {
         if (active) {
-          setLoadError('Не удалось загрузить окна доступности.');
+          setLoadError('Unable to load availability windows.');
         }
       } finally {
         if (active) {
@@ -117,7 +108,7 @@ export default function AvailabilityPage() {
         });
         setFieldErrors(mapped);
       } else {
-        setFormError('Не удалось сохранить окно доступности.');
+        setFormError('Unable to save availability window.');
       }
     } finally {
       setIsSubmitting(false);
@@ -138,7 +129,7 @@ export default function AvailabilityPage() {
       if (error instanceof ApiError) {
         setFormError(error.message);
       } else {
-        setFormError('Не удалось удалить окно доступности.');
+        setFormError('Unable to delete availability window.');
       }
     } finally {
       setIsSubmitting(false);
@@ -148,8 +139,8 @@ export default function AvailabilityPage() {
   if (!isPlayer) {
     return (
       <EmptyState
-        title="Только для игроков"
-        description="Планирование еженедельной доступности доступно только аккаунтам игроков."
+        title="Players only"
+        description="Weekly availability planning is available only to player accounts."
       />
     );
   }
@@ -157,7 +148,7 @@ export default function AvailabilityPage() {
   const isInitialLoading = isLoading && windows.length === 0;
 
   if (loadError && windows.length === 0) {
-    return <EmptyState title="Доступность недоступна" description={loadError} />;
+    return <EmptyState title="Availability unavailable" description={loadError} />;
   }
 
   return (
@@ -171,17 +162,17 @@ export default function AvailabilityPage() {
 
         {isInitialLoading ? (
           <div className="flex justify-center py-16">
-            <Spinner label="Загрузка доступности" size="lg" />
+            <Spinner label="Loading availability" size="lg" />
           </div>
         ) : (
           <>
             <div className="grid gap-6 xl:grid-cols-2">
               <Card
-                title="Еженедельный календарь"
-                description="Выберите день, чтобы отфильтровать список доступности."
+                title="Weekly calendar"
+                description="Select a day to filter the availability list."
               >
                 <TextInput
-                  label="День"
+                  label="Day"
                   type="date"
                   value={selectedDateKey ?? ''}
                   onChange={(event) => {
@@ -199,7 +190,7 @@ export default function AvailabilityPage() {
                 {selectedDayOfWeek !== null ? (
                   <div className="mt-4 flex items-center justify-between gap-3">
                     <p className="text-sm text-slate-600 dark:text-slate-400">
-                      Фильтр: {weekdayLabels[selectedDayOfWeek]}
+                      Filter: {weekdayLabelsLong[selectedDayOfWeek]}
                     </p>
                     <Button
                       type="button"
@@ -210,15 +201,15 @@ export default function AvailabilityPage() {
                         setSelectedDateKey(null);
                       }}
                     >
-                      Сбросить фильтр
+                      Clear filter
                     </Button>
                   </div>
                 ) : null}
               </Card>
 
               <Card
-                title={editingWindow ? 'Редактировать окно доступности' : 'Добавить окно доступности'}
-                description="Укажите, когда вы обычно свободны для игры."
+                title={editingWindow ? 'Edit availability window' : 'Add availability window'}
+                description="Specify when you are usually free to play."
               >
                 <AvailabilityForm
                   key={editingWindow?.id ?? 'create'}
@@ -237,10 +228,10 @@ export default function AvailabilityPage() {
               </Card>
             </div>
 
-            <Card title="Ваши окна доступности" description="Сохранённые еженедельные временные интервалы.">
+            <Card title="Your availability windows" description="Saved weekly time intervals.">
               {filteredWindows.length === 0 ? (
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Окон доступности пока нет. Добавьте одно с помощью формы выше.
+                  No availability windows yet. Add one using the form above.
                 </p>
               ) : (
                 <ul className="space-y-3">
@@ -251,7 +242,7 @@ export default function AvailabilityPage() {
                     >
                       <div>
                         <p className="font-medium text-slate-900 dark:text-slate-100">
-                          {weekdayLabels[window.dayOfWeek]}
+                          {weekdayLabelsLong[window.dayOfWeek]}
                         </p>
                         <p className="text-sm text-slate-600 dark:text-slate-400">
                           {formatMinutes(window.startMinute)}–{formatMinutes(window.endMinute)} · {window.timezone}
@@ -265,7 +256,7 @@ export default function AvailabilityPage() {
                           disabled={isSubmitting}
                           onClick={() => setEditingWindow(window)}
                         >
-                          Редактировать
+                          Edit
                         </Button>
                         <Button
                           type="button"
@@ -274,7 +265,7 @@ export default function AvailabilityPage() {
                           disabled={isSubmitting}
                           onClick={() => void handleDelete(window)}
                         >
-                          Удалить
+                          Delete
                         </Button>
                       </div>
                     </li>

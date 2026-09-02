@@ -12,12 +12,12 @@ import {
   formatReportFormat,
   formatReportKind,
   formatReportStatus,
-} from '../../i18n/labels';
+} from '../../utils/labels';
 import * as reportService from '../../services/reportService';
 import { getActionErrorMessage } from '../../utils/apiErrors';
 import type { ReportRequest, ReportStatus } from '../../types/index';
 
-const dateLocale = 'ru-RU';
+const dateLocale = 'en-US';
 
 function formatDateTime(value: string | null): string {
   if (!value) {
@@ -99,7 +99,7 @@ export default function ReportHistoryTable({
       const download = await reportService.downloadReport(report.id);
       triggerBlobDownload(download.blob, download.fileName);
     } catch (error) {
-      const message = getActionErrorMessage(error, 'Не удалось скачать отчет.');
+      const message = getActionErrorMessage(error, 'Unable to download report.');
       if (message) {
         onActionError(message);
       }
@@ -122,13 +122,13 @@ export default function ReportHistoryTable({
       onReportUpdated(updated);
 
       if (updated.status === 'FAILED') {
-        onActionError(updated.failedReason ?? 'Не удалось отправить отчет по email.');
+        onActionError(updated.failedReason ?? 'Unable to email report.');
       } else {
         setEmailTarget(null);
-        onActionSuccess?.(`Отчет отправлен на ${recipientEmail.trim()}.`);
+        onActionSuccess?.(`Report sent to ${recipientEmail.trim()}.`);
       }
     } catch (error) {
-      const message = getActionErrorMessage(error, 'Не удалось отправить отчет по email.');
+      const message = getActionErrorMessage(error, 'Unable to email report.');
       if (message) {
         onActionError(message);
       }
@@ -149,7 +149,7 @@ export default function ReportHistoryTable({
       onReportDeleted(deleteTarget.id);
       setDeleteTarget(null);
     } catch (error) {
-      const message = getActionErrorMessage(error, 'Не удалось удалить отчет.');
+      const message = getActionErrorMessage(error, 'Unable to delete report.');
       if (message) {
         onActionError(message);
       }
@@ -160,20 +160,20 @@ export default function ReportHistoryTable({
 
   return (
     <>
-      <Card title="История отчетов">
+      <Card title="Report history">
         {totalReports === 0 ? (
-          <EmptyState title="Отчетов пока нет" />
+          <EmptyState title="No reports yet" />
         ) : (
           <>
             <DataTable<ReportRequest>
-              caption="Сформированные запросы отчетов"
+              caption="Generated report requests"
               data={reports}
               getRowKey={(report) => report.id}
               columns={[
                 {
                   key: 'kind',
-                  header: 'Отчет',
-                  mobileLabel: 'Отчет',
+                  header: 'Report',
+                  mobileLabel: 'Report',
                   render: (report) => (
                     <div>
                       <p className="font-medium text-slate-900 dark:text-slate-100">
@@ -187,7 +187,7 @@ export default function ReportHistoryTable({
                 },
                 {
                   key: 'status',
-                  header: 'Статус',
+                  header: 'Status',
                   render: (report) => (
                     <Badge variant={reportStatusVariant(report.status)}>
                       {formatReportStatus(report.status)}
@@ -196,18 +196,18 @@ export default function ReportHistoryTable({
                 },
                 {
                   key: 'requestedAt',
-                  header: 'Запрошен',
+                  header: 'Requested',
                   hideOnMobile: true,
                   render: (report) => formatDateTime(report.requestedAt),
                 },
                 {
                   key: 'delivery',
-                  header: 'Доставка',
+                  header: 'Delivery',
                   hideOnMobile: true,
                   render: (report) => (
                     <div className="text-sm text-slate-600 dark:text-slate-400">
-                      <p>Сформирован: {formatDateTime(report.generatedAt)}</p>
-                      <p>Отправлен: {formatDateTime(report.emailedAt)}</p>
+                      <p>Generated: {formatDateTime(report.generatedAt)}</p>
+                      <p>Sent: {formatDateTime(report.emailedAt)}</p>
                       {report.failedReason ? (
                         <p className="text-red-600 dark:text-red-400">{report.failedReason}</p>
                       ) : null}
@@ -216,8 +216,8 @@ export default function ReportHistoryTable({
                 },
                 {
                   key: 'actions',
-                  header: 'Действия',
-                  mobileLabel: 'Действия',
+                  header: 'Actions',
+                  mobileLabel: 'Actions',
                   render: (report) => {
                     const canDownload = report.status === 'GENERATED' || report.status === 'EMAILED';
                     const isBusy = isSubmitting;
@@ -233,7 +233,7 @@ export default function ReportHistoryTable({
                               disabled={isBusy}
                               onClick={() => void handleDownload(report)}
                             >
-                              Скачать {report.outputFormat}
+                              Download {report.outputFormat}
                             </Button>
                             <Button
                               type="button"
@@ -241,7 +241,7 @@ export default function ReportHistoryTable({
                               disabled={isBusy}
                               onClick={() => openEmailModal(report)}
                             >
-                              На почту
+                              Email
                             </Button>
                           </>
                         ) : null}
@@ -252,7 +252,7 @@ export default function ReportHistoryTable({
                           disabled={isBusy}
                           onClick={() => setDeleteTarget(report)}
                         >
-                          Удалить
+                          Delete
                         </Button>
                       </div>
                     );
@@ -270,29 +270,29 @@ export default function ReportHistoryTable({
 
       <ModalDialog
         open={Boolean(emailTarget)}
-        title="Отправить отчет по email"
+        title="Email report"
         onClose={() => setEmailTarget(null)}
         footer={
           <>
             <Button type="button" variant="secondary" onClick={() => setEmailTarget(null)}>
-              Отмена
+              Cancel
             </Button>
             <Button type="button" disabled={isSubmitting} onClick={() => void handleEmail()}>
-              Отправить
+              Send
             </Button>
           </>
         }
       >
         <div className="space-y-4">
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Отправить{' '}
+            Send{' '}
             <span className="font-medium text-slate-900 dark:text-slate-100">
               {emailTarget ? formatReportKind(emailTarget.reportKind) : ''}
             </span>{' '}
-            ({emailTarget?.outputFormat}) получателю.
+            ({emailTarget?.outputFormat}) to the recipient.
           </p>
           <TextInput
-            label="Email получателя"
+            label="Recipient email"
             name="recipientEmail"
             type="email"
             value={recipientEmail}
@@ -304,21 +304,21 @@ export default function ReportHistoryTable({
 
       <ModalDialog
         open={Boolean(deleteTarget)}
-        title="Удалить отчет"
+        title="Delete report"
         onClose={() => setDeleteTarget(null)}
         footer={
           <>
             <Button type="button" variant="secondary" onClick={() => setDeleteTarget(null)}>
-              Отмена
+              Cancel
             </Button>
             <Button type="button" variant="danger" disabled={isSubmitting} onClick={() => void handleDelete()}>
-              Удалить отчет
+              Delete report
             </Button>
           </>
         }
       >
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Удалить этот запрос отчета и связанный с ним файл экспорта?
+          Delete this report request and its associated export file?
         </p>
       </ModalDialog>
     </>

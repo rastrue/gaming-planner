@@ -4,7 +4,7 @@ import Checkbox from '../../components/ui/Checkbox';
 import SearchBar from '../../components/ui/SearchBar';
 import SelectDropdown from '../../components/ui/SelectDropdown';
 import TextInput from '../../components/ui/TextInput';
-import { eventStatusLabels } from '../../i18n/labels';
+import { eventStatusLabels } from '../../utils/labels';
 import type { EventsFilterState } from '../../store/filtersSlice';
 import type { EventStatus, Game } from '../../types/index';
 
@@ -13,21 +13,21 @@ const statusOptions: Array<{ value: EventStatus; label: string }> = (
 ).map(([value, label]) => ({ value, label }));
 
 const sortOptions = [
-  { value: 'scheduledStart', label: 'Время начала' },
-  { value: 'title', label: 'Название' },
-  { value: 'createdAt', label: 'Дата создания' },
-  { value: 'status', label: 'Статус' },
+  { value: 'scheduledStart', label: 'Start time' },
+  { value: 'title', label: 'Title' },
+  { value: 'createdAt', label: 'Created date' },
+  { value: 'status', label: 'Status' },
 ];
 
 const orderOptions = [
-  { value: 'asc', label: 'По возрастанию' },
-  { value: 'desc', label: 'По убыванию' },
+  { value: 'asc', label: 'Ascending' },
+  { value: 'desc', label: 'Descending' },
 ];
 
 const pageSizeOptions = [
-  { value: '10', label: '10 на странице' },
-  { value: '20', label: '20 на странице' },
-  { value: '50', label: '50 на странице' },
+  { value: '10', label: '10 per page' },
+  { value: '20', label: '20 per page' },
+  { value: '50', label: '50 per page' },
 ];
 
 export interface EventFiltersPanelProps {
@@ -52,16 +52,16 @@ export default function EventFiltersPanel({
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 id="event-filters-heading" className="text-base font-semibold text-slate-900 dark:text-slate-100">
-          Поиск и фильтры
+          Search & filters
         </h2>
         <Button type="button" variant="ghost" size="sm" onClick={onReset}>
-          Сбросить фильтры
+          Reset filters
         </Button>
       </div>
 
       <SearchBar
-        label="Поиск событий"
-        placeholder="Поиск по названию события или игры..."
+        label="Search events"
+        placeholder="Search by event title or game..."
         value={filters.search}
         onChange={(value) => onFiltersChange({ search: value, page: 1 })}
         onReset={() => onFiltersChange({ search: '', page: 1 })}
@@ -72,12 +72,12 @@ export default function EventFiltersPanel({
         items={[
           {
             id: 'filters',
-            title: 'Параметры фильтрации и сортировки',
+            title: 'Filter and sort options',
             content: (
               <div className="space-y-4 pt-2">
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   <SelectDropdown
-                    label="Игра"
+                    label="Game"
                     value={filters.gameId?.toString() ?? ''}
                     onChange={(event) =>
                       onFiltersChange({
@@ -86,12 +86,12 @@ export default function EventFiltersPanel({
                       })
                     }
                     options={[
-                      { value: '', label: 'Все игры' },
+                      { value: '', label: 'All games' },
                       ...games.map((game) => ({ value: String(game.id), label: game.title })),
                     ]}
                   />
                   <SelectDropdown
-                    label="Статус"
+                    label="Status"
                     value={filters.status ?? ''}
                     onChange={(event) =>
                       onFiltersChange({
@@ -100,12 +100,12 @@ export default function EventFiltersPanel({
                       })
                     }
                     options={[
-                      { value: '', label: 'Все статусы' },
+                      { value: '', label: 'All statuses' },
                       ...statusOptions.map((option) => ({ value: option.value, label: option.label })),
                     ]}
                   />
                   <SelectDropdown
-                    label="Сортировка"
+                    label="Sort by"
                     value={filters.sort}
                     onChange={(event) =>
                       onFiltersChange({
@@ -116,7 +116,7 @@ export default function EventFiltersPanel({
                     options={sortOptions}
                   />
                   <SelectDropdown
-                    label="Порядок"
+                    label="Order"
                     value={filters.order}
                     onChange={(event) =>
                       onFiltersChange({
@@ -127,19 +127,19 @@ export default function EventFiltersPanel({
                     options={orderOptions}
                   />
                   <TextInput
-                    label="Дата начала"
+                    label="Start date"
                     type="date"
                     value={filters.startDate}
                     onChange={(event) => onFiltersChange({ startDate: event.target.value, page: 1 })}
                   />
                   <TextInput
-                    label="Дата окончания"
+                    label="End date"
                     type="date"
                     value={filters.endDate}
                     onChange={(event) => onFiltersChange({ endDate: event.target.value, page: 1 })}
                   />
                   <SelectDropdown
-                    label="Размер страницы"
+                    label="Page size"
                     value={String(filters.pageSize)}
                     onChange={(event) =>
                       onFiltersChange({
@@ -153,7 +153,7 @@ export default function EventFiltersPanel({
 
                 {showAvailabilityFit ? (
                   <Checkbox
-                    label="Показывать только события, подходящие по моей доступности"
+                    label="Show only events that match my availability"
                     checked={filters.availabilityFit}
                     onChange={(event) =>
                       onFiltersChange({

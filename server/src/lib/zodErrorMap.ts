@@ -4,23 +4,23 @@ const russianErrorMap: z.ZodErrorMap = (issue, ctx) => {
   switch (issue.code) {
     case z.ZodIssueCode.invalid_type:
       if (issue.received === 'undefined' || issue.received === 'null') {
-        return { message: 'Обязательное поле' };
+        return { message: 'Required field' };
       }
-      return { message: `Ожидается ${issue.expected}, получено ${issue.received}` };
+      return { message: `Expected ${issue.expected}, received ${issue.received}` };
     case z.ZodIssueCode.invalid_enum_value:
-      return { message: 'Недопустимое значение' };
+      return { message: 'Invalid value' };
     case z.ZodIssueCode.invalid_string:
       if (issue.validation === 'email') {
-        return { message: 'Укажите корректный email' };
+        return { message: 'Enter a valid email' };
       }
       if (issue.validation === 'url') {
-        return { message: 'Укажите корректный URL' };
+        return { message: 'Enter a valid URL' };
       }
       if (issue.validation === 'uuid') {
-        return { message: 'Укажите корректный UUID' };
+        return { message: 'Enter a valid UUID' };
       }
       if (issue.validation === 'regex') {
-        return { message: 'Недопустимый формат' };
+        return { message: 'Invalid format' };
       }
       break;
     case z.ZodIssueCode.too_small:
@@ -28,32 +28,32 @@ const russianErrorMap: z.ZodErrorMap = (issue, ctx) => {
         return {
           message:
             issue.minimum === 1
-              ? 'Поле не может быть пустым'
-              : `Строка должна содержать минимум ${issue.minimum} символ(ов)`,
+              ? 'Field cannot be empty'
+              : `String must contain at least ${issue.minimum} character(s)`,
         };
       }
       if (issue.type === 'number') {
-        return { message: `Число должно быть не меньше ${issue.minimum}` };
+        return { message: `Number must be at least ${issue.minimum}` };
       }
       if (issue.type === 'array') {
-        return { message: `Массив должен содержать минимум ${issue.minimum} элемент(ов)` };
+        return { message: `Array must contain at least ${issue.minimum} element(s)` };
       }
       break;
     case z.ZodIssueCode.too_big:
       if (issue.type === 'string') {
-        return { message: `Строка должна содержать не более ${issue.maximum} символ(ов)` };
+        return { message: `String must contain at most ${issue.maximum} character(s)` };
       }
       if (issue.type === 'number') {
-        return { message: `Число должно быть не больше ${issue.maximum}` };
+        return { message: `Number must be at most ${issue.maximum}` };
       }
       if (issue.type === 'array') {
-        return { message: `Массив должен содержать не более ${issue.maximum} элемент(ов)` };
+        return { message: `Array must contain at most ${issue.maximum} element(s)` };
       }
       break;
     case z.ZodIssueCode.not_multiple_of:
-      return { message: `Число должно быть кратно ${issue.multipleOf}` };
+      return { message: `Number must be a multiple of ${issue.multipleOf}` };
     case z.ZodIssueCode.invalid_date:
-      return { message: 'Некорректная дата' };
+      return { message: 'Invalid date' };
     default:
       break;
   }

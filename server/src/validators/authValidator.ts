@@ -5,27 +5,27 @@ export const registerSchema = z.object({
   username: z
     .string()
     .trim()
-    .min(3, 'Имя пользователя должно содержать минимум 3 символа')
-    .max(32, 'Имя пользователя должно содержать не более 32 символов')
-    .regex(/^[a-zA-Z0-9_]+$/, 'Имя пользователя может содержать только буквы, цифры и символ подчёркивания'),
-  email: z.string().trim().email('Укажите корректный email'),
+    .min(3, 'Username must be at least 3 characters')
+    .max(32, 'Username must be at most 32 characters')
+    .regex(/^[a-zA-Z0-9_]+$/, 'Username may only contain letters, numbers, and underscores'),
+  email: z.string().trim().email('Enter a valid email'),
   password: z
     .string()
-    .min(8, 'Пароль должен содержать минимум 8 символов')
-    .max(128, 'Пароль должен содержать не более 128 символов'),
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password must be at most 128 characters'),
   displayName: z
     .string()
     .trim()
-    .min(1, 'Отображаемое имя обязательно')
-    .max(64, 'Отображаемое имя должно содержать не более 64 символов'),
+    .min(1, 'Display name is required')
+    .max(64, 'Display name must be at most 64 characters'),
   roleName: z.nativeEnum(UserRoleName, {
-    errorMap: () => ({ message: 'Выберите роль' }),
+    errorMap: () => ({ message: 'Select a role' }),
   }),
 });
 
 export const loginSchema = z.object({
-  identifier: z.string().trim().min(1, 'Укажите email или имя пользователя'),
-  password: z.string().min(1, 'Пароль обязателен'),
+  identifier: z.string().trim().min(1, 'Enter your email or username'),
+  password: z.string().min(1, 'Password is required'),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;

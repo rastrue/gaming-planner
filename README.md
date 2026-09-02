@@ -125,9 +125,8 @@ gaming-planner/
 │   │   ├── services/       # REST API client modules
 │   │   ├── store/          # Synchronous Redux slices
 │   │   ├── hooks/
-│   │   ├── i18n/           # Russian UI labels
 │   │   ├── types/
-│   │   └── utils/          # routes, storageKeys
+│   │   └── utils/          # routes, storageKeys, labels
 │   └── .env.development    # Dev API URL override
 ├── server/                 # Express API
 │   ├── prisma/             # Schema, migrations, seed

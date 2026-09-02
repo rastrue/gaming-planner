@@ -2,7 +2,7 @@ import { EventStatus } from '@prisma/client';
 import { z } from 'zod';
 
 export const eventIdParamsSchema = z.object({
-  id: z.coerce.number().int().positive('Идентификатор события должен быть положительным целым числом'),
+  id: z.coerce.number().int().positive('Event ID must be a positive integer'),
 });
 
 const sortFields = ['scheduledStart', 'title', 'createdAt', 'status'] as const;
@@ -21,46 +21,46 @@ const optionalEventStatusQuery = z.preprocess(
 
 export const listEventsQuerySchema = z.object({
   search: z.string().trim().optional(),
-  gameId: z.coerce.number().int().positive('Идентификатор игры должен быть положительным числом').optional(),
+  gameId: z.coerce.number().int().positive('Game ID must be a positive integer').optional(),
   status: optionalEventStatusQuery,
-  startDate: z.coerce.date({ invalid_type_error: 'Некорректная дата начала' }).optional(),
-  endDate: z.coerce.date({ invalid_type_error: 'Некорректная дата окончания' }).optional(),
+  startDate: z.coerce.date({ invalid_type_error: 'Invalid start date' }).optional(),
+  endDate: z.coerce.date({ invalid_type_error: 'Invalid end date' }).optional(),
   sort: z.enum(sortFields, {
-    errorMap: () => ({ message: 'Недопустимое поле сортировки' }),
+    errorMap: () => ({ message: 'Invalid sort field' }),
   }).optional().default('scheduledStart'),
   order: z.enum(['asc', 'desc'], {
-    errorMap: () => ({ message: 'Порядок сортировки должен быть asc или desc' }),
+    errorMap: () => ({ message: 'Sort order must be asc or desc' }),
   }).optional().default('asc'),
-  page: z.coerce.number().int().positive('Номер страницы должен быть положительным числом').optional().default(1),
+  page: z.coerce.number().int().positive('Page number must be a positive integer').optional().default(1),
   pageSize: z.coerce
     .number()
     .int()
-    .positive('Размер страницы должен быть положительным числом')
-    .max(100, 'Размер страницы не может превышать 100')
+    .positive('Page size must be a positive integer')
+    .max(100, 'Page size cannot exceed 100')
     .optional()
     .default(10),
   availabilityFit: z
     .enum(['true', 'false'], {
-      errorMap: () => ({ message: 'Параметр availabilityFit должен быть true или false' }),
+      errorMap: () => ({ message: 'availabilityFit must be true or false' }),
     })
     .optional()
     .transform((value) => value === 'true'),
 });
 
 const eventFieldsSchema = z.object({
-  gameId: z.coerce.number().int().positive('Идентификатор игры обязателен'),
-  title: z.string().trim().min(1, 'Название обязательно').max(160, 'Слишком длинное название'),
-  description: z.string().trim().min(1, 'Описание обязательно'),
+  gameId: z.coerce.number().int().positive('Game ID is required'),
+  title: z.string().trim().min(1, 'Title is required').max(160, 'Title is too long'),
+  description: z.string().trim().min(1, 'Description is required'),
   serverRegion: z
     .string()
     .trim()
-    .min(1, 'Регион сервера обязателен')
-    .max(64, 'Регион сервера должен содержать не более 64 символов'),
-  scheduledStart: z.coerce.date({ invalid_type_error: 'Некорректная дата начала' }),
-  scheduledEnd: z.coerce.date({ invalid_type_error: 'Некорректная дата окончания' }),
-  maxPlayers: z.coerce.number().int().positive('Максимум игроков должен быть не меньше 1'),
+    .min(1, 'Server region is required')
+    .max(64, 'Server region must be at most 64 characters'),
+  scheduledStart: z.coerce.date({ invalid_type_error: 'Invalid start date' }),
+  scheduledEnd: z.coerce.date({ invalid_type_error: 'Invalid end date' }),
+  maxPlayers: z.coerce.number().int().positive('Maximum players must be at least 1'),
   status: z.nativeEnum(EventStatus, {
-    errorMap: () => ({ message: 'Недопустимый статус события' }),
+    errorMap: () => ({ message: 'Invalid event status' }),
   }).optional(),
 });
 
@@ -70,7 +70,7 @@ export const createEventSchema = createEventFieldsSchema.superRefine((data, ctx)
   if (data.scheduledEnd <= data.scheduledStart) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: 'Время окончания должно быть позже времени начала',
+      message: 'End time must be after start time',
       path: ['scheduledEnd'],
     });
   }
@@ -79,7 +79,7 @@ export const createEventSchema = createEventFieldsSchema.superRefine((data, ctx)
 export const updateEventSchema = eventFieldsSchema.partial().refine(
   (data) => Object.keys(data).length > 0,
   {
-    message: 'Укажите хотя бы одно поле для обновления',
+    message: 'Provide at least one field to update',
   },
 );
 

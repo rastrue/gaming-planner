@@ -49,7 +49,7 @@ export default function LoginPage() {
         setFormError(error.message);
         setFieldErrors(mapFieldErrors(error.errors));
       } else {
-        setFormError('Не удалось войти. Попробуйте снова.');
+        setFormError('Unable to sign in. Please try again.');
       }
     } finally {
       setIsSubmitting(false);
@@ -64,18 +64,18 @@ export default function LoginPage() {
       >
         <header className="text-center">
           <h1 id="login-heading" className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Вход в QuestSync
+            Sign in to QuestSync
           </h1>
         </header>
 
         <form className="space-y-4" onSubmit={handleSubmit} noValidate>
           {sessionExpired ? (
             <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
-              Сессия завершилась. Войдите снова, чтобы продолжить.
+              Your session has expired. Sign in again to continue.
             </p>
           ) : null}
           <TextInput
-            label="Email или имя пользователя"
+            label="Email or username"
             name="identifier"
             autoComplete="username"
             value={identifier}
@@ -84,7 +84,7 @@ export default function LoginPage() {
             required
           />
           <TextInput
-            label="Пароль"
+            label="Password"
             name="password"
             type="password"
             autoComplete="current-password"
@@ -101,17 +101,17 @@ export default function LoginPage() {
           ) : null}
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Вход...' : 'Войти'}
+            {isSubmitting ? 'Signing in...' : 'Sign in'}
           </Button>
         </form>
 
         <p className="text-center text-sm text-slate-600 dark:text-slate-400">
-          Нет аккаунта?{' '}
+          Don&apos;t have an account?{' '}
           <Link
             to="/register"
             className="cursor-pointer font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400"
           >
-            Создать
+            Create one
           </Link>
         </p>
       </section>

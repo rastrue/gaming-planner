@@ -23,7 +23,7 @@ export async function getCurrentUser(): Promise<PublicUser> {
   const user = await probeSession();
 
   if (!user) {
-    throw new ApiError(401, 'Требуется авторизация');
+    throw new ApiError(401, 'Authentication required');
   }
 
   return user;

@@ -13,12 +13,12 @@ import * as eventService from '../../services/eventService';
 import { ApiError } from '../../services/apiClient';
 import { setEvents, upsertEvent } from '../../store/eventsSlice';
 import type { AppDispatch, RootState } from '../../store/store';
-import { formatEventStatus } from '../../i18n/labels';
+import { formatEventStatus } from '../../utils/labels';
 import type { Event, EventStatus } from '../../types/index';
 import { canCancelOpenEvent, canCompleteEventStatus, canEditEventDetails, isEventEditable } from '../../utils/eventRules';
 
 const PAGE_SIZE = 10;
-const dateLocale = 'ru-RU';
+const dateLocale = 'en-US';
 
 function formatEventDate(value: string): string {
   return new Date(value).toLocaleString(dateLocale, {
@@ -86,7 +86,7 @@ export default function OrganizerEventsPage() {
         }
       } catch {
         if (active) {
-          setLoadError('Не удалось загрузить события организатора.');
+          setLoadError('Unable to load organizer events.');
         }
       } finally {
         if (active) {
@@ -124,7 +124,7 @@ export default function OrganizerEventsPage() {
       if (error instanceof ApiError) {
         setActionError(error.message);
       } else {
-        setActionError('Не удалось обновить статус события.');
+        setActionError('Unable to update event status.');
       }
     } finally {
       setBusyEventId(null);
@@ -134,20 +134,20 @@ export default function OrganizerEventsPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner label="Загрузка событий организатора" size="lg" />
+        <Spinner label="Loading organizer events" size="lg" />
       </div>
     );
   }
 
   if (loadError) {
-    return <EmptyState title="События недоступны" description={loadError} />;
+    return <EmptyState title="Events unavailable" description={loadError} />;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
         <Link to="/organizer/events/new">
-          <Button>Создать событие</Button>
+          <Button>Create event</Button>
         </Link>
       </div>
 
@@ -159,25 +159,25 @@ export default function OrganizerEventsPage() {
 
       {myEvents.length === 0 ? (
         <EmptyState
-          title="Событий пока нет"
-          description="Создайте первое событие, чтобы начать принимать регистрации игроков."
+          title="No events yet"
+          description="Create your first event to start accepting player registrations."
           action={
             <Link to="/organizer/events/new">
-              <Button>Создать событие</Button>
+              <Button>Create event</Button>
             </Link>
           }
         />
       ) : (
         <>
           <DataTable<Event>
-            caption="События организатора"
+            caption="Organizer events"
             data={paginatedEvents}
             getRowKey={(event) => event.id}
             columns={[
               {
                 key: 'title',
-                header: 'Событие',
-                mobileLabel: 'Событие',
+                header: 'Event',
+                mobileLabel: 'Event',
                 render: (event) => (
                   <div>
                     <p className="font-medium text-slate-900 dark:text-slate-100">{event.title}</p>
@@ -187,26 +187,26 @@ export default function OrganizerEventsPage() {
               },
               {
                 key: 'status',
-                header: 'Статус',
+                header: 'Status',
                 render: (event) => (
                   <Badge variant={eventStatusVariant(event.status)}>{formatEventStatus(event.status)}</Badge>
                 ),
               },
               {
                 key: 'schedule',
-                header: 'Начало',
+                header: 'Start',
                 render: (event) => formatEventDate(event.scheduledStart),
               },
               {
                 key: 'registrations',
-                header: 'Игроки',
+                header: 'Players',
                 hideOnMobile: true,
                 render: (event) => `${event._count.registrations} / ${event.maxPlayers}`,
               },
               {
                 key: 'actions',
-                header: 'Действия',
-                mobileLabel: 'Действия',
+                header: 'Actions',
+                mobileLabel: 'Actions',
                 render: (event) => {
                   const isBusy = busyEventId === event.id;
                   const editable = isEventEditable(event.status);
@@ -228,7 +228,7 @@ export default function OrganizerEventsPage() {
                       {showRosterBoard ? (
                         <Link to={`/organizer/events/${event.id}/roster`}>
                           <Button type="button" size="sm">
-                            Состав
+                            Roster
                           </Button>
                         </Link>
                       ) : null}
@@ -240,13 +240,13 @@ export default function OrganizerEventsPage() {
                           disabled={isBusy}
                           onClick={() => void updateStatus(event, 'CANCELLED')}
                         >
-                          Отменить
+                          Cancel
                         </Button>
                       ) : null}
                       {showAttendance ? (
                         <Link to={`/organizer/events/${event.id}/roster`}>
                           <Button type="button" size="sm" variant="secondary">
-                            Посещаемость
+                            Attendance
                           </Button>
                         </Link>
                       ) : null}
@@ -258,13 +258,13 @@ export default function OrganizerEventsPage() {
                           disabled={isBusy}
                           onClick={() => void updateStatus(event, 'COMPLETED')}
                         >
-                          Завершить
+                          Complete
                         </Button>
                       ) : null}
                       {canEditDetails ? (
                         <Link to={`/organizer/events/${event.id}/edit`}>
                           <Button type="button" variant="secondary" size="sm">
-                            Редактировать
+                            Edit
                           </Button>
                         </Link>
                       ) : null}

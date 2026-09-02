@@ -279,7 +279,7 @@ async function main() {
         gameId: game.id,
         organizerId: organizer.id,
         title: `${prefix} ${game.title} #${index + 1}`,
-        description: `Тестовое событие для ${game.title}. Статус: ${status}. Слоты и регистрации сгенерированы автоматически.`,
+        description: `Test event for ${game.title}. Status: ${status}. Slots and registrations were generated automatically.`,
         serverRegion: REGIONS[index % REGIONS.length]!,
         scheduledStart: schedule.scheduledStart,
         scheduledEnd: schedule.scheduledEnd,

@@ -64,10 +64,10 @@ export default function Pagination({ page, totalPages, onPageChange, className }
   const pages = getPageNumbers(page, totalPages);
 
   return (
-    <nav aria-label="Пагинация" className={cn('flex flex-wrap items-center justify-center gap-1', className)}>
+    <nav aria-label="Pagination" className={cn('flex flex-wrap items-center justify-center gap-1', className)}>
       <button
         type="button"
-        aria-label="Предыдущая страница"
+        aria-label="Previous page"
         disabled={page <= 1}
         onClick={() => handlePaginationClick(onPageChange, page - 1)}
         {...paginationButtonHandlers}
@@ -79,7 +79,7 @@ export default function Pagination({ page, totalPages, onPageChange, className }
         )}
       >
         <ChevronLeft aria-hidden="true" className="h-4 w-4" />
-        <span className="hidden sm:inline">Назад</span>
+        <span className="hidden sm:inline">Back</span>
       </button>
 
       <ul className="flex flex-wrap items-center gap-1">
@@ -92,7 +92,7 @@ export default function Pagination({ page, totalPages, onPageChange, className }
             <li key={item}>
               <button
                 type="button"
-                aria-label={`Страница ${item}`}
+                aria-label={`Page ${item}`}
                 aria-current={item === page ? 'page' : undefined}
                 onClick={() => handlePaginationClick(onPageChange, item)}
                 {...paginationButtonHandlers}
@@ -114,7 +114,7 @@ export default function Pagination({ page, totalPages, onPageChange, className }
 
       <button
         type="button"
-        aria-label="Следующая страница"
+        aria-label="Next page"
         disabled={page >= totalPages}
         onClick={() => handlePaginationClick(onPageChange, page + 1)}
         {...paginationButtonHandlers}
@@ -125,7 +125,7 @@ export default function Pagination({ page, totalPages, onPageChange, className }
           uiStyles.disabled,
         )}
       >
-        <span className="hidden sm:inline">Вперёд</span>
+        <span className="hidden sm:inline">Next</span>
         <ChevronRight aria-hidden="true" className="h-4 w-4" />
       </button>
     </nav>

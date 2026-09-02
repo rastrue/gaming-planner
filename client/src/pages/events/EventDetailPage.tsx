@@ -13,7 +13,7 @@ import {
   formatEventStatus,
   formatRegistrationStatus,
   weekdayLabelsLong,
-} from '../../i18n/labels';
+} from '../../utils/labels';
 import * as availabilityService from '../../services/availabilityService';
 import * as eventService from '../../services/eventService';
 import * as registrationService from '../../services/registrationService';
@@ -32,7 +32,7 @@ import type {
 } from '../../types/index';
 import { canPlayerCancelRegistration, isRegistrationOpen } from '../../utils/eventRules';
 
-const dateLocale = 'ru-RU';
+const dateLocale = 'en-US';
 
 function formatDateTime(value: string): string {
   return new Date(value).toLocaleString(dateLocale, {
@@ -100,7 +100,7 @@ export default function EventDetailPage() {
 
   useEffect(() => {
     if (!Number.isFinite(eventId)) {
-      setLoadError('Некорректный идентификатор события.');
+      setLoadError('Invalid event identifier.');
       setIsLoading(false);
       return;
     }
@@ -146,7 +146,7 @@ export default function EventDetailPage() {
         }
       } catch {
         if (active) {
-          setLoadError('Не удалось загрузить детали события.');
+          setLoadError('Unable to load event details.');
         }
       } finally {
         if (active) {
@@ -212,7 +212,7 @@ export default function EventDetailPage() {
       if (error instanceof ApiError) {
         setFormError(error.message);
       } else {
-        setFormError('Не удалось зарегистрироваться на это событие.');
+        setFormError('Unable to register for this event.');
       }
     } finally {
       setIsSubmitting(false);
@@ -235,7 +235,7 @@ export default function EventDetailPage() {
       if (error instanceof ApiError) {
         setFormError(error.message);
       } else {
-        setFormError('Не удалось отменить регистрацию.');
+        setFormError('Unable to cancel registration.');
       }
     } finally {
       setIsSubmitting(false);
@@ -245,7 +245,7 @@ export default function EventDetailPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner label="Загрузка деталей события" size="lg" />
+        <Spinner label="Loading event details" size="lg" />
       </div>
     );
   }
@@ -253,11 +253,11 @@ export default function EventDetailPage() {
   if (loadError || !event) {
     return (
       <EmptyState
-        title="Событие не найдено"
-        description={loadError ?? 'Не удалось загрузить это событие.'}
+        title="Event not found"
+        description={loadError ?? 'Unable to load this event.'}
         action={
           <Link to="/events">
-            <Button variant="secondary">Назад к событиям</Button>
+            <Button variant="secondary">Back to events</Button>
           </Link>
         }
       />
@@ -268,7 +268,7 @@ export default function EventDetailPage() {
     <div className="space-y-6">
       <Card
         title={event.title}
-        description={`Организатор: ${event.organizer.displayName} · ${event.game.title}`}
+        description={`Organizer: ${event.organizer.displayName} · ${event.game.title}`}
       >
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant={eventStatusVariant(event.status)}>{formatEventStatus(event.status)}</Badge>
@@ -279,34 +279,34 @@ export default function EventDetailPage() {
       </Card>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card title="Расписание" description="Время проведения. Регистрация закрывается за час до начала.">
+        <Card title="Schedule" description="Event timing. Registration closes one hour before start.">
           <dl className="space-y-3 text-sm">
             <div>
-              <dt className="font-medium text-slate-700 dark:text-slate-200">Начало</dt>
+              <dt className="font-medium text-slate-700 dark:text-slate-200">Start</dt>
               <dd className="text-slate-600 dark:text-slate-400">{formatDateTime(event.scheduledStart)}</dd>
             </div>
             <div>
-              <dt className="font-medium text-slate-700 dark:text-slate-200">Окончание</dt>
+              <dt className="font-medium text-slate-700 dark:text-slate-200">End</dt>
               <dd className="text-slate-600 dark:text-slate-400">{formatDateTime(event.scheduledEnd)}</dd>
             </div>
             <div>
-              <dt className="font-medium text-slate-700 dark:text-slate-200">Регистрация до</dt>
+              <dt className="font-medium text-slate-700 dark:text-slate-200">Registration closes</dt>
               <dd className="text-slate-600 dark:text-slate-400">
                 {formatDateTime(event.registrationDeadline)}
               </dd>
             </div>
             <div>
-              <dt className="font-medium text-slate-700 dark:text-slate-200">Вместимость</dt>
+              <dt className="font-medium text-slate-700 dark:text-slate-200">Capacity</dt>
               <dd className="text-slate-600 dark:text-slate-400">
-                Зарегистрировано {event._count.registrations} / {event.maxPlayers} игроков
+                {event._count.registrations} / {event.maxPlayers} players registered
               </dd>
             </div>
           </dl>
         </Card>
 
-        <Card title="Сводка по составу" description="Требуемые роли и текущая заполненность.">
+        <Card title="Roster summary" description="Required roles and current fill status.">
           {slots.length === 0 ? (
-            <p className="text-sm text-slate-600 dark:text-slate-400">Слоты состава ещё не определены.</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Roster slots have not been defined yet.</p>
           ) : (
             <ul className="space-y-3">
               {slots.map((slot) => (
@@ -327,10 +327,10 @@ export default function EventDetailPage() {
 
       {isPlayer ? (
         <>
-          <Card title="Ваша доступность" description="Окна доступности в день проведения события.">
+          <Card title="Your availability" description="Availability windows on the day of this event.">
             {matchingAvailability.length === 0 ? (
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                У вас нет окон доступности в {weekdayLabelsLong[new Date(event.scheduledStart).getDay()]}.
+                You have no availability windows on {weekdayLabelsLong[new Date(event.scheduledStart).getDay()]}.
               </p>
             ) : (
               <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
@@ -344,18 +344,18 @@ export default function EventDetailPage() {
             )}
           </Card>
 
-          <Card title="Регистрация" description="Присоединиться к событию как игрок.">
+          <Card title="Registration" description="Join this event as a player.">
             {registration && registration.status !== 'CANCELLED' && registration.status !== 'DECLINED' ? (
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm text-slate-600 dark:text-slate-400">Ваш статус:</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">Your status:</span>
                   <Badge variant={registrationStatusVariant(registration.status)}>
                     {formatRegistrationStatus(registration.status)}
                   </Badge>
                 </div>
                 {registration.requestedRoleName ? (
                   <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Запрошенная роль: {registration.requestedRoleName}
+                    Requested role: {registration.requestedRoleName}
                   </p>
                 ) : null}
                 {canCancelRegistration ? (
@@ -365,7 +365,7 @@ export default function EventDetailPage() {
                     disabled={isSubmitting}
                     onClick={() => void handleCancelRegistration()}
                   >
-                    Отменить регистрацию
+                    Cancel registration
                   </Button>
                 ) : null}
               </div>
@@ -373,27 +373,27 @@ export default function EventDetailPage() {
               <div className="space-y-4">
                 {roleOptions.length > 0 ? (
                   <SelectDropdown
-                    label="Предпочитаемая роль (необязательно)"
+                    label="Preferred role (optional)"
                     value={requestedRoleName}
                     onChange={(changeEvent) => setRequestedRoleName(changeEvent.target.value)}
-                    placeholder="Без предпочтений"
+                    placeholder="No preference"
                     options={roleOptions}
                   />
                 ) : (
                   <TextInput
-                    label="Предпочитаемая роль (необязательно)"
+                    label="Preferred role (optional)"
                     value={requestedRoleName}
                     onChange={(changeEvent) => setRequestedRoleName(changeEvent.target.value)}
-                    placeholder="например, Танк, Хил, ДД"
+                    placeholder="e.g. Tank, Healer, DPS"
                   />
                 )}
                 <Button type="button" disabled={isSubmitting} onClick={() => void handleRegister()}>
-                  {isSubmitting ? 'Отправка...' : 'Зарегистрироваться на событие'}
+                  {isSubmitting ? 'Submitting...' : 'Register for event'}
                 </Button>
               </div>
             ) : (
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                Регистрация на это событие сейчас закрыта.
+                Registration for this event is currently closed.
               </p>
             )}
 

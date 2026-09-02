@@ -9,7 +9,7 @@ import Pagination from '../../components/ui/Pagination';
 import SelectDropdown from '../../components/ui/SelectDropdown';
 import Spinner from '../../components/ui/Spinner';
 import { useAuth } from '../../hooks/useAuth';
-import { formatRegistrationStatus, registrationStatusLabels } from '../../i18n/labels';
+import { formatRegistrationStatus, registrationStatusLabels } from '../../utils/labels';
 import * as registrationService from '../../services/registrationService';
 import { ApiError } from '../../services/apiClient';
 import { setRegistrations, upsertRegistration } from '../../store/registrationsSlice';
@@ -17,7 +17,7 @@ import type { AppDispatch, RootState } from '../../store/store';
 import type { Registration, RegistrationStatus } from '../../types/index';
 import { canPlayerCancelRegistration } from '../../utils/eventRules';
 
-const dateLocale = 'ru-RU';
+const dateLocale = 'en-US';
 
 function formatDateTime(value: string): string {
   return new Date(value).toLocaleString(dateLocale, {
@@ -50,7 +50,7 @@ function canCancelRegistration(registration: Registration): boolean {
 }
 
 const statusFilterOptions = [
-  { value: '', label: 'Все статусы' },
+  { value: '', label: 'All statuses' },
   ...Object.entries(registrationStatusLabels).map(([value, label]) => ({
     value,
     label,
@@ -81,7 +81,7 @@ export default function MyRegistrationsPage() {
       });
       dispatch(setRegistrations(data));
     } catch {
-      setLoadError('Не удалось загрузить ваши регистрации.');
+      setLoadError('Unable to load your registrations.');
     } finally {
       setIsLoading(false);
     }
@@ -107,7 +107,7 @@ export default function MyRegistrationsPage() {
       if (error instanceof ApiError) {
         setActionError(error.message);
       } else {
-        setActionError('Не удалось отменить регистрацию.');
+        setActionError('Unable to cancel registration.');
       }
     } finally {
       setCancellingId(null);
@@ -117,8 +117,8 @@ export default function MyRegistrationsPage() {
   if (!isPlayer) {
     return (
       <EmptyState
-        title="Только для игроков"
-        description="История регистраций доступна только аккаунтам игроков."
+        title="Players only"
+        description="Registration history is available only to player accounts."
       />
     );
   }
@@ -126,13 +126,13 @@ export default function MyRegistrationsPage() {
   if (isLoading && registrations.length === 0) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner label="Загрузка регистраций" size="lg" />
+        <Spinner label="Loading registrations" size="lg" />
       </div>
     );
   }
 
   if (loadError && registrations.length === 0) {
-    return <EmptyState title="Регистрации недоступны" description={loadError} />;
+    return <EmptyState title="Registrations unavailable" description={loadError} />;
   }
 
   const isRefreshing = isLoading && registrations.length > 0;
@@ -144,10 +144,10 @@ export default function MyRegistrationsPage() {
         className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
       >
         <h2 id="registration-filters-heading" className="mb-3 text-base font-semibold text-slate-900 dark:text-slate-100">
-          Фильтр регистраций
+          Registration filter
         </h2>
         <SelectDropdown
-          label="Статус"
+          label="Status"
           value={statusFilter}
           onChange={(event) => {
             setStatusFilter(event.target.value as RegistrationStatus | '');
@@ -171,11 +171,11 @@ export default function MyRegistrationsPage() {
 
       {registrations.length === 0 ? (
         <EmptyState
-          title="Регистраций пока нет"
-          description="Просмотрите открытые события и зарегистрируйтесь, чтобы увидеть историю здесь."
+          title="No registrations yet"
+          description="Browse open events and register to see your history here."
           action={
             <Link to="/events">
-              <Button>Просмотр событий</Button>
+              <Button>Browse events</Button>
             </Link>
           }
         />
@@ -183,14 +183,14 @@ export default function MyRegistrationsPage() {
         <>
           <div className={isRefreshing ? 'pointer-events-none opacity-60' : undefined}>
             <DataTable<Registration>
-            caption="Мои регистрации на события"
+            caption="My event registrations"
             data={registrations}
             getRowKey={(registration) => registration.id}
             columns={[
               {
                 key: 'event',
-                header: 'Событие',
-                mobileLabel: 'Событие',
+                header: 'Event',
+                mobileLabel: 'Event',
                 render: (registration) => (
                   <div>
                     <Link
@@ -200,14 +200,14 @@ export default function MyRegistrationsPage() {
                       {registration.event.title}
                     </Link>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Начало {formatDateTime(registration.event.scheduledStart)}
+                      Starts {formatDateTime(registration.event.scheduledStart)}
                     </p>
                   </div>
                 ),
               },
               {
                 key: 'status',
-                header: 'Статус',
+                header: 'Status',
                 render: (registration) => (
                   <Badge variant={registrationStatusVariant(registration.status)}>
                     {formatRegistrationStatus(registration.status)}
@@ -216,25 +216,25 @@ export default function MyRegistrationsPage() {
               },
               {
                 key: 'role',
-                header: 'Запрошенная роль',
+                header: 'Requested role',
                 hideOnMobile: true,
-                render: (registration) => registration.requestedRoleName ?? 'Без предпочтений',
+                render: (registration) => registration.requestedRoleName ?? 'No preference',
               },
               {
                 key: 'slot',
-                header: 'Назначенный слот',
+                header: 'Assigned slot',
                 hideOnMobile: true,
-                render: (registration) => registration.eventSlot?.roleName ?? 'Не назначен',
+                render: (registration) => registration.eventSlot?.roleName ?? 'Unassigned',
               },
               {
                 key: 'joinedAt',
-                header: 'Зарегистрирован',
+                header: 'Registered',
                 render: (registration) => formatDateTime(registration.joinedAt),
               },
               {
                 key: 'actions',
-                header: 'Действия',
-                mobileLabel: 'Действия',
+                header: 'Actions',
+                mobileLabel: 'Actions',
                 render: (registration) => {
                   if (!canCancelRegistration(registration)) {
                     return null;
@@ -248,7 +248,7 @@ export default function MyRegistrationsPage() {
                       disabled={cancellingId === registration.id}
                       onClick={() => void handleCancel(registration)}
                     >
-                      Отменить
+                      Cancel
                     </Button>
                   );
                 },

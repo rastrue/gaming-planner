@@ -31,14 +31,14 @@ function assertSmtpConfigured(): SmtpConfig {
   if (!config.host) {
     throw new AppError(
       503,
-      'Отправка email не настроена. Укажите SMTP_HOST, SMTP_USER и SMTP_PASS в server/.env.',
+      'Email delivery is not configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS in server/.env.',
     );
   }
 
   if (!config.user || !config.pass) {
     throw new AppError(
       503,
-      'SMTP-аутентификация не настроена. Укажите SMTP_USER и SMTP_PASS в server/.env.',
+      'SMTP authentication is not configured. Set SMTP_USER and SMTP_PASS in server/.env.',
     );
   }
 
@@ -104,7 +104,7 @@ export async function sendReportEmail(options: {
     });
   } catch (error) {
     console.error('Email delivery failed:', error);
-    const detail = error instanceof Error ? error.message : 'Неизвестная ошибка email';
-    throw new AppError(502, `Не удалось отправить отчёт по email: ${detail}`);
+    const detail = error instanceof Error ? error.message : 'Unknown email error';
+    throw new AppError(502, `Failed to send report by email: ${detail}`);
   }
 }

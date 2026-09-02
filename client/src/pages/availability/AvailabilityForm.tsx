@@ -3,17 +3,13 @@ import Button from '../../components/ui/Button';
 import SelectDropdown from '../../components/ui/SelectDropdown';
 import TextInput from '../../components/ui/TextInput';
 import type { AvailabilityWindow, CreateAvailabilityInput } from '../../types/index';
+import { weekdayLabelsLong } from '../../utils/labels';
 import { buildTimezoneOptions, getDefaultTimezone } from '../../utils/timezones';
 
-const weekdayOptions = [
-  { value: '0', label: 'Воскресенье' },
-  { value: '1', label: 'Понедельник' },
-  { value: '2', label: 'Вторник' },
-  { value: '3', label: 'Среда' },
-  { value: '4', label: 'Четверг' },
-  { value: '5', label: 'Пятница' },
-  { value: '6', label: 'Суббота' },
-];
+const weekdayOptions = weekdayLabelsLong.map((label, index) => ({
+  value: String(index),
+  label,
+}));
 
 function formatMinutes(minute: number): string {
   const hours = Math.floor(minute / 60);
@@ -77,7 +73,7 @@ export default function AvailabilityForm({
     setLocalError('');
 
     if (endMinute <= startMinute) {
-      setLocalError('Время окончания должно быть позже времени начала.');
+      setLocalError('End time must be later than start time.');
       return;
     }
 
@@ -92,14 +88,14 @@ export default function AvailabilityForm({
   return (
     <form className="space-y-4" onSubmit={handleSubmit} noValidate>
       <SelectDropdown
-        label="День недели"
+        label="Day of week"
         value={dayOfWeek}
         onChange={(event) => setDayOfWeek(event.target.value)}
         options={weekdayOptions}
         error={fieldErrors.dayOfWeek}
       />
       <TextInput
-        label="Время начала"
+        label="Start time"
         name="startMinute"
         type="time"
         step={900}
@@ -109,7 +105,7 @@ export default function AvailabilityForm({
         required
       />
       <TextInput
-        label="Время окончания"
+        label="End time"
         name="endMinute"
         type="time"
         step={900}
@@ -119,7 +115,7 @@ export default function AvailabilityForm({
         required
       />
       <SelectDropdown
-        label="Часовой пояс"
+        label="Time zone"
         name="timezone"
         value={timezone}
         onChange={(event) => setTimezone(event.target.value)}
@@ -134,11 +130,11 @@ export default function AvailabilityForm({
 
       <div className="flex flex-wrap gap-3">
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Сохранение...' : initialValues ? 'Обновить окно' : 'Добавить окно'}
+          {isSubmitting ? 'Saving...' : initialValues ? 'Update window' : 'Add window'}
         </Button>
         {onCancel ? (
           <Button type="button" variant="secondary" disabled={isSubmitting} onClick={onCancel}>
-            Отмена
+            Cancel
           </Button>
         ) : null}
       </div>

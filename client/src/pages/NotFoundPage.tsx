@@ -37,19 +37,19 @@ function NotFoundContent({ sessionUser }: NotFoundContentProps) {
       </p>
       <div className="space-y-3">
         <h1 id="not-found-heading" className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-          Страница не найдена
+          Page not found
         </h1>
         <p className="text-sm leading-6 text-slate-600 dark:text-slate-400">
-          Адрес{' '}
+          The address{' '}
           <code className="rounded bg-slate-100 px-1.5 py-0.5 text-slate-800 dark:bg-slate-800 dark:text-slate-200">
             {location.pathname}
           </code>{' '}
-          не существует или был перемещён.
+          does not exist or has been moved.
         </p>
       </div>
-      <nav aria-label="Действия на странице 404">
+      <nav aria-label="404 page actions">
         <Link to={homePath}>
-          <Button className="w-full">{sessionUser ? 'На главную' : 'На страницу входа'}</Button>
+          <Button className="w-full">{sessionUser ? 'Go home' : 'Go to login'}</Button>
         </Link>
       </nav>
     </section>
@@ -61,7 +61,7 @@ export default function NotFoundPage({ isBootstrapped }: NotFoundPageProps) {
   const [sessionUser, setSessionUser] = useState<PublicUser | null | undefined>(undefined);
 
   useEffect(() => {
-    document.title = '404 — Страница не найдена · QuestSync';
+    document.title = '404 — Page not found · QuestSync';
   }, []);
 
   useEffect(() => {
@@ -103,7 +103,7 @@ export default function NotFoundPage({ isBootstrapped }: NotFoundPageProps) {
   return (
     <main className="flex min-h-screen items-center justify-center px-4 py-8">
       {!isBootstrapped || sessionUser === undefined ? (
-        <Spinner label="Загрузка" size="lg" />
+        <Spinner label="Loading" size="lg" />
       ) : (
         <NotFoundContent sessionUser={sessionUser} />
       )}

@@ -71,7 +71,7 @@ export default function Toast({
         {message ? <p className="mt-1 text-sm opacity-90">{message}</p> : null}
       </div>
       {onDismiss ? (
-        <IconButton label="Закрыть уведомление" size="sm" onClick={() => onDismiss(id)}>
+        <IconButton label="Dismiss notification" size="sm" onClick={() => onDismiss(id)}>
           <X className="h-4 w-4" />
         </IconButton>
       ) : null}

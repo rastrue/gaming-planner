@@ -108,18 +108,18 @@ export default function EventFormPage() {
           }
 
           if (event.organizerId !== user?.id) {
-            setLoadError('Вы можете редактировать только события, которые организуете.');
+            setLoadError('You can edit only events you organize.');
             return;
           }
 
           if (!isEventEditable(event.status)) {
-            setLoadError('Завершённые и отменённые события нельзя редактировать.');
+            setLoadError('Completed and canceled events cannot be edited.');
             return;
           }
 
           if (!canEditEventDetails(event)) {
             setLoadError(
-              'Редактировать можно только события в статусе «Регистрация» без зарегистрированных игроков.',
+              'Only events in Registration status with no registered players can be edited.',
             );
             return;
           }
@@ -137,7 +137,7 @@ export default function EventFormPage() {
         }
       } catch {
         if (active) {
-          setLoadError(isEditMode ? 'Не удалось загрузить детали события.' : 'Не удалось загрузить список игр.');
+          setLoadError(isEditMode ? 'Unable to load event details.' : 'Unable to load game list.');
         }
       } finally {
         if (active) {
@@ -158,7 +158,7 @@ export default function EventFormPage() {
     const end = new Date(scheduledEnd);
 
     if (end <= start) {
-      setFormError('Время окончания должно быть позже времени начала.');
+      setFormError('End time must be later than start time.');
       return false;
     }
 
@@ -203,7 +203,7 @@ export default function EventFormPage() {
         setFormError(error.message);
         setFieldErrors(mapFieldErrors(error.errors));
       } else {
-        setFormError(isEditMode ? 'Не удалось обновить событие.' : 'Не удалось создать событие.');
+        setFormError(isEditMode ? 'Unable to update event.' : 'Unable to create event.');
       }
     } finally {
       setIsSubmitting(false);
@@ -213,7 +213,7 @@ export default function EventFormPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-16">
-        <Spinner label={isEditMode ? 'Загрузка события' : 'Загрузка формы'} size="lg" />
+        <Spinner label={isEditMode ? 'Loading event' : 'Loading form'} size="lg" />
       </div>
     );
   }
@@ -221,11 +221,11 @@ export default function EventFormPage() {
   if (loadError) {
     return (
       <EmptyState
-        title={isEditMode ? 'Событие недоступно' : 'Форма недоступна'}
+        title={isEditMode ? 'Event unavailable' : 'Form unavailable'}
         description={loadError}
         action={
           <Link to="/organizer/events">
-            <Button variant="secondary">Назад к событиям</Button>
+            <Button variant="secondary">Back to events</Button>
           </Link>
         }
       />
@@ -242,7 +242,7 @@ export default function EventFormPage() {
       <div className="flex flex-wrap items-center gap-3">
         <Link to="/organizer/events">
           <Button type="button" variant="secondary">
-            Назад к событиям
+            Back to events
           </Button>
         </Link>
       </div>
@@ -250,18 +250,18 @@ export default function EventFormPage() {
       <Card>
         <form className="space-y-4" onSubmit={handleSubmit} noValidate>
           <SelectDropdown
-            label="Игра"
+            label="Game"
             name="gameId"
             value={gameId}
             onChange={(event) => setGameId(event.target.value)}
             options={gameOptions}
-            placeholder="Выберите игру"
+            placeholder="Select a game"
             error={fieldErrors.gameId}
             required
           />
 
           <TextInput
-            label="Название"
+            label="Title"
             name="title"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
@@ -271,7 +271,7 @@ export default function EventFormPage() {
           />
 
           <TextArea
-            label="Описание"
+            label="Description"
             name="description"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
@@ -281,7 +281,7 @@ export default function EventFormPage() {
           />
 
           <TextInput
-            label="Регион сервера"
+            label="Server region"
             name="serverRegion"
             value={serverRegion}
             onChange={(event) => setServerRegion(event.target.value)}
@@ -293,7 +293,7 @@ export default function EventFormPage() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <TextInput
-              label="Начало"
+              label="Start"
               name="scheduledStart"
               type="datetime-local"
               value={scheduledStart}
@@ -302,7 +302,7 @@ export default function EventFormPage() {
               required
             />
             <TextInput
-              label="Окончание"
+              label="End"
               name="scheduledEnd"
               type="datetime-local"
               value={scheduledEnd}
@@ -313,7 +313,7 @@ export default function EventFormPage() {
           </div>
 
           <TextInput
-            label="Макс. игроков"
+            label="Max players"
             name="maxPlayers"
             type="number"
             min={1}
@@ -331,11 +331,11 @@ export default function EventFormPage() {
 
           <div className="flex flex-wrap gap-3">
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Сохранение...' : isEditMode ? 'Сохранить изменения' : 'Создать событие'}
+              {isSubmitting ? 'Saving...' : isEditMode ? 'Save changes' : 'Create event'}
             </Button>
             <Link to="/organizer/events">
               <Button type="button" variant="secondary" disabled={isSubmitting}>
-                Отмена
+                Cancel
               </Button>
             </Link>
           </div>

@@ -23,7 +23,7 @@ export default function DataTable<T>({
   data,
   getRowKey,
   caption,
-  emptyMessage = 'Записи не найдены.',
+  emptyMessage = 'No records found.',
   className,
 }: DataTableProps<T>) {
   const mobileColumns = columns.filter((column) => !column.hideOnMobile);

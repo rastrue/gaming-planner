@@ -52,7 +52,7 @@ export default function RegisterPage() {
         setFormError(error.message);
         setFieldErrors(mapFieldErrors(error.errors));
       } else {
-        setFormError('Не удалось создать аккаунт. Попробуйте снова.');
+        setFormError('Unable to create account. Please try again.');
       }
     } finally {
       setIsSubmitting(false);
@@ -67,19 +67,19 @@ export default function RegisterPage() {
       >
         <header className="text-center">
           <h1 id="register-heading" className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Создание аккаунта QuestSync
+            Create a QuestSync account
           </h1>
         </header>
 
         <form className="space-y-4" onSubmit={handleSubmit} noValidate>
           <TextInput
-            label="Имя пользователя"
+            label="Username"
             name="username"
             autoComplete="username"
             value={username}
             onChange={(event) => setUsername(event.target.value)}
             error={fieldErrors.username}
-            hint="Только буквы, цифры и символ подчёркивания."
+            hint="Letters, numbers, and underscores only."
             required
           />
           <TextInput
@@ -93,7 +93,7 @@ export default function RegisterPage() {
             required
           />
           <TextInput
-            label="Отображаемое имя"
+            label="Display name"
             name="displayName"
             autoComplete="name"
             value={displayName}
@@ -102,7 +102,7 @@ export default function RegisterPage() {
             required
           />
           <RadioGroup
-            legend="Роль аккаунта"
+            legend="Account role"
             name="roleName"
             value={roleName}
             onChange={(value) => setRoleName(value as UserRoleName)}
@@ -110,25 +110,25 @@ export default function RegisterPage() {
             options={[
               {
                 value: 'PLAYER',
-                label: 'Игрок',
-                description: 'Просмотр событий, настройка доступности и участие в событиях.',
+                label: 'Player',
+                description: 'Browse events, set availability, and join events.',
               },
               {
                 value: 'ORGANIZER',
-                label: 'Организатор',
-                description: 'Управление событиями, составом и учёт посещаемости.',
+                label: 'Organizer',
+                description: 'Manage events, rosters, and attendance.',
               },
             ]}
           />
           <TextInput
-            label="Пароль"
+            label="Password"
             name="password"
             type="password"
             autoComplete="new-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             error={fieldErrors.password}
-            hint="Не менее 8 символов."
+            hint="At least 8 characters."
             required
           />
 
@@ -139,17 +139,17 @@ export default function RegisterPage() {
           ) : null}
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Создание аккаунта...' : 'Создать аккаунт'}
+            {isSubmitting ? 'Creating account...' : 'Create account'}
           </Button>
         </form>
 
         <p className="text-center text-sm text-slate-600 dark:text-slate-400">
-          Уже есть аккаунт?{' '}
+          Already have an account?{' '}
           <Link
             to="/login"
             className="cursor-pointer font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400"
           >
-            Войти
+            Sign in
           </Link>
         </p>
       </section>

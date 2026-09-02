@@ -74,7 +74,7 @@ export default function ModalDialog({
         <h2 id={titleId} className="text-lg font-semibold">
           {title}
         </h2>
-        <IconButton label="Закрыть диалог" size="sm" onClick={onClose}>
+        <IconButton label="Close dialog" size="sm" onClick={onClose}>
           <X className="h-4 w-4" />
         </IconButton>
       </div>

@@ -50,7 +50,7 @@ export default function EventSlotEditor({ eventId, onSlotsChange }: EventSlotEdi
         }
       } catch {
         if (active) {
-          setLoadError('Не удалось загрузить слоты состава.');
+          setLoadError('Unable to load roster slots.');
         }
       } finally {
         if (active) {
@@ -117,7 +117,7 @@ export default function EventSlotEditor({ eventId, onSlotsChange }: EventSlotEdi
         setFormError(error.message);
         setFieldErrors(mapFieldErrors(error.errors));
       } else {
-        setFormError('Не удалось сохранить слот состава.');
+        setFormError('Unable to save roster slot.');
       }
     } finally {
       setIsSubmitting(false);
@@ -145,7 +145,7 @@ export default function EventSlotEditor({ eventId, onSlotsChange }: EventSlotEdi
       if (error instanceof ApiError) {
         setFormError(error.message);
       } else {
-        setFormError('Не удалось удалить слот состава.');
+        setFormError('Unable to delete roster slot.');
       }
     } finally {
       setIsSubmitting(false);
@@ -154,9 +154,9 @@ export default function EventSlotEditor({ eventId, onSlotsChange }: EventSlotEdi
 
   if (isLoading) {
     return (
-      <Card title="Слоты состава" description="Определите необходимые роли и количество игроков для этого события.">
+      <Card title="Roster slots" description="Define required roles and player counts for this event.">
         <div className="flex justify-center py-8">
-          <Spinner label="Загрузка слотов состава" />
+          <Spinner label="Loading roster slots" />
         </div>
       </Card>
     );
@@ -164,27 +164,27 @@ export default function EventSlotEditor({ eventId, onSlotsChange }: EventSlotEdi
 
   if (loadError) {
     return (
-      <Card title="Слоты состава" description="Определите необходимые роли и количество игроков для этого события.">
-        <EmptyState title="Слоты недоступны" description={loadError} />
+      <Card title="Roster slots" description="Define required roles and player counts for this event.">
+        <EmptyState title="Slots unavailable" description={loadError} />
       </Card>
     );
   }
 
   return (
-    <Card title="Слоты состава" description="Определите необходимые роли и количество игроков для этого события.">
+    <Card title="Roster slots" description="Define required roles and player counts for this event.">
       <div className="space-y-6">
         <form className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" onSubmit={handleSubmit} noValidate>
           <TextInput
-            label="Название роли"
+            label="Role name"
             name="roleName"
             value={roleName}
             onChange={(event) => setRoleName(event.target.value)}
             error={fieldErrors.roleName}
             required
-            placeholder="Танк, Хил, ДД..."
+            placeholder="Tank, Healer, DPS..."
           />
           <TextInput
-            label="Порядок отображения"
+            label="Display order"
             name="displayOrder"
             type="number"
             min={1}
@@ -194,7 +194,7 @@ export default function EventSlotEditor({ eventId, onSlotsChange }: EventSlotEdi
             required
           />
           <TextInput
-            label="Требуемое количество"
+            label="Required count"
             name="requiredCount"
             type="number"
             min={1}
@@ -205,11 +205,11 @@ export default function EventSlotEditor({ eventId, onSlotsChange }: EventSlotEdi
           />
           <div className="flex flex-wrap items-end gap-2 sm:col-span-2 lg:col-span-1">
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Сохранение...' : editingSlot ? 'Обновить слот' : 'Добавить слот'}
+              {isSubmitting ? 'Saving...' : editingSlot ? 'Update slot' : 'Add slot'}
             </Button>
             {editingSlot ? (
               <Button type="button" variant="secondary" disabled={isSubmitting} onClick={() => resetForm(slots)}>
-                Отменить редактирование
+                Cancel editing
               </Button>
             ) : null}
           </div>
@@ -223,50 +223,50 @@ export default function EventSlotEditor({ eventId, onSlotsChange }: EventSlotEdi
 
         {slots.length === 0 ? (
           <EmptyState
-            title="Слотов состава пока нет"
-            description="Добавьте хотя бы один слот, чтобы игроки могли запрашивать роли при регистрации."
+            title="No roster slots yet"
+            description="Add at least one slot so players can request roles when registering."
           />
         ) : (
           <DataTable<EventSlot>
-            caption="Слоты состава события"
+            caption="Event roster slots"
             data={slots}
             getRowKey={(slot) => slot.id}
             columns={[
               {
                 key: 'roleName',
-                header: 'Роль',
-                mobileLabel: 'Роль',
+                header: 'Role',
+                mobileLabel: 'Role',
                 render: (slot) => (
                   <span className="font-medium text-slate-900 dark:text-slate-100">{slot.roleName}</span>
                 ),
               },
               {
                 key: 'displayOrder',
-                header: 'Порядок',
+                header: 'Order',
                 render: (slot) => slot.displayOrder,
               },
               {
                 key: 'requiredCount',
-                header: 'Требуется',
+                header: 'Required',
                 render: (slot) => slot.requiredCount,
               },
               {
                 key: 'assigned',
-                header: 'Назначено',
+                header: 'Assigned',
                 hideOnMobile: true,
                 render: (slot) => `${slot._count.registrations} / ${slot.requiredCount}`,
               },
               {
                 key: 'actions',
-                header: 'Действия',
-                mobileLabel: 'Действия',
+                header: 'Actions',
+                mobileLabel: 'Actions',
                 render: (slot) => (
                   <div className="flex flex-wrap gap-2">
                     <Button type="button" variant="secondary" size="sm" onClick={() => startEdit(slot)}>
-                      Редактировать
+                      Edit
                     </Button>
                     <Button type="button" variant="danger" size="sm" onClick={() => setDeleteTarget(slot)}>
-                      Удалить
+                      Delete
                     </Button>
                   </div>
                 ),
@@ -278,23 +278,23 @@ export default function EventSlotEditor({ eventId, onSlotsChange }: EventSlotEdi
 
       <ModalDialog
         open={Boolean(deleteTarget)}
-        title="Удалить слот состава"
+        title="Delete roster slot"
         onClose={() => setDeleteTarget(null)}
         footer={
           <>
             <Button type="button" variant="secondary" onClick={() => setDeleteTarget(null)}>
-              Отмена
+              Cancel
             </Button>
             <Button type="button" variant="danger" disabled={isSubmitting} onClick={() => void handleDelete()}>
-              Удалить слот
+              Delete slot
             </Button>
           </>
         }
       >
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Вы уверены, что хотите удалить слот{' '}
-          <span className="font-medium text-slate-900 dark:text-slate-100">{deleteTarget?.roleName}</span>?
-          Слоты с назначенными регистрациями нельзя удалить.
+          Are you sure you want to delete the{' '}
+          <span className="font-medium text-slate-900 dark:text-slate-100">{deleteTarget?.roleName}</span> slot?
+          Slots with assigned registrations cannot be deleted.
         </p>
       </ModalDialog>
     </Card>

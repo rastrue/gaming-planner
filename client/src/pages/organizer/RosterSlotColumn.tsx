@@ -1,7 +1,7 @@
 import type { DragEvent } from 'react';
 import Avatar from '../../components/ui/Avatar';
 import Badge from '../../components/ui/Badge';
-import { formatAttendanceStatus } from '../../i18n/labels';
+import { formatAttendanceStatus } from '../../utils/labels';
 import { cn } from '../../utils/cn';
 import type { AttendanceStatus, EventSlot, Registration } from '../../types/index';
 
@@ -40,7 +40,7 @@ export function PlayerAssignmentCard({
         </p>
         {registration.requestedRoleName ? (
           <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-            Запрошено: {registration.requestedRoleName}
+            Requested: {registration.requestedRoleName}
           </p>
         ) : null}
       </div>
@@ -102,7 +102,7 @@ export default function RosterSlotColumn({
         <div className="flex items-start justify-between gap-2">
           <div>
             <h3 className="font-semibold text-slate-900 dark:text-slate-100">{slot.roleName}</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Порядок {slot.displayOrder}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Order {slot.displayOrder}</p>
           </div>
           <Badge variant={isOverfull ? 'danger' : isFull ? 'success' : 'warning'}>
             {fillCount} / {slot.requiredCount}
@@ -122,7 +122,7 @@ export default function RosterSlotColumn({
       >
         {assignments.length === 0 ? (
           <p className="rounded-lg border border-dashed border-slate-300 px-3 py-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-            {isFull ? 'Слот заполнен' : readOnly ? 'Нет назначений' : 'Перетащите одобренных игроков сюда'}
+            {isFull ? 'Slot full' : readOnly ? 'No assignments' : 'Drag approved players here'}
           </p>
         ) : (
           assignments.map((registration) => (
@@ -145,7 +145,7 @@ export default function RosterSlotColumn({
                     onClick={() => void onMarkAttendance(registration, 'PRESENT')}
                     className="cursor-pointer rounded-md border border-emerald-300 px-2 py-0.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-emerald-800 dark:text-emerald-300 dark:hover:bg-emerald-950"
                   >
-                    Присутствовал
+                    Present
                   </button>
                   <button
                     type="button"
@@ -153,7 +153,7 @@ export default function RosterSlotColumn({
                     onClick={() => void onMarkAttendance(registration, 'ABSENT')}
                     className="cursor-pointer rounded-md border border-red-300 px-2 py-0.5 text-xs font-medium text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-950"
                   >
-                    Отсутствовал
+                    Absent
                   </button>
                 </div>
               ) : null}

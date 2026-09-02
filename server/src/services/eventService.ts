@@ -242,7 +242,7 @@ function assertAllowedStatusTransition(current: EventRecord, next: EventStatus):
     assertCanCompleteEvent(current.scheduledStart);
 
     if (!canCompleteEventStatus(current.status, current.scheduledStart)) {
-      throw new AppError(409, 'Завершить можно только событие в ожидании или уже начавшееся');
+      throw new AppError(409, 'Only events that are waiting or already in progress can be completed');
     }
 
     return;
@@ -253,7 +253,7 @@ function assertAllowedStatusTransition(current: EventRecord, next: EventStatus):
     return;
   }
 
-  throw new AppError(400, 'Недопустимый переход статуса события');
+  throw new AppError(400, 'Invalid event status transition');
 }
 
 export async function listEvents(
@@ -261,7 +261,7 @@ export async function listEvents(
   availabilityUserId?: number,
 ): Promise<PaginatedEvents> {
   if (query.availabilityFit && !availabilityUserId) {
-    throw new AppError(401, 'Требуется авторизация для фильтрации по доступности');
+    throw new AppError(401, 'Authentication is required to filter by availability');
   }
 
   const where = buildEventWhere(query);
@@ -334,7 +334,7 @@ export async function getEventById(id: number): Promise<EventRecord> {
   });
 
   if (!event) {
-    throw new AppError(404, 'Событие не найдено');
+    throw new AppError(404, 'Event not found');
   }
 
   const registrationCounts = (await loadRegistrationCounts([id])).get(id) ?? {
@@ -349,7 +349,7 @@ async function assertOrganizerOwnsEvent(eventId: number, organizerId: number): P
   const event = await getEventById(eventId);
 
   if (event.organizerId !== organizerId) {
-    throw new AppError(403, 'Вы можете управлять только событиями, которые организуете');
+    throw new AppError(403, 'You can only manage events you organize');
   }
 
   return event;
@@ -359,20 +359,20 @@ function assertCanCompleteEvent(scheduledStart: Date): void {
   if (scheduledStart.getTime() > Date.now()) {
     throw new AppError(
       409,
-      'Нельзя завершить событие, которое ещё не началось. Его можно отменить.',
+      'Cannot complete an event that has not started yet. Cancel it instead.',
     );
   }
 }
 
 function assertCanCancelEvent(currentStatus: EventStatus): void {
   if (!canCancelPublishedEvent(currentStatus)) {
-    throw new AppError(409, 'Отменить можно только событие в регистрации или ожидании');
+    throw new AppError(409, 'Only events in registration or waiting status can be canceled');
   }
 }
 
 function assertEventIsEditable(status: EventStatus): void {
   if (status === EventStatus.COMPLETED || status === EventStatus.CANCELLED) {
-    throw new AppError(409, 'Завершённые и отменённые события нельзя изменять');
+    throw new AppError(409, 'Completed and canceled events cannot be modified');
   }
 }
 
@@ -380,7 +380,7 @@ function assertEventDetailsEditable(event: EventRecord): void {
   if (event.status !== EventStatus.REGISTRATION || event._count.activeRegistrations > 0) {
     throw new AppError(
       409,
-      'Редактировать можно только события в статусе «Регистрация» без зарегистрированных игроков',
+      'Only events in Registration status with no registered players can be edited',
     );
   }
 }
@@ -392,7 +392,7 @@ export async function createEvent(
   const game = await prisma.game.findUnique({ where: { id: input.gameId } });
 
   if (!game || !game.isActive) {
-    throw new AppError(400, 'Выбранная игра недоступна');
+    throw new AppError(400, 'Selected game is unavailable');
   }
 
   const created = await prisma.event.create({
@@ -436,7 +436,7 @@ export async function updateEvent(
     const game = await prisma.game.findUnique({ where: { id: input.gameId } });
 
     if (!game || !game.isActive) {
-      throw new AppError(400, 'Выбранная игра недоступна');
+      throw new AppError(400, 'Selected game is unavailable');
     }
   }
 
@@ -445,7 +445,7 @@ export async function updateEvent(
     const scheduledEnd = input.scheduledEnd ?? syncedCurrent.scheduledEnd;
 
     if (scheduledEnd <= scheduledStart) {
-      throw new AppError(400, 'Время окончания должно быть позже времени начала');
+      throw new AppError(400, 'End time must be after start time');
     }
   }
 
@@ -480,12 +480,12 @@ export async function deleteEvent(id: number, organizerId: number): Promise<void
   await assertOrganizerOwnsEvent(id, organizerId);
   throw new AppError(
     409,
-    'События нельзя удалять. Отмените опубликованное событие, чтобы сохранить историю.',
+    'Events cannot be deleted. Cancel a published event to preserve history.',
   );
 }
 
 export function assertOrganizerRole(roleName: UserRoleName): void {
   if (roleName !== UserRoleName.ORGANIZER) {
-    throw new AppError(403, 'Требуются права организатора');
+    throw new AppError(403, 'Organizer privileges are required');
   }
 }

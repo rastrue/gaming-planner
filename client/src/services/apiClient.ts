@@ -37,14 +37,14 @@ function buildQuery(params?: Record<string, QueryValue> | object): string {
 }
 
 const HTTP_STATUS_MESSAGES: Record<number, string> = {
-  400: 'Некорректный запрос',
-  401: 'Требуется авторизация',
-  403: 'Доступ запрещён',
-  404: 'Не найдено',
-  409: 'Конфликт данных',
-  500: 'Внутренняя ошибка сервера',
-  502: 'Ошибка внешнего сервиса',
-  503: 'Сервис временно недоступен',
+  400: 'Bad request',
+  401: 'Authentication required',
+  403: 'Access denied',
+  404: 'Not found',
+  409: 'Data conflict',
+  500: 'Internal server error',
+  502: 'External service error',
+  503: 'Service temporarily unavailable',
 };
 
 function resolveErrorMessage(response: Response, payloadMessage?: string): string {
@@ -52,7 +52,7 @@ function resolveErrorMessage(response: Response, payloadMessage?: string): strin
     return payloadMessage;
   }
 
-  return HTTP_STATUS_MESSAGES[response.status] ?? 'Запрос не выполнен';
+  return HTTP_STATUS_MESSAGES[response.status] ?? 'Request failed';
 }
 
 async function parseErrorResponse(response: Response): Promise<ApiError> {

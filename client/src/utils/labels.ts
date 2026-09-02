@@ -9,37 +9,37 @@ import type {
 } from '../types/index';
 
 export const eventStatusLabels: Record<EventStatus, string> = {
-  REGISTRATION: 'Регистрация',
-  FULL: 'Заполнено',
-  WAITING: 'Ожидание',
-  STARTED: 'Началось',
-  COMPLETED: 'Завершено',
-  CANCELLED: 'Отменено',
+  REGISTRATION: 'Registration',
+  FULL: 'Full',
+  WAITING: 'Waiting',
+  STARTED: 'Started',
+  COMPLETED: 'Completed',
+  CANCELLED: 'Canceled',
 };
 
 export const registrationStatusLabels: Record<RegistrationStatus, string> = {
-  PENDING: 'Ожидает',
-  APPROVED: 'Одобрено',
-  DECLINED: 'Отклонено',
-  CANCELLED: 'Отменено',
+  PENDING: 'Pending',
+  APPROVED: 'Approved',
+  DECLINED: 'Declined',
+  CANCELLED: 'Canceled',
 };
 
 export const attendanceStatusLabels: Record<AttendanceStatus, string> = {
-  NOT_MARKED: 'Не отмечено',
-  PRESENT: 'Присутствовал',
-  ABSENT: 'Отсутствовал',
+  NOT_MARKED: 'Not marked',
+  PRESENT: 'Present',
+  ABSENT: 'Absent',
 };
 
 export const reportStatusLabels: Record<ReportStatus, string> = {
-  QUEUED: 'В очереди',
-  GENERATED: 'Сформирован',
-  EMAILED: 'Отправлен',
-  FAILED: 'Ошибка',
+  QUEUED: 'Queued',
+  GENERATED: 'Generated',
+  EMAILED: 'Emailed',
+  FAILED: 'Failed',
 };
 
 export const reportKindLabels: Record<ReportKind, string> = {
-  EVENT_ATTENDANCE: 'Посещаемость события',
-  PLAYER_PARTICIPATION: 'Участие игрока',
+  EVENT_ATTENDANCE: 'Event attendance',
+  PLAYER_PARTICIPATION: 'Player participation',
 };
 
 export const reportFormatLabels: Record<ReportFormat, string> = {
@@ -48,8 +48,8 @@ export const reportFormatLabels: Record<ReportFormat, string> = {
 };
 
 export const deliveryChannelLabels: Record<DeliveryChannel, string> = {
-  DOWNLOAD: 'Скачивание',
-  EMAIL: 'Электронная почта',
+  DOWNLOAD: 'Download',
+  EMAIL: 'Email',
 };
 
 export function formatEventStatus(status: EventStatus): string {
@@ -81,11 +81,11 @@ export function formatDeliveryChannel(channel: DeliveryChannel): string {
 }
 
 export const weekdayLabelsLong = [
-  'Воскресенье',
-  'Понедельник',
-  'Вторник',
-  'Среда',
-  'Четверг',
-  'Пятница',
-  'Суббота',
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
 ] as const;

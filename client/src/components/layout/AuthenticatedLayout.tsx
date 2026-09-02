@@ -4,42 +4,42 @@ import AppShell from './AppShell';
 
 function getPageMeta(pathname: string): { title: string; description?: string } {
   if (/^\/events\/\d+/.test(pathname)) {
-    return { title: 'Детали события' };
+    return { title: 'Event details' };
   }
 
   if (pathname === '/events') {
-    return { title: 'События' };
+    return { title: 'Events' };
   }
 
   if (pathname === '/availability') {
-    return { title: 'Планировщик доступности' };
+    return { title: 'Availability planner' };
   }
 
   if (pathname === '/my-registrations') {
-    return { title: 'Мои регистрации' };
+    return { title: 'My registrations' };
   }
 
   if (pathname === '/reports') {
-    return { title: 'Отчеты и экспорт' };
+    return { title: 'Reports & export' };
   }
 
   if (pathname === '/organizer/events/new') {
-    return { title: 'Создание события' };
+    return { title: 'Create event' };
   }
 
   if (/^\/organizer\/events\/\d+\/edit/.test(pathname)) {
-    return { title: 'Редактирование события' };
+    return { title: 'Edit event' };
   }
 
   if (pathname === '/organizer/events') {
-    return { title: 'Управление событиями' };
+    return { title: 'Event management' };
   }
 
   if (/^\/organizer\/events\/\d+\/roster/.test(pathname)) {
-    return { title: 'Доска состава', description: 'Слоты, регистрации и назначение игроков на состав.' };
+    return { title: 'Roster board', description: 'Slots, registrations, and player assignments.' };
   }
 
-  return { title: 'QuestSync', description: 'Страница приложения QuestSync.' };
+  return { title: 'QuestSync', description: 'QuestSync application page.' };
 }
 
 export default function AuthenticatedLayout() {

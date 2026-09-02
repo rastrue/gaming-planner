@@ -34,7 +34,7 @@ export default function ResetAppSettingsControl({ onSuccess }: ResetAppSettingsC
   return (
     <>
       <IconButton
-        label="Сбросить настройки приложения"
+        label="Reset app settings"
         size="sm"
         onClick={() => setOpen(true)}
       >
@@ -42,22 +42,22 @@ export default function ResetAppSettingsControl({ onSuccess }: ResetAppSettingsC
       </IconButton>
       <ModalDialog
         open={open}
-        title="Сброс настроек приложения"
+        title="Reset app settings"
         onClose={() => setOpen(false)}
         footer={
           <>
             <Button type="button" variant="secondary" onClick={() => setOpen(false)} disabled={isResetting}>
-              Отмена
+              Cancel
             </Button>
             <Button type="button" variant="danger" disabled={isResetting} onClick={() => void handleReset()}>
-              {isResetting ? 'Сброс…' : 'Сбросить настройки'}
+              {isResetting ? 'Resetting…' : 'Reset settings'}
             </Button>
           </>
         }
       >
         <p className="text-sm text-slate-600 dark:text-slate-400">
-          Вы уверены, что хотите сбросить предпочтения QuestSync на этом устройстве? Данные других
-          сайтов в браузере не будут затронуты.
+          Are you sure you want to reset QuestSync preferences on this device? Data from other
+          websites in your browser will not be affected.
         </p>
       </ModalDialog>
     </>
