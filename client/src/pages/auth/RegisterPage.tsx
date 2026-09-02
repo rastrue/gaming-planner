@@ -60,7 +60,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-8">
+    <main className="h-dvh overflow-y-auto overscroll-y-contain px-4 py-8">
+      <div className="flex min-h-full items-center justify-center">
       <section
         aria-labelledby="register-heading"
         className="w-full max-w-md space-y-6 rounded-xl border border-slate-200 bg-white p-8 shadow-lg dark:border-slate-800 dark:bg-slate-900"
@@ -153,6 +154,7 @@ export default function RegisterPage() {
           </Link>
         </p>
       </section>
+      </div>
     </main>
   );
 }

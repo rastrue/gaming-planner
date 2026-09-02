@@ -101,12 +101,14 @@ export default function NotFoundPage({ isBootstrapped }: NotFoundPageProps) {
   }, [dispatch, isBootstrapped]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-8">
+    <main className="h-dvh overflow-y-auto overscroll-y-contain px-4 py-8">
+      <div className="flex min-h-full items-center justify-center">
       {!isBootstrapped || sessionUser === undefined ? (
         <Spinner label="Loading" size="lg" />
       ) : (
         <NotFoundContent sessionUser={sessionUser} />
       )}
+      </div>
     </main>
   );
 }
