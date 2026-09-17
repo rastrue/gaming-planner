@@ -12,7 +12,7 @@ import {
   ReportStatus,
   UserRoleName,
 } from '@prisma/client';
-import { resolveEventStatus } from '../src/lib/eventLifecycle.js';
+import { computeRegistrationDeadline, resolveEventStatus } from '../src/lib/eventLifecycle.js';
 import dotenv from 'dotenv';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -57,13 +57,18 @@ const GAME_DEFINITIONS: Array<{ slug: string; title: string; genre: GameGenre; p
   { slug: 'retro-rally', title: 'Retro Rally League', genre: GameGenre.SPORTS, platform: 'PC', isActive: false },
 ];
 
-const EVENT_STATUS_WEIGHTS: Array<{ status: EventStatus; weight: number }> = [
-  { status: EventStatus.REGISTRATION, weight: 38 },
-  { status: EventStatus.WAITING, weight: 12 },
-  { status: EventStatus.STARTED, weight: 10 },
-  { status: EventStatus.COMPLETED, weight: 28 },
-  { status: EventStatus.CANCELLED, weight: 12 },
-];
+/** Lifecycle buckets aligned with resolveEventStatus and UI rules (edit, register, roster). */
+const EVENT_SEED_PROFILES = [
+  'registration_open',
+  'registration_editable',
+  'registration_full',
+  'waiting',
+  'started',
+  'completed',
+  'cancelled',
+] as const;
+
+type EventSeedProfile = (typeof EVENT_SEED_PROFILES)[number];
 
 const EVENT_TITLE_PREFIXES = [
   'Weekly',
@@ -92,52 +97,123 @@ function pickMany<T>(items: T[], count: number): T[] {
   return result;
 }
 
-function weightedStatus(): EventStatus {
-  const total = EVENT_STATUS_WEIGHTS.reduce((sum, item) => sum + item.weight, 0);
-  let roll = Math.random() * total;
+const MS_MINUTE = 60_000;
+const MS_HOUR = 60 * MS_MINUTE;
+const MS_DAY = 24 * MS_HOUR;
 
-  for (const item of EVENT_STATUS_WEIGHTS) {
-    roll -= item.weight;
-    if (roll <= 0) {
-      return item.status;
-    }
-  }
-
-  return EventStatus.REGISTRATION;
+function addMs(base: Date, ms: number): Date {
+  return new Date(base.getTime() + ms);
 }
 
-function inDays(base: Date, days: number, startHour = 18, durationHours = 4): {
+function atLocalDateTime(base: Date, dayOffset: number, hour: number, minute = 0): Date {
+  const value = new Date(base);
+  value.setDate(value.getDate() + dayOffset);
+  value.setHours(hour, minute, 0, 0);
+  return value;
+}
+
+function buildEventSchedule(
+  profile: EventSeedProfile,
+  index: number,
+  now: Date,
+): {
   scheduledStart: Date;
   scheduledEnd: Date;
   registrationDeadline: Date;
+  status: EventStatus;
 } {
-  const scheduledStart = new Date(base);
-  scheduledStart.setDate(scheduledStart.getDate() + days);
-  scheduledStart.setHours(startHour, 0, 0, 0);
+  const durationHours = 3 + (index % 3);
 
-  const scheduledEnd = new Date(scheduledStart);
-  scheduledEnd.setHours(scheduledStart.getHours() + durationHours);
-
-  const registrationDeadline = new Date(scheduledStart.getTime() - 60 * 60 * 1000);
-
-  return { scheduledStart, scheduledEnd, registrationDeadline };
+  switch (profile) {
+    case 'registration_open':
+    case 'registration_editable':
+    case 'registration_full': {
+      const scheduledStart = atLocalDateTime(now, 2 + (index % 21), 17 + (index % 5), (index % 4) * 15);
+      const scheduledEnd = addMs(scheduledStart, durationHours * MS_HOUR);
+      return {
+        scheduledStart,
+        scheduledEnd,
+        registrationDeadline: computeRegistrationDeadline(scheduledStart),
+        status: EventStatus.REGISTRATION,
+      };
+    }
+    case 'waiting': {
+      const scheduledStart = addMs(now, 45 * MS_MINUTE + (index % 6) * 15 * MS_MINUTE);
+      const scheduledEnd = addMs(scheduledStart, durationHours * MS_HOUR);
+      return {
+        scheduledStart,
+        scheduledEnd,
+        registrationDeadline: computeRegistrationDeadline(scheduledStart),
+        status: EventStatus.WAITING,
+      };
+    }
+    case 'started': {
+      const scheduledStart = addMs(now, -(30 + (index % 90)) * MS_MINUTE);
+      const scheduledEnd = addMs(scheduledStart, durationHours * MS_HOUR);
+      return {
+        scheduledStart,
+        scheduledEnd,
+        registrationDeadline: computeRegistrationDeadline(scheduledStart),
+        status: EventStatus.STARTED,
+      };
+    }
+    case 'completed': {
+      const scheduledStart = atLocalDateTime(now, -(2 + (index % 12)), 18 + (index % 4));
+      const scheduledEnd = addMs(scheduledStart, durationHours * MS_HOUR);
+      return {
+        scheduledStart,
+        scheduledEnd,
+        registrationDeadline: computeRegistrationDeadline(scheduledStart),
+        status: EventStatus.COMPLETED,
+      };
+    }
+    case 'cancelled': {
+      const dayOffset = index % 2 === 0 ? 4 + (index % 10) : -(1 + (index % 8));
+      const scheduledStart = atLocalDateTime(now, dayOffset, 19, 0);
+      const scheduledEnd = addMs(scheduledStart, durationHours * MS_HOUR);
+      return {
+        scheduledStart,
+        scheduledEnd,
+        registrationDeadline: computeRegistrationDeadline(scheduledStart),
+        status: EventStatus.CANCELLED,
+      };
+    }
+    default: {
+      const scheduledStart = atLocalDateTime(now, 7, 18, 0);
+      const scheduledEnd = addMs(scheduledStart, 4 * MS_HOUR);
+      return {
+        scheduledStart,
+        scheduledEnd,
+        registrationDeadline: computeRegistrationDeadline(scheduledStart),
+        status: EventStatus.REGISTRATION,
+      };
+    }
+  }
 }
 
-function statusDayOffset(status: EventStatus, index: number): number {
-  switch (status) {
-    case EventStatus.COMPLETED:
-      return -((index % 45) + 3);
-    case EventStatus.CANCELLED:
-      return -((index % 20) + 1);
-    case EventStatus.STARTED:
-      return -((index % 8) + 1);
-    case EventStatus.WAITING:
-      return (index % 5) + 1;
-    case EventStatus.REGISTRATION:
-      return (index % 30) + 3;
-    default:
-      return (index % 25) + 5;
-  }
+const PROFILE_ROTATION: EventSeedProfile[] = [
+  'registration_open',
+  'registration_open',
+  'registration_editable',
+  'registration_full',
+  'registration_open',
+  'waiting',
+  'registration_open',
+  'started',
+  'completed',
+  'registration_open',
+  'waiting',
+  'registration_full',
+  'registration_open',
+  'started',
+  'completed',
+  'cancelled',
+  'registration_open',
+  'registration_open',
+];
+
+function profileForIndex(index: number): EventSeedProfile {
+  return PROFILE_ROTATION[index % PROFILE_ROTATION.length]!;
 }
 
 async function main() {
@@ -264,14 +340,13 @@ async function main() {
   const eventCount = 72;
   const events: Event[] = [];
 
+  const eventProfiles = new Map<number, EventSeedProfile>();
+
   for (let index = 0; index < eventCount; index += 1) {
     const game = games[index % games.length]!;
     const organizer = organizers[index % organizers.length]!;
-    const status = weightedStatus();
-    const dayOffset = statusDayOffset(status, index);
-    const startHour = 16 + (index % 5);
-    const durationHours = 3 + (index % 3);
-    const schedule = inDays(now, dayOffset, startHour, durationHours);
+    const profile = profileForIndex(index);
+    const schedule = buildEventSchedule(profile, index, now);
     const prefix = EVENT_TITLE_PREFIXES[index % EVENT_TITLE_PREFIXES.length]!;
 
     const event = await prisma.event.create({
@@ -279,16 +354,17 @@ async function main() {
         gameId: game.id,
         organizerId: organizer.id,
         title: `${prefix} ${game.title} #${index + 1}`,
-        description: `Test event for ${game.title}. Status: ${status}. Slots and registrations were generated automatically.`,
+        description: `Demo event for ${game.title}. Profile: ${profile}. Regenerated from seed anchor ${now.toISOString()}.`,
         serverRegion: REGIONS[index % REGIONS.length]!,
         scheduledStart: schedule.scheduledStart,
         scheduledEnd: schedule.scheduledEnd,
         registrationDeadline: schedule.registrationDeadline,
         maxPlayers: 6 + (index % 9),
-        status,
+        status: schedule.status,
       },
     });
 
+    eventProfiles.set(event.id, profile);
     events.push(event);
   }
 
@@ -324,27 +400,54 @@ async function main() {
   let registrationCount = 0;
 
   for (const event of events) {
-    if (event.status === EventStatus.CANCELLED) {
+    const profile = eventProfiles.get(event.id) ?? 'registration_open';
+
+    if (profile === 'cancelled' || profile === 'registration_editable') {
       continue;
     }
 
     const slots = slotsByEventId.get(event.id) ?? [];
-    const targetApproved =
-      event.status === EventStatus.COMPLETED
-        ? Math.min(event.maxPlayers, 3 + (event.id % 4))
-        : event.status === EventStatus.REGISTRATION && event.id % 9 === 0
-          ? event.maxPlayers
-          : 1 + (event.id % 4);
+    const game = games.find((item) => item.id === event.gameId)!;
 
-    const eventPlayers = pickMany(players, Math.min(targetApproved, players.length));
+    let targetApproved: number;
+    let includePending = false;
+
+    switch (profile) {
+      case 'registration_full':
+        targetApproved = event.maxPlayers;
+        break;
+      case 'registration_open':
+        targetApproved = Math.min(event.maxPlayers - 1, 1 + (event.id % 3));
+        includePending = event.id % 2 === 0;
+        break;
+      case 'completed':
+        targetApproved = Math.min(event.maxPlayers, 3 + (event.id % 4));
+        break;
+      case 'waiting':
+      case 'started':
+        targetApproved = Math.min(event.maxPlayers, 2 + (event.id % 3));
+        includePending = true;
+        break;
+      default:
+        targetApproved = 1 + (event.id % 2);
+        break;
+    }
+
+    const registrationSlots = Math.min(
+      targetApproved + (includePending ? 1 : 0),
+      players.length,
+    );
+    const eventPlayers = pickMany(players, registrationSlots);
 
     for (let playerIndex = 0; playerIndex < eventPlayers.length; playerIndex += 1) {
       const player = eventPlayers[playerIndex]!;
       const slot = slots[playerIndex % Math.max(slots.length, 1)];
-      let status: RegistrationStatus;
 
-      if (event.status === EventStatus.COMPLETED || playerIndex < targetApproved) {
+      let status: RegistrationStatus;
+      if (playerIndex < targetApproved) {
         status = RegistrationStatus.APPROVED;
+      } else if (includePending) {
+        status = RegistrationStatus.PENDING;
       } else {
         status = registrationStatuses[(event.id + playerIndex) % registrationStatuses.length]!;
         if (status === RegistrationStatus.APPROVED) {
@@ -353,7 +456,7 @@ async function main() {
       }
 
       let attendanceStatus: AttendanceStatus = AttendanceStatus.NOT_MARKED;
-      if (event.status === EventStatus.COMPLETED && status === RegistrationStatus.APPROVED) {
+      if (profile === 'completed' && status === RegistrationStatus.APPROVED) {
         attendanceStatus =
           (event.id + playerIndex) % 5 === 0 ? AttendanceStatus.ABSENT : AttendanceStatus.PRESENT;
       }
@@ -363,7 +466,7 @@ async function main() {
           eventId: event.id,
           userId: player.id,
           eventSlotId: status === RegistrationStatus.APPROVED && slot ? slot.id : undefined,
-          requestedRoleName: slot?.roleName ?? pickOne(ROLE_TEMPLATES[games.find((g) => g.id === event.gameId)!.genre]),
+          requestedRoleName: slot?.roleName ?? pickOne(ROLE_TEMPLATES[game.genre]),
           status,
           attendanceStatus,
         },
@@ -373,7 +476,8 @@ async function main() {
     }
   }
 
-  for (const event of events) {
+  for (let eventIndex = 0; eventIndex < events.length; eventIndex += 1) {
+    const event = events[eventIndex]!;
     if (event.status === EventStatus.CANCELLED || event.status === EventStatus.COMPLETED) {
       continue;
     }
@@ -385,19 +489,23 @@ async function main() {
       },
     });
 
-    const resolvedStatus = resolveEventStatus({
-      status: event.status,
-      registrationDeadline: event.registrationDeadline,
-      scheduledStart: event.scheduledStart,
-      maxPlayers: event.maxPlayers,
-      approvedRegistrationCount,
-    });
+    const resolvedStatus = resolveEventStatus(
+      {
+        status: event.status,
+        registrationDeadline: event.registrationDeadline,
+        scheduledStart: event.scheduledStart,
+        maxPlayers: event.maxPlayers,
+        approvedRegistrationCount,
+      },
+      now.getTime(),
+    );
 
     if (resolvedStatus !== event.status) {
-      await prisma.event.update({
+      const updated = await prisma.event.update({
         where: { id: event.id },
         data: { status: resolvedStatus },
       });
+      events[eventIndex] = updated;
     }
   }
 
@@ -428,7 +536,10 @@ async function main() {
     }
   }
 
-  const completedEvents = events.filter((event) => event.status === EventStatus.COMPLETED);
+  const completedEvents = await prisma.event.findMany({
+    where: { status: EventStatus.COMPLETED },
+    orderBy: { scheduledStart: 'desc' },
+  });
   const reportStatuses = [ReportStatus.QUEUED, ReportStatus.GENERATED, ReportStatus.EMAILED, ReportStatus.FAILED];
   let reportCount = 0;
 
@@ -447,8 +558,12 @@ async function main() {
         requestedByUserId: organizer.id,
         subjectUserId: reportKind === ReportKind.PLAYER_PARTICIPATION ? player.id : undefined,
         eventId: reportKind === ReportKind.EVENT_ATTENDANCE ? event.id : undefined,
-        periodStart: reportKind === ReportKind.PLAYER_PARTICIPATION ? inDays(now, -30).scheduledStart : undefined,
-        periodEnd: reportKind === ReportKind.PLAYER_PARTICIPATION ? inDays(now, -1).scheduledStart : undefined,
+        periodStart:
+          reportKind === ReportKind.PLAYER_PARTICIPATION
+            ? atLocalDateTime(now, -30, 0, 0)
+            : undefined,
+        periodEnd:
+          reportKind === ReportKind.PLAYER_PARTICIPATION ? atLocalDateTime(now, -1, 23, 59) : undefined,
         reportKind,
         outputFormat,
         deliveryChannel,
@@ -465,6 +580,7 @@ async function main() {
   }
 
   console.log('QuestSync seed completed.');
+  console.log(`Seed anchor (now): ${now.toISOString()}`);
   console.log(`Default password for seeded users: ${SEED_PASSWORD}`);
   console.log(`Users: ${organizers.length} organizers, ${players.length} players`);
   console.log(`Games: ${games.length}`);
